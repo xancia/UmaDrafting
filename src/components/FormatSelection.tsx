@@ -47,6 +47,15 @@ export default function FormatSelection({
             className="hover:text-gray-400 transition-colors"
           >
             Terumi (xancia)
+          </a>{" "}
+          and{" "}
+          <a
+            href="https://discord.gg/CWEgfQBRSK"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-gray-400 transition-colors"
+          >
+            Umamusume Tournaments Discord
           </a>
         </div>
       </div>
