@@ -43,7 +43,7 @@ export default function TeamPanel({
                 key={index}
                 className={`aspect-square rounded-lg border-3 overflow-hidden ${
                   uma
-                    ? "border-gray-600 bg-white shadow-lg"
+                    ? "border-gray-600 bg-gray-600 shadow-lg"
                     : "bg-gray-800 border-gray-700"
                 }`}
               >
