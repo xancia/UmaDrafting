@@ -17,6 +17,7 @@ function App() {
   const [selectedTrack, setSelectedTrack] = useState<string | null>(null);
   const [umaSearch, setUmaSearch] = useState<string>("");
   const [cyclingMap, setCyclingMap] = useState<Map | null>(null);
+  const [revealStarted, setRevealStarted] = useState<boolean>(false);
 
   const isUmaPhase =
     draftState.phase === "uma-pick" || draftState.phase === "uma-ban";
@@ -37,7 +38,7 @@ function App() {
 
   // Cycle through random maps during wildcard reveal animation
   useEffect(() => {
-    if (isComplete && draftState.wildcardMap) {
+    if (isComplete && draftState.wildcardMap && revealStarted) {
       const interval = setInterval(() => {
         const randomMap =
           SAMPLE_MAPS[Math.floor(Math.random() * SAMPLE_MAPS.length)];
@@ -55,7 +56,7 @@ function App() {
         clearTimeout(timeout);
       };
     }
-  }, [isComplete, draftState.wildcardMap]);
+  }, [isComplete, draftState.wildcardMap, revealStarted]);
 
   const handleUmaSelect = (uma: UmaMusume) => {
     const newState = selectUma(draftState, uma);
@@ -77,6 +78,7 @@ function App() {
       setDraftState(newHistory[newHistory.length - 1]);
       setSelectedTrack(null);
       setUmaSearch("");
+      setRevealStarted(false);
     }
   };
 
@@ -86,6 +88,7 @@ function App() {
     setHistory([initialState]);
     setSelectedTrack(null);
     setUmaSearch("");
+    setRevealStarted(false);
   };
 
   // Get opponent's picked items for ban phase
@@ -248,13 +251,48 @@ function App() {
             </div>
           )}
 
-          {isComplete && draftState.wildcardMap && (
+          {isComplete && draftState.wildcardMap && !revealStarted && (
             <div className="bg-gray-800 rounded-lg shadow-lg p-8 text-center border border-gray-700">
               <h2 className="text-4xl font-bold text-gray-100 mb-8">
                 Final Map Reveal!
               </h2>
               <div className="flex justify-center mb-8">
-                <div className="wildcard-reveal bg-gray-700 border-4 border-blue-500 rounded-xl p-8 max-w-md">
+                <div className="bg-gray-700 border-4 border-gray-600 rounded-xl p-8 max-w-md">
+                  <div className="flex items-center justify-center h-full mb-4">
+                    <button
+                      onClick={() => setRevealStarted(true)}
+                      className="bg-gray-800 hover:bg-gray-900 text-white font-bold text-2xl py-8 px-12 rounded-xl shadow-2xl transition-all transform hover:scale-105 border-2 border-gray-700"
+                    >
+                      Reveal
+                    </button>
+                  </div>
+                  <div className="text-center">
+                    <div className="h-10 mb-2"></div>
+                    <div className="h-8 mb-2"></div>
+                    <div className="h-7"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {isComplete && draftState.wildcardMap && revealStarted && (
+            <div className="bg-gray-800 rounded-lg shadow-lg p-8 text-center border border-gray-700">
+              <h2 className="text-4xl font-bold text-gray-100 mb-8">
+                Final Map Reveal!
+              </h2>
+              <div className="flex justify-center mb-8 relative">
+                {/* Invisible placeholder to reserve space */}
+                <div className="bg-gray-700 border-4 border-transparent rounded-xl p-8 max-w-md opacity-0 pointer-events-none">
+                  <div className="aspect-video bg-gray-600 rounded-lg mb-4"></div>
+                  <h3 className="text-3xl font-bold mb-2">Placeholder</h3>
+                  <div className="inline-block px-4 py-2 rounded-lg mb-2">
+                    <span className="text-lg font-semibold">Surface</span>
+                  </div>
+                  <p className="text-xl">1000m</p>
+                </div>
+                {/* Actual card with absolute positioning */}
+                <div className="wildcard-reveal bg-gray-700 border-4 border-blue-500 rounded-xl p-8 max-w-md absolute top-0 left-1/2 -translate-x-1/2">
                   <div className="aspect-video bg-gray-600 rounded-lg mb-4 overflow-hidden">
                     <img
                       src={`./racetrack-portraits/${(
