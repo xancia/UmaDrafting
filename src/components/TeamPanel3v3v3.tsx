@@ -43,7 +43,7 @@ export default function TeamPanel3v3v3({
         <h4 className="text-[10px] font-bold mb-1 text-gray-300 uppercase">
           Picked ({teamData.pickedUmas.length}/3)
         </h4>
-        <div className="grid grid-cols-3 gap-1 max-w-[500px] mx-auto">
+        <div className="grid grid-cols-3 gap-1 max-w-125 mx-auto">
           {[...Array(3)].map((_, index) => {
             const uma = teamData.pickedUmas[index];
             return (
@@ -79,7 +79,7 @@ export default function TeamPanel3v3v3({
         <h4 className="text-[10px] font-bold mb-1 text-red-400 uppercase">
           Banned ({teamData.bannedUmas.length}/3)
         </h4>
-        <div className="grid grid-cols-3 gap-1 max-w-[500px] mx-auto">
+        <div className="grid grid-cols-3 gap-1 max-w-125 mx-auto">
           {[...Array(3)].map((_, index) => {
             const uma = teamData.bannedUmas[index];
             return (
