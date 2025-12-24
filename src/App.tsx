@@ -28,20 +28,46 @@ function App() {
     if (draftState.phase === "complete" && !draftState.wildcardMap) {
       // Use a timeout to avoid synchronous setState in effect
       const timer = setTimeout(() => {
+        // Collect all selected maps (picked and banned from both teams)
+        const allSelectedMaps = [
+          ...draftState.team1.pickedMaps,
+          ...draftState.team1.bannedMaps,
+          ...draftState.team2.pickedMaps,
+          ...draftState.team2.bannedMaps,
+        ];
+        const selectedMapIds = new Set(allSelectedMaps.map((m) => m.id));
+
+        // Filter available maps that weren't selected
+        const availableMaps = SAMPLE_MAPS.filter(
+          (m) => !selectedMapIds.has(m.id)
+        );
+
         const randomMap =
-          SAMPLE_MAPS[Math.floor(Math.random() * SAMPLE_MAPS.length)];
+          availableMaps[Math.floor(Math.random() * availableMaps.length)];
         setDraftState((prev) => ({ ...prev, wildcardMap: randomMap }));
       }, 0);
       return () => clearTimeout(timer);
     }
-  }, [draftState.phase, draftState.wildcardMap]);
+  }, [draftState]);
 
   // Cycle through random maps during wildcard reveal animation
   useEffect(() => {
     if (isComplete && draftState.wildcardMap && revealStarted) {
+      // Collect all selected maps
+      const allSelectedMaps = [
+        ...draftState.team1.pickedMaps,
+        ...draftState.team1.bannedMaps,
+        ...draftState.team2.pickedMaps,
+        ...draftState.team2.bannedMaps,
+      ];
+      const selectedMapIds = new Set(allSelectedMaps.map((m) => m.id));
+      const availableMaps = SAMPLE_MAPS.filter(
+        (m) => !selectedMapIds.has(m.id)
+      );
+
       const interval = setInterval(() => {
         const randomMap =
-          SAMPLE_MAPS[Math.floor(Math.random() * SAMPLE_MAPS.length)];
+          availableMaps[Math.floor(Math.random() * availableMaps.length)];
         setCyclingMap(randomMap);
       }, 150); // Change map every 150ms
 
@@ -56,7 +82,7 @@ function App() {
         clearTimeout(timeout);
       };
     }
-  }, [isComplete, draftState.wildcardMap, revealStarted]);
+  }, [isComplete, revealStarted, draftState]);
 
   const handleUmaSelect = (uma: UmaMusume) => {
     const newState = selectUma(draftState, uma);
