@@ -21,9 +21,7 @@ export default function FormatSelection({
             className="group bg-gray-700 hover:bg-gray-600 border-2 border-gray-600 hover:border-blue-500 rounded-xl p-8 transition-all transform hover:scale-105 shadow-lg"
           >
             <div className="text-6xl font-bold text-blue-500 mb-4">5v5</div>
-            <p className="text-gray-400 text-sm">
-              2 Teams • Uma & Map Drafting
-            </p>
+            <p className="text-gray-400 text-sm">2 Teams • Uma & Map Draft</p>
           </button>
 
           <button
