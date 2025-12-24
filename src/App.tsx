@@ -165,8 +165,19 @@ function App() {
                     <button
                       key={track}
                       onClick={() => setSelectedTrack(track)}
-                      className="p-6 bg-gray-700 border-2 border-gray-600 rounded-lg hover:border-gray-500 hover:shadow-lg transition-all"
+                      className="p-4 bg-gray-700 border-2 border-gray-600 rounded-lg hover:border-gray-500 hover:shadow-lg transition-all overflow-hidden"
                     >
+                      <div className="aspect-video bg-gray-600 rounded mb-2 flex items-center justify-center overflow-hidden">
+                        <img
+                          src={`./racetrack-portraits/${track.toLowerCase()}.png`}
+                          alt={track}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = "none";
+                          }}
+                        />
+                      </div>
                       <div className="text-center">
                         <p className="text-lg font-bold text-gray-100">
                           {track}
