@@ -94,25 +94,30 @@ export default function TeamPanel({
           {[...Array(4)].map((_, index) => {
             const map = allMaps[index];
             const isBanned = map && bannedMaps.some((b) => b.id === map.id);
+            const surfaceColor = map
+              ? map.surface.toLowerCase() === "turf"
+                ? "bg-green-700"
+                : "bg-amber-800"
+              : "";
             return map ? (
               <div
                 key={map.id}
                 className={`px-4 py-3 rounded-lg border min-w-0 relative ${
                   isBanned
-                    ? "bg-gray-800/30 border-gray-700"
-                    : "bg-gray-800 border-gray-700"
+                    ? `${surfaceColor}/30 border-gray-700`
+                    : `${surfaceColor} border-gray-700`
                 }`}
               >
                 <div
                   className={`text-base font-semibold truncate ${
-                    isBanned ? "text-gray-400 line-through" : "text-gray-200"
+                    isBanned ? "text-gray-400 line-through" : "text-white"
                   }`}
                 >
                   {map.track}
                 </div>
                 <div
                   className={`text-sm truncate ${
-                    isBanned ? "text-gray-500 line-through" : "text-gray-400"
+                    isBanned ? "text-gray-500 line-through" : "text-gray-100"
                   }`}
                 >
                   {map.distance} • {map.surface}
