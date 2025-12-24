@@ -50,6 +50,17 @@ export default function DraftHeader({
               </span>
             </p>
           )}
+          <p className="text-xs text-gray-500 mt-2">
+            Made by{" "}
+            <a
+              href="https://github.com/xancia"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-gray-400 transition-colors"
+            >
+              Terumi (xancia)
+            </a>
+          </p>
         </div>
         <div className="flex gap-3">
           <button
