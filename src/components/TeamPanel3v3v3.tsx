@@ -38,48 +38,12 @@ export default function TeamPanel3v3v3({
         <h3 className={`text-xs font-bold ${teamColor}`}>{teamName}</h3>
       </div>
 
-      {/* Picked Umamusume Section */}
-      <div className="mb-1">
-        <h4 className="text-[10px] font-bold mb-1 text-gray-300 uppercase">
-          Picked ({teamData.pickedUmas.length}/3)
-        </h4>
-        <div className="grid grid-cols-3 gap-1 max-w-125 mx-auto">
-          {[...Array(3)].map((_, index) => {
-            const uma = teamData.pickedUmas[index];
-            return (
-              <div
-                key={index}
-                className={`aspect-square rounded border overflow-hidden relative ${
-                  uma
-                    ? "border-gray-600 bg-gray-600"
-                    : "bg-gray-900 border-gray-700"
-                }`}
-              >
-                {uma ? (
-                  <div className="relative w-full h-full">
-                    <img
-                      src={uma.imageUrl}
-                      alt={uma.name}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.style.display = "none";
-                      }}
-                    />
-                  </div>
-                ) : null}
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
       {/* Banned Umamusume Section */}
-      <div>
+      <div className="mb-1">
         <h4 className="text-[10px] font-bold mb-1 text-red-400 uppercase">
           Banned ({teamData.bannedUmas.length}/3)
         </h4>
-        <div className="grid grid-cols-3 gap-1 max-w-125 mx-auto">
+        <div className="grid grid-cols-3 gap-1 max-w-100 mx-auto">
           {[...Array(3)].map((_, index) => {
             const uma = teamData.bannedUmas[index];
             return (
@@ -105,6 +69,42 @@ export default function TeamPanel3v3v3({
                     <div className="absolute inset-0 flex items-center justify-center text-red-500 text-xl font-bold">
                       ✕
                     </div>
+                  </div>
+                ) : null}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Picked Umamusume Section */}
+      <div>
+        <h4 className="text-[10px] font-bold mb-1 text-gray-300 uppercase">
+          Picked ({teamData.pickedUmas.length}/3)
+        </h4>
+        <div className="grid grid-cols-3 gap-1 max-w-100 mx-auto">
+          {[...Array(3)].map((_, index) => {
+            const uma = teamData.pickedUmas[index];
+            return (
+              <div
+                key={index}
+                className={`aspect-square rounded border overflow-hidden relative ${
+                  uma
+                    ? "border-gray-600 bg-gray-600"
+                    : "bg-gray-900 border-gray-700"
+                }`}
+              >
+                {uma ? (
+                  <div className="relative w-full h-full">
+                    <img
+                      src={uma.imageUrl}
+                      alt={uma.name}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = "none";
+                      }}
+                    />
                   </div>
                 ) : null}
               </div>

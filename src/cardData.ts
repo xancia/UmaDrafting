@@ -34,7 +34,7 @@ export const SAMPLE_CARDS: Card[] = [
   { id: "sr17", name: "Nice Nature SR", rarity: "SR" },
   { id: "sr18", name: "Winning Ticket SR", rarity: "SR" },
   { id: "sr19", name: "Fuji Kiseki SR", rarity: "SR" },
-  { id: "sr20", name: "Matikanefukukitaru SR", rarity: "SR" },
+  { id: "sr20", name: "Matifuku SR", rarity: "SR" },
 
   // R Cards
   { id: "r1", name: "Sakura Bakushin O R", rarity: "R" },

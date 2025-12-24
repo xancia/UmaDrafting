@@ -318,38 +318,50 @@ export default function Draft3v3v3({ onBackToMenu }: Draft3v3v3Props) {
   }
 
   // Main Draft Phase (Uma Draft or Card Draft)
+  const currentTeamColor =
+    draftState.currentTeam === "team1"
+      ? "text-blue-400"
+      : draftState.currentTeam === "team2"
+      ? "text-red-400"
+      : "text-green-400";
+
   return (
     <div className="h-screen bg-linear-to-br from-gray-950 to-gray-900 flex flex-col px-6 py-4 gap-3">
       {/* Compact Header */}
       <div className="bg-gray-800 rounded-lg shadow-lg px-4 py-2 border border-gray-700 shrink-0">
-        <div className="flex justify-between items-center">
+        <div className="flex items-center">
+          <div className="flex-1" />
           <div className="flex items-center gap-4">
-            <span className="text-lg font-bold text-gray-100">
-              {draftState.phase === "uma-ban" && "Uma Ban"}
-              {draftState.phase === "uma-pick" && "Uma Pick"}
-              {draftState.phase === "card-pick" && "Card Draft"}
-              {draftState.phase === "complete" && "Complete!"}
+            <span className="text-xl font-semibold text-gray-100">
+              Round {draftState.round}
             </span>
             {draftState.phase !== "complete" && (
               <>
-                <span className="text-gray-500">•</span>
-                <span className="text-sm text-gray-400">
-                  Round {draftState.round}
+                <span className="text-xl text-gray-500">•</span>
+                <span className="text-2xl font-bold text-gray-100">
+                  {draftState.phase === "uma-ban" && "Uma Ban"}
+                  {draftState.phase === "uma-pick" && "Uma Pick"}
+                  {draftState.phase === "card-pick" && "Card Draft"}
                 </span>
-                <span className="text-gray-500">•</span>
-                <span className="text-sm font-semibold text-blue-400">
+                <span className="text-xl text-gray-500">•</span>
+                <span className={`text-lg font-semibold ${currentTeamColor}`}>
                   {getTeamName(draftState.currentTeam)}
                 </span>
               </>
             )}
+            {draftState.phase === "complete" && (
+              <span className="text-2xl font-bold text-gray-100">
+                Complete!
+              </span>
+            )}
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex-1 flex items-center justify-end gap-2">
             <button
               onClick={handleUndo}
               disabled={history.length <= 1}
               className="bg-gray-700 hover:bg-gray-600 text-gray-100 font-semibold py-1.5 px-4 rounded-lg transition-colors border border-gray-600 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Undo
+              ← Undo
             </button>
             <button
               onClick={handleReset}
@@ -361,7 +373,7 @@ export default function Draft3v3v3({ onBackToMenu }: Draft3v3v3Props) {
               onClick={handleBackToMenuClick}
               className="bg-gray-700 hover:bg-gray-600 text-gray-100 font-semibold py-1.5 px-4 rounded-lg transition-colors border border-gray-600 text-sm"
             >
-              Draft Selection
+              Format Selection
             </button>
           </div>
         </div>
@@ -394,6 +406,10 @@ export default function Draft3v3v3({ onBackToMenu }: Draft3v3v3Props) {
         {(draftState.phase === "uma-ban" ||
           draftState.phase === "uma-pick") && (
           <>
+            <h2 className="text-2xl font-bold mb-4 text-gray-100">
+              {draftState.phase === "uma-pick" && "Available Umamusume"}
+              {draftState.phase === "uma-ban" && "Available Umamusume"}
+            </h2>
             <input
               type="text"
               placeholder="Search Umamusume..."
@@ -401,7 +417,7 @@ export default function Draft3v3v3({ onBackToMenu }: Draft3v3v3Props) {
               onChange={(e) => setUmaSearch(e.target.value)}
               className="w-full mb-4 px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 placeholder-gray-400 focus:outline-none focus:border-gray-500"
             />
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-8 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-15 gap-4">
               {getFilteredUmas().map((uma) => (
                 <UmaCard key={uma.id} uma={uma} onSelect={handleUmaSelect} />
               ))}

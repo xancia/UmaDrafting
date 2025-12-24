@@ -11,9 +11,9 @@ export default function UmaCard({ uma, onSelect, disabled }: UmaCardProps) {
     <button
       onClick={() => onSelect(uma)}
       disabled={disabled}
-      className="p-4 bg-gray-700 border-2 border-gray-600 rounded-lg hover:border-gray-500 hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-gray-600"
+      className="p-2 bg-gray-700 border-2 border-gray-600 rounded-lg hover:border-gray-500 hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-gray-600"
     >
-      <div className="aspect-square bg-gray-600 rounded mb-2 flex items-center justify-center overflow-hidden">
+      <div className="aspect-square bg-gray-600 rounded mb-1 flex items-center justify-center overflow-hidden">
         {uma.imageUrl ? (
           <img
             src={uma.imageUrl}
@@ -24,7 +24,7 @@ export default function UmaCard({ uma, onSelect, disabled }: UmaCardProps) {
           <span className="text-xl text-gray-400">?</span>
         )}
       </div>
-      <p className="text-sm font-semibold text-gray-100 text-center">
+      <p className="text-xs font-semibold text-gray-100 text-center">
         {uma.name}
       </p>
     </button>

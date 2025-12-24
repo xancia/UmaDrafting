@@ -49,7 +49,7 @@ export const SAMPLE_UMAS: UmaMusume[] = [
   },
   {
     id: "10",
-    name: "Matikanefukukitaru (Full Armor)",
+    name: "Matifuku (Full Armor)",
     imageUrl: "./uma-portraits/matikanefukukitaru-fullarmor.png",
   },
   {
@@ -57,7 +57,11 @@ export const SAMPLE_UMAS: UmaMusume[] = [
     name: "Eishin Flash",
     imageUrl: "./uma-portraits/eishin-flash.png",
   },
-  { id: "12", name: "Meisho Doto", imageUrl: "./uma-portraits/meisho-doto.png" },
+  {
+    id: "12",
+    name: "Meisho Doto",
+    imageUrl: "./uma-portraits/meisho-doto.png",
+  },
   {
     id: "13",
     name: "Special Week (Summer)",
@@ -69,7 +73,11 @@ export const SAMPLE_UMAS: UmaMusume[] = [
     imageUrl: "./uma-portraits/maruzensky-summer.png",
   },
   { id: "15", name: "Gold City", imageUrl: "./uma-portraits/gold-city.png" },
-  { id: "16", name: "Fuji Kiseki", imageUrl: "./uma-portraits/fuji-kiseki.png" },
+  {
+    id: "16",
+    name: "Fuji Kiseki",
+    imageUrl: "./uma-portraits/fuji-kiseki.png",
+  },
   {
     id: "17",
     name: "Grass Wonder (Fantasy)",
@@ -111,7 +119,11 @@ export const SAMPLE_UMAS: UmaMusume[] = [
     name: "Narita Taishin",
     imageUrl: "./uma-portraits/narita-taishin.png",
   },
-  { id: "26", name: "Curren Chan", imageUrl: "./uma-portraits/curren-chan.png" },
+  {
+    id: "26",
+    name: "Curren Chan",
+    imageUrl: "./uma-portraits/curren-chan.png",
+  },
   {
     id: "27",
     name: "Tokai Teio (Anime Collab)",
@@ -161,7 +173,11 @@ export const SAMPLE_UMAS: UmaMusume[] = [
     name: "Symboli Rudolf",
     imageUrl: "./uma-portraits/symboli-rudolf.png",
   },
-  { id: "40", name: "Rice Shower", imageUrl: "./uma-portraits/rice-shower.png" },
+  {
+    id: "40",
+    name: "Rice Shower",
+    imageUrl: "./uma-portraits/rice-shower.png",
+  },
   { id: "41", name: "Gold Ship", imageUrl: "./uma-portraits/gold-ship.png" },
   { id: "42", name: "Vodka", imageUrl: "./uma-portraits/vodka.png" },
   {
@@ -185,8 +201,16 @@ export const SAMPLE_UMAS: UmaMusume[] = [
     name: "Mayano Top Gun",
     imageUrl: "./uma-portraits/mayano-top-gun.png",
   },
-  { id: "48", name: "Super Creek", imageUrl: "./uma-portraits/super-creek.png" },
-  { id: "49", name: "Mejiro Ryan", imageUrl: "./uma-portraits/mejiro-ryan.png" },
+  {
+    id: "48",
+    name: "Super Creek",
+    imageUrl: "./uma-portraits/super-creek.png",
+  },
+  {
+    id: "49",
+    name: "Mejiro Ryan",
+    imageUrl: "./uma-portraits/mejiro-ryan.png",
+  },
   {
     id: "50",
     name: "Agnes Tachyon",
@@ -205,10 +229,14 @@ export const SAMPLE_UMAS: UmaMusume[] = [
   { id: "53", name: "Haru Urara", imageUrl: "./uma-portraits/haru-urara.png" },
   {
     id: "54",
-    name: "Matikanefukukitaru",
+    name: "Matifuku",
     imageUrl: "./uma-portraits/matikanefukukitaru.png",
   },
-  { id: "55", name: "Nice Nature", imageUrl: "./uma-portraits/nice-nature.png" },
+  {
+    id: "55",
+    name: "Nice Nature",
+    imageUrl: "./uma-portraits/nice-nature.png",
+  },
   { id: "56", name: "King Halo", imageUrl: "./uma-portraits/king-halo.png" },
 ];
 
