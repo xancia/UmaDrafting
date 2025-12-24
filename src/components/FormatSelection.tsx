@@ -9,7 +9,7 @@ export default function FormatSelection({
     <div className="h-screen bg-linear-to-br from-gray-950 to-gray-900 flex items-center justify-center px-6">
       <div className="bg-gray-800 rounded-xl shadow-2xl p-12 border-2 border-gray-700 max-w-2xl w-full">
         <h1 className="text-5xl font-bold text-center mb-4 text-gray-100">
-          Uma Musume Drafting
+          Uma Drafting
         </h1>
         <p className="text-center text-gray-400 mb-12 text-lg">
           Select your draft format to begin
