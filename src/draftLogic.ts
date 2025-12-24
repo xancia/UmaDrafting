@@ -76,17 +76,14 @@ export const selectUma = (state: DraftState, uma: UmaMusume): DraftState => {
       (u) => u.id !== uma.id
     );
   } else if (phase === "uma-ban") {
-    // Remove from the opponent's picked umas and add to current team's banned list
+    // Remove from the opponent's picked umas and add to opponent team's banned list
     const opponentTeam = currentTeam === "team1" ? "team2" : "team1";
     newState[opponentTeam] = {
       ...newState[opponentTeam],
       pickedUmas: newState[opponentTeam].pickedUmas.filter(
         (u) => u.id !== uma.id
       ),
-    };
-    newState[currentTeam] = {
-      ...newState[currentTeam],
-      bannedUmas: [...newState[currentTeam].bannedUmas, uma],
+      bannedUmas: [...newState[opponentTeam].bannedUmas, uma],
     };
   }
 
@@ -117,17 +114,14 @@ export const selectMap = (state: DraftState, map: Map): DraftState => {
       (m) => m.id !== map.id
     );
   } else if (phase === "map-ban") {
-    // Remove from the opponent's picked maps and add to current team's banned list
+    // Remove from the opponent's picked maps and add to opponent team's banned list
     const opponentTeam = currentTeam === "team1" ? "team2" : "team1";
     newState[opponentTeam] = {
       ...newState[opponentTeam],
       pickedMaps: newState[opponentTeam].pickedMaps.filter(
         (m) => m.id !== map.id
       ),
-    };
-    newState[currentTeam] = {
-      ...newState[currentTeam],
-      bannedMaps: [...newState[currentTeam].bannedMaps, map],
+      bannedMaps: [...newState[opponentTeam].bannedMaps, map],
     };
   }
 
