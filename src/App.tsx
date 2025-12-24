@@ -14,6 +14,7 @@ function App() {
     getInitialDraftState(),
   ]);
   const [selectedTrack, setSelectedTrack] = useState<string | null>(null);
+  const [umaSearch, setUmaSearch] = useState<string>("");
 
   const handleUmaSelect = (uma: UmaMusume) => {
     const newState = selectUma(draftState, uma);
@@ -34,6 +35,7 @@ function App() {
       setHistory(newHistory);
       setDraftState(newHistory[newHistory.length - 1]);
       setSelectedTrack(null);
+      setUmaSearch("");
     }
   };
 
@@ -42,6 +44,7 @@ function App() {
     setDraftState(initialState);
     setHistory([initialState]);
     setSelectedTrack(null);
+    setUmaSearch("");
   };
 
   const isUmaPhase =
@@ -59,6 +62,14 @@ function App() {
       return draftState[opponentTeam].pickedUmas;
     }
     return draftState.availableUmas;
+  };
+
+  const getFilteredUmas = () => {
+    const umas = getBannableUmas();
+    if (!umaSearch.trim()) return umas;
+    return umas.filter((uma) =>
+      uma.name.toLowerCase().includes(umaSearch.toLowerCase())
+    );
   };
 
   const getBannableMaps = () => {
@@ -108,8 +119,8 @@ function App() {
           {!isComplete && (
             <div className="bg-gray-800 rounded-lg shadow-lg p-6 border border-gray-700">
               <h2 className="text-2xl font-bold mb-4 text-gray-100">
-                {draftState.phase === "uma-pick" && "Available Umas"}
-                {draftState.phase === "uma-ban" && "Ban Opponent's Umas"}
+                {draftState.phase === "uma-pick" && "Available Umamusume"}
+                {draftState.phase === "uma-ban" && "Ban Opponent's Umamusume"}
                 {draftState.phase === "map-pick" &&
                   !selectedTrack &&
                   "Select a Racecourse"}
@@ -118,6 +129,16 @@ function App() {
                   `Select Distance - ${selectedTrack}`}
                 {draftState.phase === "map-ban" && "Ban Opponent's Map"}
               </h2>
+
+              {isUmaPhase && (
+                <input
+                  type="text"
+                  placeholder="Search Umamusume..."
+                  value={umaSearch}
+                  onChange={(e) => setUmaSearch(e.target.value)}
+                  className="w-full mb-4 px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 placeholder-gray-400 focus:outline-none focus:border-gray-500"
+                />
+              )}
 
               {draftState.phase === "map-pick" && selectedTrack && (
                 <button
@@ -130,7 +151,7 @@ function App() {
 
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                 {isUmaPhase &&
-                  getBannableUmas().map((uma) => (
+                  getFilteredUmas().map((uma) => (
                     <UmaCard
                       key={uma.id}
                       uma={uma}
