@@ -4,6 +4,7 @@ export interface Card {
   id: string;
   name: string;
   rarity: "SSR" | "SR" | "R";
+  type?: "speed" | "stamina" | "power" | "guts" | "wit" | "friend";
   imageUrl?: string;
 }
 

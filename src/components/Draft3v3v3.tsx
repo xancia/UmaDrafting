@@ -29,6 +29,7 @@ export default function Draft3v3v3({ onBackToMenu }: Draft3v3v3Props) {
     "SSR" | "SR" | "R" | null
   >(null);
   const [umaSearch, setUmaSearch] = useState<string>("");
+  const [cardSearch, setCardSearch] = useState<string>("");
   const [showResetConfirm, setShowResetConfirm] = useState<boolean>(false);
   const [showMenuConfirm, setShowMenuConfirm] = useState<boolean>(false);
 
@@ -45,6 +46,7 @@ export default function Draft3v3v3({ onBackToMenu }: Draft3v3v3Props) {
       setHistory(newHistory);
       setDraftState(newHistory[newHistory.length - 1]);
       setUmaSearch("");
+      setCardSearch("");
     }
   };
 
@@ -163,6 +165,12 @@ export default function Draft3v3v3({ onBackToMenu }: Draft3v3v3Props) {
       (card) => !draftState.preBannedCards.some((pb) => pb.id === card.id)
     );
 
+    if (cardSearch) {
+      cards = cards.filter((card) =>
+        card.name.toLowerCase().includes(cardSearch.toLowerCase())
+      );
+    }
+
     if (cardRarityFilter) {
       cards = cards.filter((card) => card.rarity === cardRarityFilter);
     }
@@ -272,45 +280,72 @@ export default function Draft3v3v3({ onBackToMenu }: Draft3v3v3Props) {
         </div>
 
         <div className="flex-1 overflow-y-auto bg-gray-800 rounded-lg shadow-lg p-6 border border-gray-700">
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            {draftState.availableCards.map((card) => {
-              const isBanned = draftState.preBannedCards.some(
-                (c) => c.id === card.id
-              );
-              return (
-                <button
-                  key={card.id}
-                  onClick={() => toggleCardPreBan(card)}
-                  className={`p-4 rounded-lg border-2 transition-all ${
-                    isBanned
-                      ? "bg-red-900 border-red-600 opacity-50"
-                      : "bg-gray-700 border-gray-600 hover:border-gray-500"
-                  }`}
-                >
-                  <div className="text-center">
-                    <div
-                      className={`text-xs font-bold mb-2 ${
-                        card.rarity === "SSR"
-                          ? "text-yellow-400"
-                          : card.rarity === "SR"
-                          ? "text-purple-400"
-                          : "text-blue-400"
-                      }`}
-                    >
-                      {card.rarity}
+          <h3 className="text-xl font-bold text-gray-100 mb-4">
+            Available Cards
+          </h3>
+          <div className="mb-4">
+            <input
+              type="text"
+              placeholder="Search cards..."
+              value={cardSearch}
+              onChange={(e) => setCardSearch(e.target.value)}
+              className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 lg:grid-cols-15 gap-4">
+            {draftState.availableCards
+              .filter((card) =>
+                card.name.toLowerCase().includes(cardSearch.toLowerCase())
+              )
+              .map((card) => {
+                const isBanned = draftState.preBannedCards.some(
+                  (c) => c.id === card.id
+                );
+                return (
+                  <button
+                    key={card.id}
+                    onClick={() => toggleCardPreBan(card)}
+                    className={`p-2 rounded-lg border-2 transition-all ${
+                      isBanned
+                        ? "bg-red-900 border-red-600 opacity-50"
+                        : "bg-gray-700 border-gray-600 hover:border-gray-500"
+                    }`}
+                  >
+                    <div className="aspect-square bg-gray-600 rounded mb-1 overflow-hidden relative p-2">
+                      {card.imageUrl ? (
+                        <img
+                          src={card.imageUrl}
+                          alt={card.name}
+                          className="w-full h-full object-cover rounded"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = "none";
+                          }}
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <span className="text-2xl text-gray-400">?</span>
+                        </div>
+                      )}
+                      {card.type && (
+                        <img
+                          src={`./supoka/${card.type}-icon.png`}
+                          alt={card.type}
+                          className="absolute top-1 right-1 w-8 h-8 object-contain"
+                        />
+                      )}
                     </div>
-                    <p className="text-sm font-semibold text-gray-100">
+                    <p className="text-xs font-semibold text-gray-100 text-center truncate">
                       {card.name}
                     </p>
                     {isBanned && (
-                      <div className="mt-2 text-red-400 text-xs font-bold">
+                      <div className="mt-1 text-red-400 text-xs font-bold text-center">
                         BANNED
                       </div>
                     )}
-                  </div>
-                </button>
-              );
-            })}
+                  </button>
+                );
+              })}
           </div>
         </div>
       </div>
@@ -427,6 +462,18 @@ export default function Draft3v3v3({ onBackToMenu }: Draft3v3v3Props) {
         {/* Card Draft */}
         {draftState.phase === "card-pick" && (
           <>
+            <h3 className="text-xl font-bold text-gray-100 mb-4">
+              Available Cards
+            </h3>
+            <div className="mb-4">
+              <input
+                type="text"
+                placeholder="Search cards..."
+                value={cardSearch}
+                onChange={(e) => setCardSearch(e.target.value)}
+                className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
             <div className="flex gap-3 mb-6">
               <button
                 onClick={() =>
@@ -466,29 +513,40 @@ export default function Draft3v3v3({ onBackToMenu }: Draft3v3v3Props) {
               </button>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 lg:grid-cols-15 gap-4">
               {getFilteredCards().map((card) => (
                 <button
                   key={card.id}
                   onClick={() => handleCardSelect(card)}
-                  className="p-4 bg-gray-700 border-2 border-gray-600 rounded-lg hover:border-gray-500 hover:shadow-lg transition-all"
+                  className="p-2 bg-gray-700 border-2 border-gray-600 rounded-lg hover:border-gray-500 hover:shadow-lg transition-all"
                 >
-                  <div className="text-center">
-                    <div
-                      className={`text-xs font-bold mb-2 ${
-                        card.rarity === "SSR"
-                          ? "text-yellow-400"
-                          : card.rarity === "SR"
-                          ? "text-purple-400"
-                          : "text-blue-400"
-                      }`}
-                    >
-                      {card.rarity}
-                    </div>
-                    <p className="text-sm font-semibold text-gray-100">
-                      {card.name}
-                    </p>
+                  <div className="aspect-square bg-gray-600 rounded mb-1 overflow-hidden relative p-2">
+                    {card.imageUrl ? (
+                      <img
+                        src={card.imageUrl}
+                        alt={card.name}
+                        className="w-full h-full object-cover rounded"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = "none";
+                        }}
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <span className="text-2xl text-gray-400">?</span>
+                      </div>
+                    )}
+                    {card.type && (
+                      <img
+                        src={`./supoka/${card.type}-icon.png`}
+                        alt={card.type}
+                        className="absolute top-1 right-1 w-8 h-8 object-contain"
+                      />
+                    )}
                   </div>
+                  <p className="text-xs font-semibold text-gray-100 text-center truncate">
+                    {card.name}
+                  </p>
                 </button>
               ))}
             </div>
