@@ -74,7 +74,7 @@ export default function DraftHeader({
             onClick={onReset}
             className="bg-gray-700 text-gray-100 font-semibold py-2 px-6 rounded-lg hover:bg-gray-600 transition-colors border border-gray-600"
           >
-            Reset
+            {phase === "complete" ? "Start New Draft" : "Reset"}
           </button>
         </div>
       </div>

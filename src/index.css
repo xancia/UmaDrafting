@@ -9,3 +9,34 @@
 .hide-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
+/* Wildcard reveal animation */
+@keyframes flipIn {
+  0% {
+    transform: perspective(400px) rotateY(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  100% {
+    transform: perspective(400px) rotateY(1080deg);
+    opacity: 1;
+  }
+}
+
+@keyframes glow {
+  0%,
+  100% {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(59, 130, 246, 0.8),
+      0 0 60px rgba(59, 130, 246, 0.6);
+  }
+}
+
+.wildcard-reveal {
+  animation: flipIn 3s ease-out, glow 2s ease-in-out infinite;
+  animation-delay: 0s, 3s;
+}

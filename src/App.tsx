@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { DraftState, UmaMusume, Map } from "./types";
 import { getInitialDraftState, selectUma, selectMap } from "./draftLogic";
+import { SAMPLE_MAPS } from "./data";
 import DraftHeader from "./components/DraftHeader";
 import TeamPanel from "./components/TeamPanel";
 import UmaCard from "./components/UmaCard";
@@ -15,6 +16,46 @@ function App() {
   ]);
   const [selectedTrack, setSelectedTrack] = useState<string | null>(null);
   const [umaSearch, setUmaSearch] = useState<string>("");
+  const [cyclingMap, setCyclingMap] = useState<Map | null>(null);
+
+  const isUmaPhase =
+    draftState.phase === "uma-pick" || draftState.phase === "uma-ban";
+  const isComplete = draftState.phase === "complete";
+
+  // Generate wildcard map when draft completes
+  useEffect(() => {
+    if (draftState.phase === "complete" && !draftState.wildcardMap) {
+      // Use a timeout to avoid synchronous setState in effect
+      const timer = setTimeout(() => {
+        const randomMap =
+          SAMPLE_MAPS[Math.floor(Math.random() * SAMPLE_MAPS.length)];
+        setDraftState((prev) => ({ ...prev, wildcardMap: randomMap }));
+      }, 0);
+      return () => clearTimeout(timer);
+    }
+  }, [draftState.phase, draftState.wildcardMap]);
+
+  // Cycle through random maps during wildcard reveal animation
+  useEffect(() => {
+    if (isComplete && draftState.wildcardMap) {
+      const interval = setInterval(() => {
+        const randomMap =
+          SAMPLE_MAPS[Math.floor(Math.random() * SAMPLE_MAPS.length)];
+        setCyclingMap(randomMap);
+      }, 150); // Change map every 150ms
+
+      // Stop cycling after 3 seconds and show final wildcard
+      const timeout = setTimeout(() => {
+        clearInterval(interval);
+        setCyclingMap(null);
+      }, 3000);
+
+      return () => {
+        clearInterval(interval);
+        clearTimeout(timeout);
+      };
+    }
+  }, [isComplete, draftState.wildcardMap]);
 
   const handleUmaSelect = (uma: UmaMusume) => {
     const newState = selectUma(draftState, uma);
@@ -46,10 +87,6 @@ function App() {
     setSelectedTrack(null);
     setUmaSearch("");
   };
-
-  const isUmaPhase =
-    draftState.phase === "uma-pick" || draftState.phase === "uma-ban";
-  const isComplete = draftState.phase === "complete";
 
   // Get opponent's picked items for ban phase
   const getOpponentTeam = () => {
@@ -211,20 +248,49 @@ function App() {
             </div>
           )}
 
-          {isComplete && (
+          {isComplete && draftState.wildcardMap && (
             <div className="bg-gray-800 rounded-lg shadow-lg p-8 text-center border border-gray-700">
-              <h2 className="text-3xl font-bold text-gray-100 mb-4">
-                Draft Complete!
+              <h2 className="text-4xl font-bold text-gray-100 mb-8">
+                Final Map Reveal!
               </h2>
-              <p className="text-lg text-gray-300 mb-6">
-                The draft has been completed successfully!
-              </p>
-              <button
-                onClick={handleReset}
-                className="bg-gray-700 hover:bg-gray-600 text-gray-100 font-bold py-3 px-6 rounded-lg transition-colors border border-gray-600"
-              >
-                Start New Draft
-              </button>
+              <div className="flex justify-center mb-8">
+                <div className="wildcard-reveal bg-gray-700 border-4 border-blue-500 rounded-xl p-8 max-w-md">
+                  <div className="aspect-video bg-gray-600 rounded-lg mb-4 overflow-hidden">
+                    <img
+                      src={`./racetrack-portraits/${(
+                        cyclingMap || draftState.wildcardMap
+                      ).track.toLowerCase()}.png`}
+                      alt={(cyclingMap || draftState.wildcardMap).track}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = "none";
+                      }}
+                    />
+                  </div>
+                  <h3 className="text-3xl font-bold text-white mb-2">
+                    {(cyclingMap || draftState.wildcardMap).track}
+                  </h3>
+                  <div
+                    className={`inline-block px-4 py-2 rounded-lg mb-2 ${
+                      (
+                        cyclingMap || draftState.wildcardMap
+                      ).surface.toLowerCase() === "turf"
+                        ? "bg-green-700"
+                        : "bg-amber-800"
+                    }`}
+                  >
+                    <span className="text-lg font-semibold text-white">
+                      {(cyclingMap || draftState.wildcardMap).surface}
+                    </span>
+                  </div>
+                  <p className="text-xl text-gray-200">
+                    {(cyclingMap || draftState.wildcardMap).distance}m
+                    {(cyclingMap || draftState.wildcardMap).variant &&
+                      ` (${(cyclingMap || draftState.wildcardMap).variant})`}
+                  </p>
+                </div>
+              </div>
             </div>
           )}
         </div>
