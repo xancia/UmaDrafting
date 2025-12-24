@@ -46,8 +46,6 @@ function App() {
 
   const isUmaPhase =
     draftState.phase === "uma-pick" || draftState.phase === "uma-ban";
-  const isMapPhase =
-    draftState.phase === "map-pick" || draftState.phase === "map-ban";
   const isComplete = draftState.phase === "complete";
 
   // Get opponent's picked items for ban phase
