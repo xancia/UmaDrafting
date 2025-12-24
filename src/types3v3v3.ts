@@ -21,6 +21,7 @@ export type Draft3v3v3Phase =
 export interface TeamData3v3v3 {
   pickedUmas: UmaMusume[];
   bannedUmas: UmaMusume[];
+  pickedCards: Card[];
 }
 
 export interface DraftState3v3v3 {

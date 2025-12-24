@@ -11,14 +11,17 @@ export function getInitialDraftState3v3v3(): DraftState3v3v3 {
     team1: {
       pickedUmas: [],
       bannedUmas: [],
+      pickedCards: [],
     },
     team2: {
       pickedUmas: [],
       bannedUmas: [],
+      pickedCards: [],
     },
     team3: {
       pickedUmas: [],
       bannedUmas: [],
+      pickedCards: [],
     },
     availableUmas: [...SAMPLE_UMAS],
     preBannedCards: [],

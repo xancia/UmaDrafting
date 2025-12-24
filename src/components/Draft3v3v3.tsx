@@ -137,8 +137,13 @@ export default function Draft3v3v3({ onBackToMenu }: Draft3v3v3Props) {
   const handleCardSelect = (card: Card) => {
     if (draftState.phase !== "card-pick") return;
 
+    const currentTeam = draftState.currentTeam;
     const newState = {
       ...draftState,
+      [currentTeam]: {
+        ...draftState[currentTeam],
+        pickedCards: [...draftState[currentTeam].pickedCards, card],
+      },
       pickedCards: [...draftState.pickedCards, card],
       availableCards: draftState.availableCards.filter((c) => c.id !== card.id),
     };
@@ -415,26 +420,33 @@ export default function Draft3v3v3({ onBackToMenu }: Draft3v3v3Props) {
       </div>
 
       {/* Team Panels Row */}
-      <div className="grid grid-cols-3 gap-3 shrink-0">
-        <TeamPanel3v3v3
-          team="team1"
-          teamName={team1Name}
-          teamData={draftState.team1}
-          isCurrentTurn={draftState.currentTeam === "team1"}
-        />
-        <TeamPanel3v3v3
-          team="team2"
-          teamName={team2Name}
-          teamData={draftState.team2}
-          isCurrentTurn={draftState.currentTeam === "team2"}
-        />
-        <TeamPanel3v3v3
-          team="team3"
-          teamName={team3Name}
-          teamData={draftState.team3}
-          isCurrentTurn={draftState.currentTeam === "team3"}
-        />
-      </div>
+      {(draftState.phase === "uma-ban" ||
+        draftState.phase === "uma-pick" ||
+        draftState.phase === "card-pick") && (
+        <div className="grid grid-cols-3 gap-3 shrink-0">
+          <TeamPanel3v3v3
+            team="team1"
+            teamName={team1Name}
+            teamData={draftState.team1}
+            isCurrentTurn={draftState.currentTeam === "team1"}
+            phase={draftState.phase}
+          />
+          <TeamPanel3v3v3
+            team="team2"
+            teamName={team2Name}
+            teamData={draftState.team2}
+            isCurrentTurn={draftState.currentTeam === "team2"}
+            phase={draftState.phase}
+          />
+          <TeamPanel3v3v3
+            team="team3"
+            teamName={team3Name}
+            teamData={draftState.team3}
+            isCurrentTurn={draftState.currentTeam === "team3"}
+            phase={draftState.phase}
+          />
+        </div>
+      )}
 
       <div className="flex-1 overflow-y-auto hide-scrollbar bg-gray-800 rounded-lg shadow-lg p-6 border border-gray-700">
         {/* Uma Draft */}
@@ -553,11 +565,126 @@ export default function Draft3v3v3({ onBackToMenu }: Draft3v3v3Props) {
           </>
         )}
         {draftState.phase === "complete" && (
-          <div className="text-center">
-            <h3 className="text-3xl font-bold text-gray-100 mb-4">
-              Draft Complete!
-            </h3>
-            <p className="text-gray-400">All selections have been made.</p>
+          <div className="space-y-6">
+            <div className="text-center mb-6">
+              <h3 className="text-3xl font-bold text-gray-100 mb-2">
+                Draft Complete!
+              </h3>
+              <p className="text-gray-400">All selections have been made.</p>
+            </div>
+
+            {/* Team Results - Uma Musume Only */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+              {/* Team 1 */}
+              <div className="bg-gray-700 rounded-lg p-4">
+                <h4 className="text-xl font-bold text-blue-400 mb-4 text-center border-b border-gray-600 pb-2">
+                  {team1Name}
+                </h4>
+
+                <div className="grid grid-cols-3 gap-2">
+                  {draftState.team1.pickedUmas.map((uma) => (
+                    <div
+                      key={uma.id}
+                      className="aspect-square rounded border border-gray-600 overflow-hidden"
+                    >
+                      <img
+                        src={uma.imageUrl}
+                        alt={uma.name}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = "none";
+                        }}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Team 2 */}
+              <div className="bg-gray-700 rounded-lg p-4">
+                <h4 className="text-xl font-bold text-red-400 mb-4 text-center border-b border-gray-600 pb-2">
+                  {team2Name}
+                </h4>
+
+                <div className="grid grid-cols-3 gap-2">
+                  {draftState.team2.pickedUmas.map((uma) => (
+                    <div
+                      key={uma.id}
+                      className="aspect-square rounded border border-gray-600 overflow-hidden"
+                    >
+                      <img
+                        src={uma.imageUrl}
+                        alt={uma.name}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = "none";
+                        }}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Team 3 */}
+              <div className="bg-gray-700 rounded-lg p-4">
+                <h4 className="text-xl font-bold text-green-400 mb-4 text-center border-b border-gray-600 pb-2">
+                  {team3Name}
+                </h4>
+
+                <div className="grid grid-cols-3 gap-2">
+                  {draftState.team3.pickedUmas.map((uma) => (
+                    <div
+                      key={uma.id}
+                      className="aspect-square rounded border border-gray-600 overflow-hidden"
+                    >
+                      <img
+                        src={uma.imageUrl}
+                        alt={uma.name}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = "none";
+                        }}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Card Pool - All Cards Together */}
+            <div className="bg-gray-700 rounded-lg p-6">
+              <h4 className="text-2xl font-bold text-gray-100 mb-4 text-center border-b border-gray-600 pb-3">
+                Card Pool
+              </h4>
+              <div className="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-15 gap-2">
+                {draftState.pickedCards.map((card) => (
+                  <div
+                    key={card.id}
+                    className="aspect-square rounded border border-gray-600 overflow-hidden relative"
+                  >
+                    <img
+                      src={card.imageUrl}
+                      alt={card.name}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = "none";
+                      }}
+                    />
+                    {card.type && (
+                      <img
+                        src={`./supoka/${card.type}-icon.png`}
+                        alt={card.type}
+                        className="absolute top-0.5 right-0.5 w-4 h-4 object-contain"
+                      />
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         )}{" "}
       </div>
