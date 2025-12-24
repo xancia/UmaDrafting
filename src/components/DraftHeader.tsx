@@ -7,6 +7,8 @@ interface DraftHeaderProps {
   onReset: () => void;
   onBackToMenu: () => void;
   canUndo: boolean;
+  team1Name?: string;
+  team2Name?: string;
 }
 
 export default function DraftHeader({
@@ -16,6 +18,8 @@ export default function DraftHeader({
   onReset,
   onBackToMenu,
   canUndo,
+  team1Name = "Team 1",
+  team2Name = "Team 2",
 }: DraftHeaderProps) {
   const getPhaseText = () => {
     switch (phase) {
@@ -48,7 +52,7 @@ export default function DraftHeader({
             <p className="text-lg text-gray-300">
               Current Turn:{" "}
               <span className={`font-bold ${getTeamColor(currentTeam)}`}>
-                {currentTeam === "team1" ? "Team 1" : "Team 2"}
+                {currentTeam === "team1" ? team1Name : team2Name}
               </span>
             </p>
           )}

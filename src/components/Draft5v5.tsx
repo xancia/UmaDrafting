@@ -24,6 +24,11 @@ export default function Draft5v5({ onBackToMenu }: Draft5v5Props) {
   const [revealStarted, setRevealStarted] = useState<boolean>(false);
   const [showResetConfirm, setShowResetConfirm] = useState<boolean>(false);
   const [showMenuConfirm, setShowMenuConfirm] = useState<boolean>(false);
+  const [showTeamNameModal, setShowTeamNameModal] = useState<boolean>(true);
+  const [team1Name, setTeam1Name] = useState<string>("Team 1");
+  const [team2Name, setTeam2Name] = useState<string>("Team 2");
+  const [tempTeam1Name, setTempTeam1Name] = useState<string>("Team 1");
+  const [tempTeam2Name, setTempTeam2Name] = useState<string>("Team 2");
 
   const isUmaPhase =
     draftState.phase === "uma-pick" || draftState.phase === "uma-ban";
@@ -136,6 +141,12 @@ export default function Draft5v5({ onBackToMenu }: Draft5v5Props) {
     onBackToMenu();
   };
 
+  const confirmTeamNames = () => {
+    setTeam1Name(tempTeam1Name || "Team 1");
+    setTeam2Name(tempTeam2Name || "Team 2");
+    setShowTeamNameModal(false);
+  };
+
   // Get opponent's picked items for ban phase
   const getOpponentTeam = () => {
     return draftState.currentTeam === "team1" ? "team2" : "team1";
@@ -182,6 +193,7 @@ export default function Draft5v5({ onBackToMenu }: Draft5v5Props) {
       <div className="w-96 shrink-0 overflow-y-auto">
         <TeamPanel
           team="team1"
+          teamName={team1Name}
           pickedUmas={draftState.team1.pickedUmas}
           bannedUmas={draftState.team1.bannedUmas}
           pickedMaps={draftState.team1.pickedMaps}
@@ -197,6 +209,8 @@ export default function Draft5v5({ onBackToMenu }: Draft5v5Props) {
             onUndo={handleUndo}
             onReset={handleReset}
             onBackToMenu={handleBackToMenu}
+            team1Name={team1Name}
+            team2Name={team2Name}
             canUndo={history.length > 1}
           />
         </div>
@@ -383,6 +397,7 @@ export default function Draft5v5({ onBackToMenu }: Draft5v5Props) {
       <div className="w-96 shrink-0 overflow-y-auto">
         <TeamPanel
           team="team2"
+          teamName={team2Name}
           pickedUmas={draftState.team2.pickedUmas}
           bannedUmas={draftState.team2.bannedUmas}
           pickedMaps={draftState.team2.pickedMaps}
@@ -442,6 +457,56 @@ export default function Draft5v5({ onBackToMenu }: Draft5v5Props) {
                 className="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors"
               >
                 Return to Menu
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Team Name Input Modal */}
+      {showTeamNameModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-gray-800 rounded-xl shadow-2xl p-8 border-2 border-gray-700 max-w-md w-full">
+            <h2 className="text-2xl font-bold text-gray-100 mb-4">
+              Enter Team Names
+            </h2>
+            <p className="text-gray-400 mb-6">
+              Give your teams custom names for this draft
+            </p>
+            <div className="space-y-4 mb-6">
+              <div>
+                <label className="block text-sm font-semibold text-blue-400 mb-2">
+                  Team 1 Name
+                </label>
+                <input
+                  type="text"
+                  value={tempTeam1Name}
+                  onChange={(e) => setTempTeam1Name(e.target.value)}
+                  placeholder="Team 1"
+                  maxLength={30}
+                  className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 placeholder-gray-400 focus:outline-none focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-red-400 mb-2">
+                  Team 2 Name
+                </label>
+                <input
+                  type="text"
+                  value={tempTeam2Name}
+                  onChange={(e) => setTempTeam2Name(e.target.value)}
+                  placeholder="Team 2"
+                  maxLength={30}
+                  className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 placeholder-gray-400 focus:outline-none focus:border-red-500"
+                />
+              </div>
+            </div>
+            <div className="flex justify-end">
+              <button
+                onClick={confirmTeamNames}
+                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-8 rounded-lg transition-colors"
+              >
+                Start Draft
               </button>
             </div>
           </div>
