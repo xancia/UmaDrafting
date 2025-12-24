@@ -28,13 +28,10 @@ export default function FormatSelection({
 
           <button
             onClick={() => onSelectFormat("3v3v3")}
-            className="group bg-gray-700 hover:bg-gray-600 border-2 border-gray-600 hover:border-purple-500 rounded-xl p-8 transition-all transform hover:scale-105 shadow-lg relative"
+            className="group bg-gray-700 hover:bg-gray-600 border-2 border-gray-600 hover:border-purple-500 rounded-xl p-8 transition-all transform hover:scale-105 shadow-lg"
           >
             <div className="text-6xl font-bold text-purple-500 mb-4">3v3v3</div>
             <p className="text-gray-400 text-sm">3 Teams • Uma & Card Draft</p>
-            <div className="absolute top-4 right-4 bg-purple-600 text-white text-xs font-bold px-3 py-1 rounded-full">
-              WIP
-            </div>
           </button>
         </div>
 
