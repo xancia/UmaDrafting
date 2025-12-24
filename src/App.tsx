@@ -108,8 +108,8 @@ function App() {
           {!isComplete && (
             <div className="bg-gray-800 rounded-lg shadow-lg p-6 border border-gray-700">
               <h2 className="text-2xl font-bold mb-4 text-gray-100">
-                {draftState.phase === "uma-pick" && "Available Uma Musume"}
-                {draftState.phase === "uma-ban" && "Ban Opponent's Uma Musume"}
+                {draftState.phase === "uma-pick" && "Available Umas"}
+                {draftState.phase === "uma-ban" && "Ban Opponent's Umas"}
                 {draftState.phase === "map-pick" &&
                   !selectedTrack &&
                   "Select a Racecourse"}

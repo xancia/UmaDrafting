@@ -18,9 +18,9 @@ export default function DraftHeader({
   const getPhaseText = () => {
     switch (phase) {
       case "uma-pick":
-        return "Uma Musume Picking Phase";
+        return "Umamusume Picking Phase";
       case "uma-ban":
-        return "Uma Musume Banning Phase";
+        return "Umamusume Banning Phase";
       case "map-pick":
         return "Map Picking Phase";
       case "map-ban":
@@ -40,7 +40,7 @@ export default function DraftHeader({
     <div className="bg-gray-800 text-gray-100 p-6 rounded-lg shadow-lg border border-gray-700">
       <div className="flex justify-between items-start">
         <div className="flex-1">
-          <h1 className="text-3xl font-bold mb-2">Terumi's Wild Ride</h1>
+          <h1 className="text-3xl font-bold mb-2">Uma Drafting</h1>
           <p className="text-xl mb-1 text-gray-300">{getPhaseText()}</p>
           {phase !== "complete" && (
             <p className="text-lg text-gray-300">

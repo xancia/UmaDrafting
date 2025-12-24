@@ -32,7 +32,7 @@ export default function TeamPanel({
 
       <div className="mb-6 shrink-0">
         <h3 className="text-lg font-bold mb-3 text-gray-300 uppercase tracking-wider">
-          Uma Musume <span className="text-sm">({allUmas.length}/6)</span>
+          Umamusume <span className="text-sm">({allUmas.length}/6)</span>
         </h3>
         <div className="grid grid-cols-3 gap-3">
           {[...Array(6)].map((_, index) => {
