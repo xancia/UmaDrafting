@@ -4,6 +4,7 @@ import type { UmaMusume } from "../types";
 import {
   getInitialDraftState3v3v3,
   getNextTeamAndPhase,
+  getTurnOrder,
 } from "../draftLogic3v3v3";
 import TeamPanel3v3v3 from "./TeamPanel3v3v3";
 import UmaCard from "./UmaCard";
@@ -92,8 +93,40 @@ export default function Draft3v3v3({ onBackToMenu }: Draft3v3v3Props) {
     setHistory([...history, newState]);
   };
 
+  const continueToCardPick = () => {
+    const cardOrder = getTurnOrder(1, "card-pick");
+    const newState: DraftState3v3v3 = {
+      ...draftState,
+      phase: "card-pick",
+      currentTeam: cardOrder[0],
+      round: 1,
+      turnInRound: 0,
+    };
+    setDraftState(newState);
+    setHistory([...history, newState]);
+  };
+
+  const continueToComplete = () => {
+    const newState: DraftState3v3v3 = {
+      ...draftState,
+      phase: "complete",
+    };
+    setDraftState(newState);
+    setHistory([...history, newState]);
+  };
+
   const handleUmaSelect = (uma: UmaMusume) => {
     const { currentTeam, phase } = draftState;
+
+    // Prevent selection if uma-pick is complete (all teams have 3 umas)
+    if (
+      phase === "uma-pick" &&
+      draftState.team1.pickedUmas.length === 3 &&
+      draftState.team2.pickedUmas.length === 3 &&
+      draftState.team3.pickedUmas.length === 3
+    ) {
+      return;
+    }
 
     if (phase === "uma-ban") {
       const newState = {
@@ -124,10 +157,18 @@ export default function Draft3v3v3({ onBackToMenu }: Draft3v3v3Props) {
       };
 
       const nextState = getNextTeamAndPhase(newState);
-      newState.currentTeam = nextState.nextTeam;
-      newState.phase = nextState.nextPhase;
-      newState.round = nextState.nextRound;
-      newState.turnInRound = nextState.nextTurnInRound;
+      // Don't auto-advance to card-pick phase, stay in uma-pick
+      if (nextState.nextPhase === "card-pick") {
+        newState.currentTeam = currentTeam;
+        newState.phase = "uma-pick";
+        newState.round = draftState.round;
+        newState.turnInRound = draftState.turnInRound;
+      } else {
+        newState.currentTeam = nextState.nextTeam;
+        newState.phase = nextState.nextPhase;
+        newState.round = nextState.nextRound;
+        newState.turnInRound = nextState.nextTurnInRound;
+      }
 
       setDraftState(newState);
       setHistory([...history, newState]);
@@ -136,6 +177,15 @@ export default function Draft3v3v3({ onBackToMenu }: Draft3v3v3Props) {
 
   const handleCardSelect = (card: Card) => {
     if (draftState.phase !== "card-pick") return;
+
+    // Prevent selection if card-pick is complete (all teams have 5 cards)
+    if (
+      draftState.team1.pickedCards.length === 5 &&
+      draftState.team2.pickedCards.length === 5 &&
+      draftState.team3.pickedCards.length === 5
+    ) {
+      return;
+    }
 
     const currentTeam = draftState.currentTeam;
     const newState = {
@@ -149,10 +199,18 @@ export default function Draft3v3v3({ onBackToMenu }: Draft3v3v3Props) {
     };
 
     const nextState = getNextTeamAndPhase(newState);
-    newState.currentTeam = nextState.nextTeam;
-    newState.phase = nextState.nextPhase;
-    newState.round = nextState.nextRound;
-    newState.turnInRound = nextState.nextTurnInRound;
+    // Don't auto-advance to complete phase, stay in card-pick
+    if (nextState.nextPhase === "complete") {
+      newState.currentTeam = currentTeam;
+      newState.phase = "card-pick";
+      newState.round = draftState.round;
+      newState.turnInRound = draftState.turnInRound;
+    } else {
+      newState.currentTeam = nextState.nextTeam;
+      newState.phase = nextState.nextPhase;
+      newState.round = nextState.nextRound;
+      newState.turnInRound = nextState.nextTurnInRound;
+    }
 
     setDraftState(newState);
     setHistory([...history, newState]);
@@ -396,6 +454,32 @@ export default function Draft3v3v3({ onBackToMenu }: Draft3v3v3Props) {
             )}
           </div>
           <div className="flex-1 flex items-center justify-end gap-2">
+            {/* Continue button for uma-pick complete */}
+            {draftState.phase === "uma-pick" &&
+              draftState.round === 3 &&
+              draftState.team1.pickedUmas.length === 3 &&
+              draftState.team2.pickedUmas.length === 3 &&
+              draftState.team3.pickedUmas.length === 3 && (
+                <button
+                  onClick={continueToCardPick}
+                  className="bg-slate-600 hover:bg-slate-700 text-white font-semibold py-1.5 px-4 rounded-lg transition-colors text-sm"
+                >
+                  Continue to Card Draft →
+                </button>
+              )}
+            {/* Continue button for card-pick complete */}
+            {draftState.phase === "card-pick" &&
+              draftState.round === 5 &&
+              draftState.team1.pickedCards.length === 5 &&
+              draftState.team2.pickedCards.length === 5 &&
+              draftState.team3.pickedCards.length === 5 && (
+                <button
+                  onClick={continueToComplete}
+                  className="bg-slate-600 hover:bg-slate-700 text-white font-semibold py-1.5 px-4 rounded-lg transition-colors text-sm"
+                >
+                  View Results →
+                </button>
+              )}
             <button
               onClick={handleUndo}
               disabled={history.length <= 1}
