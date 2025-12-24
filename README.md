@@ -107,6 +107,23 @@ Edit `src/data.ts` and add entries to `SAMPLE_MAPS`:
 - **Vite** - Build tool and dev server
 - **Tailwind CSS v4** - Styling
 
+## Deployment
+
+To deploy to GitHub Pages:
+
+```bash
+npm run deploy
+```
+
+This will build the app and push it to the `gh-pages` branch. Then:
+
+1. Go to your repository settings on GitHub
+2. Navigate to **Pages** section
+3. Set **Source** to `gh-pages` branch
+4. Click **Save**
+
+Your site will be available at: `https://<username>.github.io/Uma-drafting/`
+
 ## License
 
 MIT
