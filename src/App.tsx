@@ -106,7 +106,7 @@ function App() {
           />
         </div>
 
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto hide-scrollbar">
           {!isComplete && (
             <div className="bg-gray-800 rounded-lg shadow-lg p-6 border border-gray-700">
               <h2 className="text-2xl font-bold mb-4 text-gray-100">
@@ -118,15 +118,10 @@ function App() {
                 {draftState.phase === "map-pick" &&
                   selectedTrack &&
                   `Select Distance - ${selectedTrack}`}
-                {draftState.phase === "map-ban" &&
-                  !selectedTrack &&
-                  "Ban Opponent's Racecourse"}
-                {draftState.phase === "map-ban" &&
-                  selectedTrack &&
-                  `Ban Distance - ${selectedTrack}`}
+                {draftState.phase === "map-ban" && "Ban Opponent's Map"}
               </h2>
 
-              {isMapPhase && selectedTrack && (
+              {draftState.phase === "map-pick" && selectedTrack && (
                 <button
                   onClick={() => setSelectedTrack(null)}
                   className="mb-4 bg-gray-700 hover:bg-gray-600 text-gray-100 font-semibold py-2 px-4 rounded-lg transition-colors border border-gray-600"
@@ -145,7 +140,7 @@ function App() {
                     />
                   ))}
 
-                {isMapPhase &&
+                {draftState.phase === "map-pick" &&
                   !selectedTrack &&
                   getAvailableTracks().map((track) => (
                     <button
@@ -164,9 +159,18 @@ function App() {
                     </button>
                   ))}
 
-                {isMapPhase &&
+                {draftState.phase === "map-pick" &&
                   selectedTrack &&
                   getMapsForTrack(selectedTrack).map((map) => (
+                    <MapCard
+                      key={map.id}
+                      map={map}
+                      onSelect={handleMapSelect}
+                    />
+                  ))}
+
+                {draftState.phase === "map-ban" &&
+                  getBannableMaps().map((map) => (
                     <MapCard
                       key={map.id}
                       map={map}
