@@ -5,6 +5,7 @@ interface DraftHeaderProps {
   currentTeam: Team;
   onUndo: () => void;
   onReset: () => void;
+  onBackToMenu: () => void;
   canUndo: boolean;
 }
 
@@ -13,6 +14,7 @@ export default function DraftHeader({
   currentTeam,
   onUndo,
   onReset,
+  onBackToMenu,
   canUndo,
 }: DraftHeaderProps) {
   const getPhaseText = () => {
@@ -63,7 +65,13 @@ export default function DraftHeader({
             onClick={onReset}
             className="bg-gray-700 text-gray-100 font-semibold py-2 px-6 rounded-lg hover:bg-gray-600 transition-colors border border-gray-600"
           >
-            {phase === "complete" ? "Start New Draft" : "Reset"}
+            Reset
+          </button>
+          <button
+            onClick={onBackToMenu}
+            className="bg-gray-700 text-gray-100 font-semibold py-2 px-6 rounded-lg hover:bg-gray-600 transition-colors border border-gray-600"
+          >
+            Draft Selection
           </button>
         </div>
       </div>

@@ -22,6 +22,8 @@ export default function Draft5v5({ onBackToMenu }: Draft5v5Props) {
   const [umaSearch, setUmaSearch] = useState<string>("");
   const [cyclingMap, setCyclingMap] = useState<Map | null>(null);
   const [revealStarted, setRevealStarted] = useState<boolean>(false);
+  const [showResetConfirm, setShowResetConfirm] = useState<boolean>(false);
+  const [showMenuConfirm, setShowMenuConfirm] = useState<boolean>(false);
 
   const isUmaPhase =
     draftState.phase === "uma-pick" || draftState.phase === "uma-ban";
@@ -113,9 +115,25 @@ export default function Draft5v5({ onBackToMenu }: Draft5v5Props) {
   };
 
   const handleReset = () => {
-    if (window.confirm("Return to format selection?")) {
-      onBackToMenu();
-    }
+    setShowResetConfirm(true);
+  };
+
+  const confirmReset = () => {
+    const initialState = getInitialDraftState();
+    setDraftState(initialState);
+    setHistory([initialState]);
+    setSelectedTrack(null);
+    setUmaSearch("");
+    setRevealStarted(false);
+    setShowResetConfirm(false);
+  };
+
+  const handleBackToMenu = () => {
+    setShowMenuConfirm(true);
+  };
+
+  const confirmBackToMenu = () => {
+    onBackToMenu();
   };
 
   // Get opponent's picked items for ban phase
@@ -178,6 +196,7 @@ export default function Draft5v5({ onBackToMenu }: Draft5v5Props) {
             currentTeam={draftState.currentTeam}
             onUndo={handleUndo}
             onReset={handleReset}
+            onBackToMenu={handleBackToMenu}
             canUndo={history.length > 1}
           />
         </div>
@@ -370,6 +389,64 @@ export default function Draft5v5({ onBackToMenu }: Draft5v5Props) {
           bannedMaps={draftState.team2.bannedMaps}
         />
       </div>
+
+      {/* Reset Confirmation Modal */}
+      {showResetConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-gray-800 rounded-xl shadow-2xl p-8 border-2 border-gray-700 max-w-md">
+            <h2 className="text-2xl font-bold text-gray-100 mb-4">
+              Reset Draft?
+            </h2>
+            <p className="text-gray-400 mb-6">
+              Are you sure you want to reset the draft? All current progress
+              will be lost.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setShowResetConfirm(false)}
+                className="bg-gray-700 hover:bg-gray-600 text-gray-100 font-semibold py-2 px-6 rounded-lg transition-colors border border-gray-600"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmReset}
+                className="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors"
+              >
+                Reset
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Back to Menu Confirmation Modal */}
+      {showMenuConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-gray-800 rounded-xl shadow-2xl p-8 border-2 border-gray-700 max-w-md">
+            <h2 className="text-2xl font-bold text-gray-100 mb-4">
+              Return to Menu?
+            </h2>
+            <p className="text-gray-400 mb-6">
+              Are you sure you want to return to the format selection menu?
+              Current draft progress will be lost.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setShowMenuConfirm(false)}
+                className="bg-gray-700 hover:bg-gray-600 text-gray-100 font-semibold py-2 px-6 rounded-lg transition-colors border border-gray-600"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmBackToMenu}
+                className="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors"
+              >
+                Return to Menu
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
