@@ -12,6 +12,10 @@ A League of Legends-style draft interface for Uma Musume Pretty Derby competitiv
 - **Undo/Reset controls** - Full history tracking with ability to step backwards
 - **Broadcast-ready UI** - Clean, professional interface designed for viewers
 
+## Usage
+
+https://xancia.github.io/UmaDrafting/
+
 ## Draft Flow
 
 1. **Uma Musume Picking** (Team 1 starts)
@@ -106,23 +110,6 @@ Edit `src/data.ts` and add entries to `SAMPLE_MAPS`:
 - **TypeScript** - Type safety
 - **Vite** - Build tool and dev server
 - **Tailwind CSS v4** - Styling
-
-## Deployment
-
-To deploy to GitHub Pages:
-
-```bash
-npm run deploy
-```
-
-This will build the app and push it to the `gh-pages` branch. Then:
-
-1. Go to your repository settings on GitHub
-2. Navigate to **Pages** section
-3. Set **Source** to `gh-pages` branch
-4. Click **Save**
-
-Your site will be available at: `https://<username>.github.io/Uma-drafting/`
 
 ## License
 
