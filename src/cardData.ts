@@ -409,6 +409,13 @@ export const SAMPLE_CARDS: Card[] = [
     type: "speed",
     imageUrl: "./supoka/zenno-rob-roy-ssr-speed.png",
   },
+  {
+    id: "ssr59",
+    name: "Daitaku Helios",
+    rarity: "SSR",
+    type: "power",
+    imageUrl: "./supoka/daitaku-helios-ssr-power.png",
+  },
 
   // SR Cards (36 total)
   {
@@ -641,6 +648,13 @@ export const SAMPLE_CARDS: Card[] = [
     rarity: "SR",
     type: "stamina",
     imageUrl: "./supoka/zenno-rob-roy-sr-stamina.png",
+  },
+  {
+    id: "sr34",
+    name: "Vodka",
+    rarity: "SR",
+    type: "speed",
+    imageUrl: "./supoka/vodka-sr-speed.png",
   },
 
   // R Cards (73 total)

@@ -238,6 +238,11 @@ export const SAMPLE_UMAS: UmaMusume[] = [
     imageUrl: "./uma-portraits/nice-nature.png",
   },
   { id: "56", name: "King Halo", imageUrl: "./uma-portraits/king-halo.png" },
+  {
+    id: "57",
+    name: "Mejiro Dober",
+    imageUrl: "./uma-portraits/mejiro-dober.png",
+  },
 ];
 
 // Race tracks with distances and surfaces
