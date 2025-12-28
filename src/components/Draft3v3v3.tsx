@@ -394,7 +394,7 @@ export default function Draft3v3v3({ onBackToMenu }: Draft3v3v3Props) {
                         <img
                           src={`./supoka/${card.type}-icon.png`}
                           alt={card.type}
-                          className="absolute top-1 right-1 w-8 h-8 object-contain"
+                          className="absolute top-1 right-1 w-6 h-6 object-contain"
                         />
                       )}
                     </div>
@@ -636,7 +636,7 @@ export default function Draft3v3v3({ onBackToMenu }: Draft3v3v3Props) {
                       <img
                         src={`./supoka/${card.type}-icon.png`}
                         alt={card.type}
-                        className="absolute top-1 right-1 w-8 h-8 object-contain"
+                        className="absolute top-1 right-1 w-6 h-6 object-contain"
                       />
                     )}
                   </div>
