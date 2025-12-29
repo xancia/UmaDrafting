@@ -198,7 +198,10 @@ export default function Draft5v5({ onBackToMenu }: Draft5v5Props) {
           bannedUmas={draftState.team1.bannedUmas}
           pickedMaps={draftState.team1.pickedMaps}
           bannedMaps={draftState.team1.bannedMaps}
-          isCurrentTurn={draftState.currentTeam === "team1"}
+          isCurrentTurn={
+            draftState.phase !== "complete" &&
+            draftState.currentTeam === "team1"
+          }
         />
       </div>
 
@@ -403,7 +406,10 @@ export default function Draft5v5({ onBackToMenu }: Draft5v5Props) {
           bannedUmas={draftState.team2.bannedUmas}
           pickedMaps={draftState.team2.pickedMaps}
           bannedMaps={draftState.team2.bannedMaps}
-          isCurrentTurn={draftState.currentTeam === "team2"}
+          isCurrentTurn={
+            draftState.phase !== "complete" &&
+            draftState.currentTeam === "team2"
+          }
         />
       </div>
 
