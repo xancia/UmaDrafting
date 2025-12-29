@@ -7,6 +7,7 @@ interface TeamPanelProps {
   bannedUmas: UmaMusume[];
   pickedMaps: Map[];
   bannedMaps: Map[];
+  isCurrentTurn?: boolean;
 }
 
 export default function TeamPanel({
@@ -16,9 +17,17 @@ export default function TeamPanel({
   bannedUmas,
   pickedMaps,
   bannedMaps,
+  isCurrentTurn = false,
 }: TeamPanelProps) {
   const isTeam1 = team === "team1";
   const teamColor = isTeam1 ? "text-blue-500" : "text-red-500";
+
+  const borderColor = isCurrentTurn
+    ? isTeam1
+      ? "border-blue-500 shadow-blue-500/50"
+      : "border-red-500 shadow-red-500/50"
+    : "border-gray-700";
+
   const defaultTeamName = isTeam1 ? "Team 1" : "Team 2";
   const displayName = teamName || defaultTeamName;
 
@@ -26,7 +35,11 @@ export default function TeamPanel({
   const allMaps = [...pickedMaps, ...bannedMaps];
 
   return (
-    <div className="bg-linear-to-br from-gray-900 to-gray-800 rounded-xl shadow-2xl p-6 text-gray-100 h-full flex flex-col">
+    <div
+      className={`bg-linear-to-br from-gray-900 to-gray-800 rounded-xl p-6 text-gray-100 h-full flex flex-col border-2 transition-all overflow-y-auto ${borderColor} ${
+        isCurrentTurn ? "shadow-lg" : "shadow-2xl"
+      }`}
+    >
       <div className="text-center mb-6 pb-4 border-b-2 border-gray-700 shrink-0">
         <h2 className={`text-3xl font-bold tracking-wide ${teamColor}`}>
           {displayName}

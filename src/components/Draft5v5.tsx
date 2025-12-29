@@ -190,7 +190,7 @@ export default function Draft5v5({ onBackToMenu }: Draft5v5Props) {
 
   return (
     <div className="h-screen bg-linear-to-br from-gray-950 to-gray-900 flex gap-4 px-6 py-6 overflow-hidden">
-      <div className="w-96 shrink-0 overflow-y-auto">
+      <div className="w-96 shrink-0 flex flex-col px-2 min-h-0">
         <TeamPanel
           team="team1"
           teamName={team1Name}
@@ -198,6 +198,7 @@ export default function Draft5v5({ onBackToMenu }: Draft5v5Props) {
           bannedUmas={draftState.team1.bannedUmas}
           pickedMaps={draftState.team1.pickedMaps}
           bannedMaps={draftState.team1.bannedMaps}
+          isCurrentTurn={draftState.currentTeam === "team1"}
         />
       </div>
 
@@ -394,7 +395,7 @@ export default function Draft5v5({ onBackToMenu }: Draft5v5Props) {
         </div>
       </div>
 
-      <div className="w-96 shrink-0 overflow-y-auto">
+      <div className="w-96 shrink-0 flex flex-col px-2 min-h-0">
         <TeamPanel
           team="team2"
           teamName={team2Name}
@@ -402,6 +403,7 @@ export default function Draft5v5({ onBackToMenu }: Draft5v5Props) {
           bannedUmas={draftState.team2.bannedUmas}
           pickedMaps={draftState.team2.pickedMaps}
           bannedMaps={draftState.team2.bannedMaps}
+          isCurrentTurn={draftState.currentTeam === "team2"}
         />
       </div>
 
