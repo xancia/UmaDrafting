@@ -247,6 +247,7 @@ export const SAMPLE_UMAS: UmaMusume[] = [
 
 // Race tracks with distances and surfaces
 // TODO: Fill in complete distance/surface data for each track
+// Commented tracks are not in game yet
 export const SAMPLE_MAPS: Map[] = [
   // Sapporo
   {
@@ -284,13 +285,13 @@ export const SAMPLE_MAPS: Map[] = [
     surface: "Turf",
     name: "Sapporo - 2600m Turf",
   },
-  {
-    id: "sapporo-1000-dirt",
-    track: "Sapporo",
-    distance: 1000,
-    surface: "Dirt",
-    name: "Sapporo - 1000m Dirt",
-  },
+  // {
+  //   id: "sapporo-1000-dirt",
+  //   track: "Sapporo",
+  //   distance: 1000,
+  //   surface: "Dirt",
+  //   name: "Sapporo - 1000m Dirt",
+  // },
   {
     id: "sapporo-1700-dirt",
     track: "Sapporo",
@@ -298,13 +299,13 @@ export const SAMPLE_MAPS: Map[] = [
     surface: "Dirt",
     name: "Sapporo - 1700m Dirt",
   },
-  {
-    id: "sapporo-2400-dirt",
-    track: "Sapporo",
-    distance: 2400,
-    surface: "Dirt",
-    name: "Sapporo - 2400m Dirt",
-  },
+  // {
+  //   id: "sapporo-2400-dirt",
+  //   track: "Sapporo",
+  //   distance: 2400,
+  //   surface: "Dirt",
+  //   name: "Sapporo - 2400m Dirt",
+  // },
 
   // Hakodate
   {
@@ -342,13 +343,13 @@ export const SAMPLE_MAPS: Map[] = [
     surface: "Turf",
     name: "Hakodate - 2600m Turf",
   },
-  {
-    id: "hakodate-1000-dirt",
-    track: "Hakodate",
-    distance: 1000,
-    surface: "Dirt",
-    name: "Hakodate - 1000m Dirt",
-  },
+  // {
+  //   id: "hakodate-1000-dirt",
+  //   track: "Hakodate",
+  //   distance: 1000,
+  //   surface: "Dirt",
+  //   name: "Hakodate - 1000m Dirt",
+  // },
   {
     id: "hakodate-1700-dirt",
     track: "Hakodate",
@@ -356,13 +357,13 @@ export const SAMPLE_MAPS: Map[] = [
     surface: "Dirt",
     name: "Hakodate - 1700m Dirt",
   },
-  {
-    id: "hakodate-2400-dirt",
-    track: "Hakodate",
-    distance: 2400,
-    surface: "Dirt",
-    name: "Hakodate - 2400m Dirt",
-  },
+  // {
+  //   id: "hakodate-2400-dirt",
+  //   track: "Hakodate",
+  //   distance: 2400,
+  //   surface: "Dirt",
+  //   name: "Hakodate - 2400m Dirt",
+  // },
 
   // Niigata
   {
@@ -450,13 +451,13 @@ export const SAMPLE_MAPS: Map[] = [
     surface: "Dirt",
     name: "Niigata - 1800m Dirt",
   },
-  {
-    id: "niigata-2500-dirt",
-    track: "Niigata",
-    distance: 2500,
-    surface: "Dirt",
-    name: "Niigata - 2500m Dirt",
-  },
+  // {
+  //   id: "niigata-2500-dirt",
+  //   track: "Niigata",
+  //   distance: 2500,
+  //   surface: "Dirt",
+  //   name: "Niigata - 2500m Dirt",
+  // },
 
   // Fukushima
   {
@@ -501,13 +502,13 @@ export const SAMPLE_MAPS: Map[] = [
     surface: "Dirt",
     name: "Fukushima - 1700m Dirt",
   },
-  {
-    id: "fukushima-2400-dirt",
-    track: "Fukushima",
-    distance: 2400,
-    surface: "Dirt",
-    name: "Fukushima - 2400m Dirt",
-  },
+  // {
+  //   id: "fukushima-2400-dirt",
+  //   track: "Fukushima",
+  //   distance: 2400,
+  //   surface: "Dirt",
+  //   name: "Fukushima - 2400m Dirt",
+  // },
 
   // Nakayama
   {
@@ -580,20 +581,20 @@ export const SAMPLE_MAPS: Map[] = [
     surface: "Dirt",
     name: "Nakayama - 1800m Dirt",
   },
-  {
-    id: "nakayama-2400-dirt",
-    track: "Nakayama",
-    distance: 2400,
-    surface: "Dirt",
-    name: "Nakayama - 2400m Dirt",
-  },
-  {
-    id: "nakayama-2500-dirt",
-    track: "Nakayama",
-    distance: 2500,
-    surface: "Dirt",
-    name: "Nakayama - 2500m Dirt",
-  },
+  // {
+  //   id: "nakayama-2400-dirt",
+  //   track: "Nakayama",
+  //   distance: 2400,
+  //   surface: "Dirt",
+  //   name: "Nakayama - 2400m Dirt",
+  // },
+  // {
+  //   id: "nakayama-2500-dirt",
+  //   track: "Nakayama",
+  //   distance: 2500,
+  //   surface: "Dirt",
+  //   name: "Nakayama - 2500m Dirt",
+  // },
 
   // Tokyo
   {
@@ -680,13 +681,13 @@ export const SAMPLE_MAPS: Map[] = [
     surface: "Dirt",
     name: "Tokyo - 2100m Dirt",
   },
-  {
-    id: "tokyo-2400-dirt",
-    track: "Tokyo",
-    distance: 2400,
-    surface: "Dirt",
-    name: "Tokyo - 2400m Dirt",
-  },
+  // {
+  //   id: "tokyo-2400-dirt",
+  //   track: "Tokyo",
+  //   distance: 2400,
+  //   surface: "Dirt",
+  //   name: "Tokyo - 2400m Dirt",
+  // },
 
   // Chukyo
   {
@@ -724,13 +725,13 @@ export const SAMPLE_MAPS: Map[] = [
     surface: "Turf",
     name: "Chukyo - 2200m Turf",
   },
-  {
-    id: "chukyo-1200-dirt",
-    track: "Chukyo",
-    distance: 1200,
-    surface: "Dirt",
-    name: "Chukyo - 1200m Dirt",
-  },
+  // {
+  //   id: "chukyo-1200-dirt",
+  //   track: "Chukyo",
+  //   distance: 1200,
+  //   surface: "Dirt",
+  //   name: "Chukyo - 1200m Dirt",
+  // },
   {
     id: "chukyo-1400-dirt",
     track: "Chukyo",
@@ -745,13 +746,13 @@ export const SAMPLE_MAPS: Map[] = [
     surface: "Dirt",
     name: "Chukyo - 1800m Dirt",
   },
-  {
-    id: "chukyo-1900-dirt",
-    track: "Chukyo",
-    distance: 1900,
-    surface: "Dirt",
-    name: "Chukyo - 1900m Dirt",
-  },
+  // {
+  //   id: "chukyo-1900-dirt",
+  //   track: "Chukyo",
+  //   distance: 1900,
+  //   surface: "Dirt",
+  //   name: "Chukyo - 1900m Dirt",
+  // },
 
   // Kyoto
   {
@@ -952,13 +953,13 @@ export const SAMPLE_MAPS: Map[] = [
     variant: "Outer to Inner",
     name: "Hanshin - 3200m Turf (Outer to Inner)",
   },
-  {
-    id: "hanshin-1200-dirt",
-    track: "Hanshin",
-    distance: 1200,
-    surface: "Dirt",
-    name: "Hanshin - 1200m Dirt",
-  },
+  // {
+  //   id: "hanshin-1200-dirt",
+  //   track: "Hanshin",
+  //   distance: 1200,
+  //   surface: "Dirt",
+  //   name: "Hanshin - 1200m Dirt",
+  // },
   {
     id: "hanshin-1400-dirt",
     track: "Hanshin",
@@ -1010,13 +1011,13 @@ export const SAMPLE_MAPS: Map[] = [
     surface: "Turf",
     name: "Kokura - 2600m Turf",
   },
-  {
-    id: "kokura-1000-dirt",
-    track: "Kokura",
-    distance: 1000,
-    surface: "Dirt",
-    name: "Kokura - 1000m Dirt",
-  },
+  // {
+  //   id: "kokura-1000-dirt",
+  //   track: "Kokura",
+  //   distance: 1000,
+  //   surface: "Dirt",
+  //   name: "Kokura - 1000m Dirt",
+  // },
   {
     id: "kokura-1700-dirt",
     track: "Kokura",
@@ -1024,13 +1025,13 @@ export const SAMPLE_MAPS: Map[] = [
     surface: "Dirt",
     name: "Kokura - 1700m Dirt",
   },
-  {
-    id: "kokura-2400-dirt",
-    track: "Kokura",
-    distance: 2400,
-    surface: "Dirt",
-    name: "Kokura - 2400m Dirt",
-  },
+  // {
+  //   id: "kokura-2400-dirt",
+  //   track: "Kokura",
+  //   distance: 2400,
+  //   surface: "Dirt",
+  //   name: "Kokura - 2400m Dirt",
+  // },
 
   // Ooi
   {
@@ -1055,86 +1056,86 @@ export const SAMPLE_MAPS: Map[] = [
     name: "Ooi - 2000m Dirt",
   },
 
-  // Kawasaki
-  {
-    id: "kawasaki-1400-dirt",
-    track: "Kawasaki",
-    distance: 1400,
-    surface: "Dirt",
-    name: "Kawasaki - 1400m Dirt",
-  },
-  {
-    id: "kawasaki-1600-dirt",
-    track: "Kawasaki",
-    distance: 1600,
-    surface: "Dirt",
-    name: "Kawasaki - 1600m Dirt",
-  },
-  {
-    id: "kawasaki-2100-dirt",
-    track: "Kawasaki",
-    distance: 2100,
-    surface: "Dirt",
-    name: "Kawasaki - 2100m Dirt",
-  },
+  // Kawasaki not in game yet
+  // {
+  //   id: "kawasaki-1400-dirt",
+  //   track: "Kawasaki",
+  //   distance: 1400,
+  //   surface: "Dirt",
+  //   name: "Kawasaki - 1400m Dirt",
+  // },
+  // {
+  //   id: "kawasaki-1600-dirt",
+  //   track: "Kawasaki",
+  //   distance: 1600,
+  //   surface: "Dirt",
+  //   name: "Kawasaki - 1600m Dirt",
+  // },
+  // {
+  //   id: "kawasaki-2100-dirt",
+  //   track: "Kawasaki",
+  //   distance: 2100,
+  //   surface: "Dirt",
+  //   name: "Kawasaki - 2100m Dirt",
+  // },
 
-  // Funabashi
-  {
-    id: "funabashi-1000-dirt",
-    track: "Funabashi",
-    distance: 1000,
-    surface: "Dirt",
-    name: "Funabashi - 1000m Dirt",
-  },
-  {
-    id: "funabashi-1600-dirt",
-    track: "Funabashi",
-    distance: 1600,
-    surface: "Dirt",
-    name: "Funabashi - 1600m Dirt",
-  },
-  {
-    id: "funabashi-1800-dirt",
-    track: "Funabashi",
-    distance: 1800,
-    surface: "Dirt",
-    name: "Funabashi - 1800m Dirt",
-  },
-  {
-    id: "funabashi-2400-dirt",
-    track: "Funabashi",
-    distance: 2400,
-    surface: "Dirt",
-    name: "Funabashi - 2400m Dirt",
-  },
+  // Funabashi not in game yet
+  // {
+  //   id: "funabashi-1000-dirt",
+  //   track: "Funabashi",
+  //   distance: 1000,
+  //   surface: "Dirt",
+  //   name: "Funabashi - 1000m Dirt",
+  // },
+  // {
+  //   id: "funabashi-1600-dirt",
+  //   track: "Funabashi",
+  //   distance: 1600,
+  //   surface: "Dirt",
+  //   name: "Funabashi - 1600m Dirt",
+  // },
+  // {
+  //   id: "funabashi-1800-dirt",
+  //   track: "Funabashi",
+  //   distance: 1800,
+  //   surface: "Dirt",
+  //   name: "Funabashi - 1800m Dirt",
+  // },
+  // {
+  //   id: "funabashi-2400-dirt",
+  //   track: "Funabashi",
+  //   distance: 2400,
+  //   surface: "Dirt",
+  //   name: "Funabashi - 2400m Dirt",
+  // },
 
-  // Morioka
-  {
-    id: "morioka-1200-dirt",
-    track: "Morioka",
-    distance: 1200,
-    surface: "Dirt",
-    name: "Morioka - 1200m Dirt",
-  },
-  {
-    id: "morioka-1600-dirt",
-    track: "Morioka",
-    distance: 1600,
-    surface: "Dirt",
-    name: "Morioka - 1600m Dirt",
-  },
-  {
-    id: "morioka-1800-dirt",
-    track: "Morioka",
-    distance: 1800,
-    surface: "Dirt",
-    name: "Morioka - 1800m Dirt",
-  },
-  {
-    id: "morioka-2000-dirt",
-    track: "Morioka",
-    distance: 2000,
-    surface: "Dirt",
-    name: "Morioka - 2000m Dirt",
-  },
+  // Morioka commented out cause not in game yet
+  // {
+  //   id: "morioka-1200-dirt",
+  //   track: "Morioka",
+  //   distance: 1200,
+  //   surface: "Dirt",
+  //   name: "Morioka - 1200m Dirt",
+  // },
+  // {
+  //   id: "morioka-1600-dirt",
+  //   track: "Morioka",
+  //   distance: 1600,
+  //   surface: "Dirt",
+  //   name: "Morioka - 1600m Dirt",
+  // },
+  // {
+  //   id: "morioka-1800-dirt",
+  //   track: "Morioka",
+  //   distance: 1800,
+  //   surface: "Dirt",
+  //   name: "Morioka - 1800m Dirt",
+  // },
+  // {
+  //   id: "morioka-2000-dirt",
+  //   track: "Morioka",
+  //   distance: 2000,
+  //   surface: "Dirt",
+  //   name: "Morioka - 2000m Dirt",
+  // },
 ];
