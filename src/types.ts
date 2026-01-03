@@ -6,8 +6,8 @@ export interface UmaMusume {
 
 export interface TrackConditions {
   season: "Spring" | "Summer" | "Fall" | "Winter";
-  ground: "Firm" | "Wet";
-  weather: "Sunny" | "Cloudy" | "Heavy" | "Soft";
+  ground: "Firm" | "Good" | "Soft" | "Heavy";
+  weather: "Sunny" | "Cloudy" | "Rainy" | "Snowy";
 }
 
 export interface Map {
