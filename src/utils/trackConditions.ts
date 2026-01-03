@@ -1,7 +1,7 @@
 export interface TrackConditions {
   season: "Spring" | "Summer" | "Fall" | "Winter";
   ground: "Firm" | "Wet";
-  weather: "Sunny" | "Cloudy" | "Heavy" | "Soft";
+  weather: "Sunny" | "Cloudy" | "Rainy" | "Snowy";
 }
 
 export function generateTrackConditions(): TrackConditions {
@@ -15,8 +15,8 @@ export function generateTrackConditions(): TrackConditions {
   const weathers: TrackConditions["weather"][] = [
     "Sunny",
     "Cloudy",
-    "Heavy",
-    "Soft",
+    "Rainy",
+    "Snowy",
   ];
 
   return {
