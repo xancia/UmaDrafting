@@ -1,6 +1,6 @@
 export interface TrackConditions {
   season: "Spring" | "Summer" | "Fall" | "Winter";
-  ground: "Firm" | "Wet";
+  ground: "Firm" | "Good" | "Soft" | "Heavy";
   weather: "Sunny" | "Cloudy" | "Rainy" | "Snowy";
 }
 
@@ -11,7 +11,6 @@ export function generateTrackConditions(): TrackConditions {
     "Fall",
     "Winter",
   ];
-  const grounds: TrackConditions["ground"][] = ["Firm", "Wet"];
   const weathers: TrackConditions["weather"][] = [
     "Sunny",
     "Cloudy",
@@ -19,10 +18,24 @@ export function generateTrackConditions(): TrackConditions {
     "Snowy",
   ];
 
+  const season = seasons[Math.floor(Math.random() * seasons.length)];
+  const weather = weathers[Math.floor(Math.random() * weathers.length)];
+
+  // Ground condition depends on weather
+  let ground: TrackConditions["ground"];
+  if (weather === "Sunny" || weather === "Cloudy") {
+    ground = Math.random() < 0.5 ? "Firm" : "Good";
+  } else if (weather === "Rainy") {
+    ground = Math.random() < 0.5 ? "Soft" : "Heavy";
+  } else {
+    // Snowy
+    ground = Math.random() < 0.5 ? "Good" : "Soft";
+  }
+
   return {
-    season: seasons[Math.floor(Math.random() * seasons.length)],
-    ground: grounds[Math.floor(Math.random() * grounds.length)],
-    weather: weathers[Math.floor(Math.random() * weathers.length)],
+    season,
+    ground,
+    weather,
   };
 }
 
