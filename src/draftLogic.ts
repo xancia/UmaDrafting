@@ -89,10 +89,40 @@ export const selectUma = (state: DraftState, uma: UmaMusume): DraftState => {
 
   const nextPhase = getNextPhase(newState);
 
-  // Switch teams normally, but when transitioning to uma-ban phase, set team2 first
-  if (phase === "uma-pick" && nextPhase === "uma-ban") {
+  // Handle uma-pick phase with snake draft pattern: T1(1), T2(2), T1(2), T2(2), T1(2), T2(2), T1(1)
+  if (phase === "uma-pick" && nextPhase === "uma-pick") {
+    const team1Picks = newState.team1.pickedUmas.length;
+    const team2Picks = newState.team2.pickedUmas.length;
+
+    // Determine next team based on snake draft pattern
+    if (team1Picks === 1 && team2Picks === 0) {
+      newState.currentTeam = "team2"; // After T1's 1st pick
+    } else if (team1Picks === 1 && team2Picks === 1) {
+      newState.currentTeam = "team2"; // After T2's 1st pick (T2 picks again)
+    } else if (team1Picks === 1 && team2Picks === 2) {
+      newState.currentTeam = "team1"; // After T2's 2nd pick
+    } else if (team1Picks === 2 && team2Picks === 2) {
+      newState.currentTeam = "team1"; // After T1's 2nd pick (T1 picks again)
+    } else if (team1Picks === 3 && team2Picks === 2) {
+      newState.currentTeam = "team2"; // After T1's 3rd pick
+    } else if (team1Picks === 3 && team2Picks === 3) {
+      newState.currentTeam = "team2"; // After T2's 3rd pick (T2 picks again)
+    } else if (team1Picks === 3 && team2Picks === 4) {
+      newState.currentTeam = "team1"; // After T2's 4th pick
+    } else if (team1Picks === 4 && team2Picks === 4) {
+      newState.currentTeam = "team1"; // After T1's 4th pick (T1 picks again)
+    } else if (team1Picks === 5 && team2Picks === 4) {
+      newState.currentTeam = "team2"; // After T1's 5th pick
+    } else if (team1Picks === 5 && team2Picks === 5) {
+      newState.currentTeam = "team2"; // After T2's 5th pick (T2 picks again)
+    } else if (team1Picks === 5 && team2Picks === 6) {
+      newState.currentTeam = "team1"; // After T2's 6th pick
+    }
+  } else if (phase === "uma-pick" && nextPhase === "uma-ban") {
+    // When transitioning to uma-ban phase, team2 bans first
     newState.currentTeam = "team2";
   } else {
+    // For all other phases, alternate teams normally
     newState.currentTeam = getNextTeam(currentTeam);
   }
 
