@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import type { DraftState, UmaMusume, Map } from "../types";
 import { getInitialDraftState, selectUma, selectMap } from "../draftLogic";
 import { SAMPLE_MAPS } from "../data";
+import { generateTrackConditions } from "../utils/trackConditions";
 import DraftHeader from "./DraftHeader";
 import TeamPanel from "./TeamPanel";
 import UmaCard from "./UmaCard";
@@ -55,7 +56,14 @@ export default function Draft5v5({ onBackToMenu }: Draft5v5Props) {
 
         const randomMap =
           availableMaps[Math.floor(Math.random() * availableMaps.length)];
-        setDraftState((prev) => ({ ...prev, wildcardMap: randomMap }));
+        const randomMapWithConditions: Map = {
+          ...randomMap,
+          conditions: generateTrackConditions(),
+        };
+        setDraftState((prev) => ({
+          ...prev,
+          wildcardMap: randomMapWithConditions,
+        }));
       }, 0);
       return () => clearTimeout(timer);
     }
@@ -79,7 +87,11 @@ export default function Draft5v5({ onBackToMenu }: Draft5v5Props) {
       const interval = setInterval(() => {
         const randomMap =
           availableMaps[Math.floor(Math.random() * availableMaps.length)];
-        setCyclingMap(randomMap);
+        const randomMapWithConditions: Map = {
+          ...randomMap,
+          conditions: generateTrackConditions(),
+        };
+        setCyclingMap(randomMapWithConditions);
       }, 150); // Change map every 150ms
 
       // Stop cycling after 3 seconds and show final wildcard
@@ -102,7 +114,12 @@ export default function Draft5v5({ onBackToMenu }: Draft5v5Props) {
   };
 
   const handleMapSelect = (map: Map) => {
-    const newState = selectMap(draftState, map);
+    // Generate random track conditions
+    const mapWithConditions: Map = {
+      ...map,
+      conditions: generateTrackConditions(),
+    };
+    const newState = selectMap(draftState, mapWithConditions);
     setDraftState(newState);
     setHistory([...history, newState]);
     setSelectedTrack(null); // Reset track selection after picking
@@ -391,6 +408,24 @@ export default function Draft5v5({ onBackToMenu }: Draft5v5Props) {
                     {(cyclingMap || draftState.wildcardMap).variant &&
                       ` (${(cyclingMap || draftState.wildcardMap).variant})`}
                   </p>
+                  {(cyclingMap || draftState.wildcardMap).conditions && (
+                    <p className="text-lg text-gray-300 mt-2">
+                      {
+                        (cyclingMap || draftState.wildcardMap).conditions!
+                          .season
+                      }{" "}
+                      •{" "}
+                      {
+                        (cyclingMap || draftState.wildcardMap).conditions!
+                          .ground
+                      }{" "}
+                      •{" "}
+                      {
+                        (cyclingMap || draftState.wildcardMap).conditions!
+                          .weather
+                      }
+                    </p>
+                  )}
                 </div>
               </div>
             </div>

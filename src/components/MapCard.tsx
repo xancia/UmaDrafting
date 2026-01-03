@@ -29,6 +29,12 @@ export default function MapCard({ map, onSelect, disabled }: MapCardProps) {
       <p className="text-xs text-gray-300 text-center">
         {map.distance}m{map.variant ? ` (${map.variant})` : ""}
       </p>
+      {map.conditions && (
+        <p className="text-xs text-gray-400 text-center mt-1">
+          {map.conditions.season} • {map.conditions.ground} •{" "}
+          {map.conditions.weather}
+        </p>
+      )}
     </button>
   );
 }

@@ -4,12 +4,19 @@ export interface UmaMusume {
   imageUrl?: string;
 }
 
+export interface TrackConditions {
+  season: "Spring" | "Summer" | "Fall" | "Winter";
+  ground: "Firm" | "Wet";
+  weather: "Sunny" | "Cloudy" | "Heavy" | "Soft";
+}
+
 export interface Map {
   id: string;
   track: string;
   distance: number;
   surface: "Turf" | "Dirt";
   variant?: string;
+  conditions?: TrackConditions;
   name: string; // computed: "Track - Distance Surface (Variant)"
 }
 

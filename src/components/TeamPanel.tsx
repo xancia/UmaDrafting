@@ -139,6 +139,16 @@ export default function TeamPanel({
                   {map.distance} • {map.surface}
                   {map.variant && ` • ${map.variant}`}
                 </div>
+                {map.conditions && (
+                  <div
+                    className={`text-xs truncate ${
+                      isBanned ? "text-gray-500 line-through" : "text-gray-300"
+                    }`}
+                  >
+                    {map.conditions.season} • {map.conditions.ground} •{" "}
+                    {map.conditions.weather}
+                  </div>
+                )}
                 {isBanned && (
                   <div className="absolute right-4 top-1/2 -translate-y-1/2 text-red-500 text-2xl font-bold">
                     ✕
