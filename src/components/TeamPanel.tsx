@@ -50,63 +50,7 @@ export default function TeamPanel({
         </h2>
       </div>
 
-      <div className="mb-6 shrink-0">
-        <h3 className="text-lg font-bold mb-2 text-gray-300 uppercase tracking-wider">
-          Umamusume <span className="text-sm">({allUmas.length}/6)</span>
-        </h3>
-        <div className="grid grid-cols-3 gap-3">
-          {[...Array(6)].map((_, index) => {
-            const uma = allUmas[index];
-            const isBanned = uma && bannedUmas.some((b) => b.id === uma.id);
-            return (
-              <div
-                key={index}
-                className={`aspect-square rounded-lg border-3 overflow-hidden ${
-                  uma
-                    ? "border-gray-600 bg-gray-600 shadow-lg"
-                    : "bg-gray-800 border-gray-700"
-                }`}
-              >
-                {uma ? (
-                  <div className="relative w-full h-full group">
-                    <img
-                      src={uma.imageUrl}
-                      alt={uma.name}
-                      className={`w-full h-full object-cover ${
-                        isBanned ? "grayscale opacity-30" : ""
-                      }`}
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.style.display = "none";
-                        target.nextElementSibling?.classList.remove("hidden");
-                      }}
-                    />
-                    <div className="hidden text-xl text-gray-400 w-full h-full items-center justify-center">
-                      ?
-                    </div>
-                    {isBanned && (
-                      <div className="absolute inset-0 flex items-center justify-center text-red-500 text-4xl font-bold">
-                        ✕
-                      </div>
-                    )}
-                    <div className="absolute inset-0 bg-black/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center p-2">
-                      <span className="text-sm font-semibold text-center wrap-break-word text-white">
-                        {uma.name}
-                      </span>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-gray-600 text-xl shrink-0">
-                    ?
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      <div className="mt-3 shrink-0 min-w-0">
+      <div className="mb-6 shrink-0 min-w-0">
         <h3 className="text-lg font-bold mb-2 text-gray-300 uppercase tracking-wider">
           Maps <span className="text-sm">({allMaps.length}/4)</span>
         </h3>
@@ -202,6 +146,62 @@ export default function TeamPanel({
                 className="bg-gray-800/50 px-3 py-2 rounded-lg border border-gray-700"
               >
                 <div className="text-xs text-gray-600">Empty slot</div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="mt-3 shrink-0">
+        <h3 className="text-lg font-bold mb-2 text-gray-300 uppercase tracking-wider">
+          Umamusume <span className="text-sm">({allUmas.length}/6)</span>
+        </h3>
+        <div className="grid grid-cols-3 gap-3">
+          {[...Array(6)].map((_, index) => {
+            const uma = allUmas[index];
+            const isBanned = uma && bannedUmas.some((b) => b.id === uma.id);
+            return (
+              <div
+                key={index}
+                className={`aspect-square rounded-lg border-3 overflow-hidden ${
+                  uma
+                    ? "border-gray-600 bg-gray-600 shadow-lg"
+                    : "bg-gray-800 border-gray-700"
+                }`}
+              >
+                {uma ? (
+                  <div className="relative w-full h-full group">
+                    <img
+                      src={uma.imageUrl}
+                      alt={uma.name}
+                      className={`w-full h-full object-cover ${
+                        isBanned ? "grayscale opacity-30" : ""
+                      }`}
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = "none";
+                        target.nextElementSibling?.classList.remove("hidden");
+                      }}
+                    />
+                    <div className="hidden text-xl text-gray-400 w-full h-full items-center justify-center">
+                      ?
+                    </div>
+                    {isBanned && (
+                      <div className="absolute inset-0 flex items-center justify-center text-red-500 text-4xl font-bold">
+                        ✕
+                      </div>
+                    )}
+                    <div className="absolute inset-0 bg-black/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center p-2">
+                      <span className="text-sm font-semibold text-center wrap-break-word text-white">
+                        {uma.name}
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-gray-600 text-xl shrink-0">
+                    ?
+                  </div>
+                )}
               </div>
             );
           })}
