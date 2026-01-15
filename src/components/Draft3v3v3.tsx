@@ -9,8 +9,16 @@ import {
 import TeamPanel3v3v3 from "./TeamPanel3v3v3";
 import UmaCard from "./UmaCard";
 
+interface MultiplayerConfig {
+  roomCode: string;
+  playerName: string;
+  isHost: boolean;
+  isSpectator: boolean;
+}
+
 interface Draft3v3v3Props {
   onBackToMenu: () => void;
+  multiplayerConfig?: MultiplayerConfig;
 }
 
 export default function Draft3v3v3({ onBackToMenu }: Draft3v3v3Props) {

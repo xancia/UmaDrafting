@@ -4,6 +4,8 @@ import {
   getInitialDraftState,
   selectUma,
   selectMap,
+  selectUmaMultiplayer,
+  selectMapMultiplayer,
   canPickDistance,
   canPickDirt,
   countDistances,
@@ -15,15 +17,69 @@ import DraftHeader from "./DraftHeader";
 import TeamPanel from "./TeamPanel";
 import UmaCard from "./UmaCard";
 import MapCard from "./MapCard";
+import SpectatorView from "./SpectatorView";
+import WaitingRoom from "./WaitingRoom";
+import { usePeer } from "../hooks/usePeer";
+import { useRoom } from "../hooks/useRoom";
+import { useMultiplayerConnections } from "../hooks/useMultiplayerConnections";
+import { useDraftSync } from "../hooks/useDraftSync";
+import { generateRoomCode } from "../utils/roomCode";
+
+interface MultiplayerConfig {
+  roomCode: string;
+  playerName: string;
+  isHost: boolean;
+  isSpectator: boolean;
+}
 
 interface Draft5v5Props {
   onBackToMenu: () => void;
+  multiplayerConfig?: MultiplayerConfig;
 }
 
-export default function Draft5v5({ onBackToMenu }: Draft5v5Props) {
-  const [draftState, setDraftState] = useState<DraftState>(
-    getInitialDraftState()
-  );
+export default function Draft5v5({ onBackToMenu, multiplayerConfig }: Draft5v5Props) {
+  // Multiplayer setup
+  const isMultiplayer = !!multiplayerConfig;
+  const { peer, peerId, status, initialize } = usePeer();
+  const { roomState, isHost, createRoom, joinRoom, onRoomMessage, sendToHost, updateRoomDraftState, getAllConnections } = useRoom(peer, peerId);
+  const { onConnectionEvent } = useMultiplayerConnections();
+  const { 
+    draftState: syncedDraftState, 
+    updateDraftState: syncUpdateDraftState, 
+    sendDraftAction,
+    onDraftAction
+  } = useDraftSync(roomState, isHost, getAllConnections, peerId, onRoomMessage, sendToHost);
+
+  // Generate room code immediately for host
+  const [localRoomCode] = useState<string>(() => {
+    if (isMultiplayer && multiplayerConfig?.isHost) {
+      return generateRoomCode();
+    }
+    return multiplayerConfig?.roomCode || "";
+  });
+
+  const [draftState, setDraftState] = useState<DraftState>(() => {
+    const initialState = getInitialDraftState();
+    
+    // Add multiplayer state if in multiplayer mode
+    if (isMultiplayer && multiplayerConfig) {
+      // Non-host players start in lobby phase waiting for sync
+      if (!multiplayerConfig.isHost) {
+        initialState.phase = "lobby";
+      }
+      initialState.multiplayer = {
+        enabled: true,
+        connectionType: multiplayerConfig.isHost ? "host" : 
+                        multiplayerConfig.isSpectator ? "spectator" : "player",
+        localTeam: multiplayerConfig.isHost ? "team1" : "team2", // Default assignments
+        roomId: multiplayerConfig.roomCode,
+        team1Name: multiplayerConfig.isHost ? multiplayerConfig.playerName : "Team 1",
+        team2Name: multiplayerConfig.isHost ? "Team 2" : multiplayerConfig.playerName,
+      };
+    }
+    
+    return initialState;
+  });
   const [history, setHistory] = useState<DraftState[]>([
     getInitialDraftState(),
   ]);
@@ -32,9 +88,13 @@ export default function Draft5v5({ onBackToMenu }: Draft5v5Props) {
   const [showResetConfirm, setShowResetConfirm] = useState<boolean>(false);
   const [showMenuConfirm, setShowMenuConfirm] = useState<boolean>(false);
   const [showWildcardModal, setShowWildcardModal] = useState<boolean>(false);
-  const [showTeamNameModal, setShowTeamNameModal] = useState<boolean>(true);
+  // For multiplayer guests/spectators, skip the team name modal (host controls names)
+  const [showTeamNameModal, setShowTeamNameModal] = useState<boolean>(
+    !multiplayerConfig || multiplayerConfig.isHost
+  );
   const [cyclingMap, setCyclingMap] = useState<Map | null>(null);
   const [revealStarted, setRevealStarted] = useState<boolean>(false);
+  const [wildcardAcknowledged, setWildcardAcknowledged] = useState<boolean>(false);
   const [team1Name, setTeam1Name] = useState<string>("Team 1");
   const [team2Name, setTeam2Name] = useState<string>("Team 2");
   const [tempTeam1Name, setTempTeam1Name] = useState<string>("Team 1");
@@ -44,22 +104,295 @@ export default function Draft5v5({ onBackToMenu }: Draft5v5Props) {
     draftState.phase === "uma-pick" || draftState.phase === "uma-ban";
   const isComplete = draftState.phase === "complete";
 
+  // Initialize multiplayer connection
+  useEffect(() => {
+    if (!isMultiplayer || !multiplayerConfig) return;
+
+    let mounted = true;
+    const initMultiplayer = async () => {
+      try {
+        if (mounted && multiplayerConfig.isHost) {
+          // For host, use the pre-generated room code as peer ID
+          await initialize(localRoomCode);
+        } else if (mounted) {
+          // For client/spectator, use random peer ID
+          await initialize();
+        }
+      } catch (err) {
+        console.error("Failed to initialize peer:", err);
+      }
+    };
+
+    initMultiplayer();
+
+    return () => {
+      mounted = false;
+    };
+  }, [isMultiplayer, multiplayerConfig, initialize, localRoomCode]);
+
+  // Create or join room once peer is ready
+  useEffect(() => {
+    if (!isMultiplayer || !multiplayerConfig || !peer) return;
+    if (roomState) return; // Already in a room
+
+    const setupRoom = async () => {
+      try {
+        if (multiplayerConfig.isHost) {
+          // Pass the current draftState so the wildcard is shared with joining players
+          await createRoom("5v5", draftState);
+        } else if (!multiplayerConfig.isSpectator) {
+          // Wait for connection for clients
+          if (status !== "connected" || !peerId) return;
+          await joinRoom(multiplayerConfig.roomCode, multiplayerConfig.playerName);
+        } else {
+          // Wait for connection for spectators
+          if (status !== "connected" || !peerId) return;
+          await joinRoom(multiplayerConfig.roomCode, multiplayerConfig.playerName, true);
+        }
+      } catch (err) {
+        console.error("Failed to setup room:", err);
+      }
+    };
+
+    setupRoom();
+  }, [isMultiplayer, multiplayerConfig, peer, peerId, status, roomState, createRoom, joinRoom, draftState]);
+
+  // Sync local draft state with network state in multiplayer mode
+  useEffect(() => {
+    if (isMultiplayer && syncedDraftState && syncedDraftState.wildcardMap?.track) {
+      // Preserve local multiplayer settings when syncing
+      setDraftState((prevState) => {
+        const localTeam = prevState.multiplayer?.localTeam || (multiplayerConfig?.isHost ? "team1" : "team2");
+        const connectionType = prevState.multiplayer?.connectionType || 
+          (multiplayerConfig?.isHost ? "host" : multiplayerConfig?.isSpectator ? "spectator" : "player");
+        
+        // If user has acknowledged wildcard, don't let sync revert to wildcard-reveal phase
+        // They should stay at map-pick until they receive actual draft updates
+        let phase = syncedDraftState.phase;
+        if (wildcardAcknowledged && syncedDraftState.phase === "wildcard-reveal") {
+          phase = prevState.phase === "map-pick" ? "map-pick" : syncedDraftState.phase;
+        }
+        
+        return {
+          ...syncedDraftState,
+          phase,
+          multiplayer: {
+            enabled: true,
+            connectionType,
+            localTeam,
+            roomId: syncedDraftState.multiplayer?.roomId || multiplayerConfig?.roomCode || "",
+            team1Name: syncedDraftState.multiplayer?.team1Name || "Team 1",
+            team2Name: syncedDraftState.multiplayer?.team2Name || "Team 2",
+          },
+        };
+      });
+      
+      // Also update local team name state from synced multiplayer state
+      if (syncedDraftState.multiplayer?.team1Name) {
+        setTeam1Name(syncedDraftState.multiplayer.team1Name);
+      }
+      if (syncedDraftState.multiplayer?.team2Name) {
+        setTeam2Name(syncedDraftState.multiplayer.team2Name);
+      }
+      
+      // Trigger wildcard reveal modal when phase changes to wildcard-reveal
+      // Only open if user hasn't already acknowledged it
+      if (syncedDraftState.phase === "wildcard-reveal" && !showWildcardModal && !wildcardAcknowledged) {
+        setShowWildcardModal(true);
+        // Auto-start reveal for non-host players so animation syncs
+        if (!multiplayerConfig?.isHost) {
+          setRevealStarted(true);
+        }
+      }
+      
+      // Close wildcard modal when phase transitions to map-pick
+      if (syncedDraftState.phase === "map-pick" && showWildcardModal) {
+        setShowWildcardModal(false);
+        setWildcardAcknowledged(true);
+      }
+    }
+  }, [isMultiplayer, syncedDraftState, multiplayerConfig, showWildcardModal, wildcardAcknowledged]);
+
+  // Handle incoming draft actions from clients (host only)
+  useEffect(() => {
+    if (!isMultiplayer || !isHost) return;
+
+    const unsubscribe = onDraftAction((action, senderId) => {
+      console.log("Host received action from client:", action, senderId);
+      console.log("Current phase:", draftState.phase, "Current team:", draftState.currentTeam);
+      
+      // Process the action based on type
+      if (action.itemType === "map") {
+        // Find the map - during ban phase it's in opponent's picked maps, during pick phase it's in available maps
+        let map: Map | undefined;
+        if (draftState.phase === "map-ban") {
+          // During ban phase, look in the opponent's picked maps
+          const opponentTeam = draftState.currentTeam === "team1" ? "team2" : "team1";
+          map = draftState[opponentTeam].pickedMaps.find(m => m.name === action.itemId);
+        } else {
+          // During pick phase, look in available maps
+          map = draftState.availableMaps.find(m => m.name === action.itemId);
+        }
+        console.log("Looking for map:", action.itemId, "Phase:", draftState.phase, "Found:", !!map);
+        if (map) {
+          // Apply the action
+          const mapWithConditions: Map = {
+            ...map,
+            conditions: map.conditions || generateTrackConditions(),
+          };
+          const newState = selectMap(draftState, mapWithConditions);
+          console.log("State changed:", newState !== draftState, "New phase:", newState.phase);
+          if (newState !== draftState) {
+            syncUpdateDraftState(newState);
+            setDraftState(newState);
+            setHistory((prev) => [...prev, newState]);
+          }
+        } else {
+          console.error("Map not found:", action.itemId, "Phase:", draftState.phase);
+          if (draftState.phase === "map-ban") {
+            const opponentTeam = draftState.currentTeam === "team1" ? "team2" : "team1";
+            console.log("Opponent picked maps:", draftState[opponentTeam].pickedMaps.map(m => m.name));
+          } else {
+            console.log("Available maps:", draftState.availableMaps.map(m => m.name));
+          }
+        }
+      } else if (action.itemType === "uma") {
+        // Find the uma - during ban phase it's in opponent's picked umas, during pick phase it's in available umas
+        let uma: UmaMusume | undefined;
+        if (draftState.phase === "uma-ban") {
+          // During ban phase, look in the opponent's picked umas
+          const opponentTeam = draftState.currentTeam === "team1" ? "team2" : "team1";
+          uma = draftState[opponentTeam].pickedUmas.find(u => u.id.toString() === action.itemId);
+        } else {
+          // During pick phase, look in available umas
+          uma = draftState.availableUmas.find(u => u.id.toString() === action.itemId);
+        }
+        console.log("Looking for uma:", action.itemId, "Phase:", draftState.phase, "Found:", !!uma);
+        if (uma) {
+          const newState = selectUma(draftState, uma);
+          console.log("State changed:", newState !== draftState, "New phase:", newState.phase);
+          if (newState !== draftState) {
+            syncUpdateDraftState(newState);
+            setDraftState(newState);
+            setHistory((prev) => [...prev, newState]);
+          }
+        } else {
+          console.error("Uma not found:", action.itemId, "Phase:", draftState.phase);
+          if (draftState.phase === "uma-ban") {
+            const opponentTeam = draftState.currentTeam === "team1" ? "team2" : "team1";
+            console.log("Opponent picked umas:", draftState[opponentTeam].pickedUmas.map(u => u.id));
+          } else {
+            console.log("Available umas count:", draftState.availableUmas.length);
+          }
+        }
+      }
+    });
+
+    return unsubscribe;
+  }, [isMultiplayer, isHost, onDraftAction, draftState, syncUpdateDraftState]);
+
+  // Handle connection events (disconnections, errors)
+  useEffect(() => {
+    if (!isMultiplayer) return;
+
+    const unsubscribe = onConnectionEvent((event) => {
+      if (event.type === "disconnected") {
+        console.log("Peer disconnected:", event.peerId);
+        
+        // Check if host disconnected
+        if (roomState && event.peerId === roomState.hostId && !isHost) {
+          // Host disconnected - show error and offer to return to menu
+          const shouldReturn = window.confirm(
+            "The host has disconnected. The draft session has ended. Return to menu?"
+          );
+          if (shouldReturn) {
+            onBackToMenu();
+          }
+        }
+      } else if (event.type === "error") {
+        console.error("Connection error with peer:", event.peerId, event.error);
+        // Could show a toast notification here
+      }
+    });
+
+    return unsubscribe;
+  }, [isMultiplayer, onConnectionEvent, roomState, isHost, onBackToMenu]);
+
+  // Handle peer status changes
+  useEffect(() => {
+    if (!isMultiplayer) return;
+
+    // Only log errors, not initial disconnected state
+    if (status === "error") {
+      console.error("Peer status error:", status);
+    }
+  }, [isMultiplayer, status]);
+
   const handleUmaSelect = (uma: UmaMusume) => {
-    const newState = selectUma(draftState, uma);
-    setDraftState(newState);
-    setHistory([...history, newState]);
+    const team = draftState.currentTeam;
+    
+    // Use multiplayer-aware select function
+    const newState = isMultiplayer 
+      ? selectUmaMultiplayer(draftState, uma, team)
+      : selectUma(draftState, uma);
+    
+    // Only update if state changed (permission check passed)
+    if (newState !== draftState) {
+      if (isMultiplayer && isHost) {
+        // Host broadcasts state to all peers and updates local state
+        syncUpdateDraftState(newState);
+        setDraftState(newState);
+      } else if (isMultiplayer) {
+        // Non-host sends action request to host (but update local optimistically)
+        sendDraftAction({
+          action: draftState.phase === "uma-pick" ? "pick" : "ban",
+          itemId: uma.id.toString(),
+          itemType: "uma",
+        });
+        setDraftState(newState);
+      } else {
+        // Local mode - just update state
+        setDraftState(newState);
+      }
+      setHistory([...history, newState]);
+    }
   };
 
   const handleMapSelect = (map: Map) => {
+    const team = draftState.currentTeam;
+    
     // Generate random track conditions
     const mapWithConditions: Map = {
       ...map,
       conditions: generateTrackConditions(),
     };
-    const newState = selectMap(draftState, mapWithConditions);
-    setDraftState(newState);
-    setHistory([...history, newState]);
-    setSelectedTrack(null); // Reset track selection after picking
+    
+    // Use multiplayer-aware select function
+    const newState = isMultiplayer
+      ? selectMapMultiplayer(draftState, mapWithConditions, team)
+      : selectMap(draftState, mapWithConditions);
+    
+    // Only update if state changed (permission check passed)
+    if (newState !== draftState) {
+      if (isMultiplayer && isHost) {
+        // Host broadcasts state to all peers and updates local state
+        syncUpdateDraftState(newState);
+        setDraftState(newState);
+      } else if (isMultiplayer) {
+        // Non-host sends action request to host (but update local optimistically)
+        sendDraftAction({
+          action: draftState.phase === "map-pick" ? "pick" : "ban",
+          itemId: map.name,
+          itemType: "map",
+        });
+        setDraftState(newState);
+      } else {
+        // Local mode - just update state
+        setDraftState(newState);
+      }
+      setHistory([...history, newState]);
+      setSelectedTrack(null); // Reset track selection after picking
+    }
   };
 
   const handleUndo = () => {
@@ -103,6 +436,23 @@ export default function Draft5v5({ onBackToMenu }: Draft5v5Props) {
 
   const acknowledgeDraft = () => {
     setShowWildcardModal(false);
+    setWildcardAcknowledged(true);
+    
+    // Everyone transitions to map-pick locally after acknowledging wildcard
+    // This applies for wildcard-reveal phase OR lobby phase (spectator edge case)
+    if (draftState.phase === "wildcard-reveal" || draftState.phase === "lobby") {
+      const newState = {
+        ...draftState,
+        phase: "map-pick" as const,
+      };
+      setDraftState(newState);
+      
+      // Only host syncs the phase change
+      if (isMultiplayer && isHost) {
+        updateRoomDraftState(newState);
+        syncUpdateDraftState(newState);
+      }
+    }
   };
 
   // Cycling animation effect for wildcard reveal
@@ -153,9 +503,57 @@ export default function Draft5v5({ onBackToMenu }: Draft5v5Props) {
   }, [showWildcardModal, revealStarted, draftState.wildcardMap]);
 
   const confirmTeamNames = () => {
-    setTeam1Name(tempTeam1Name || "Team 1");
-    setTeam2Name(tempTeam2Name || "Team 2");
+    const name1 = tempTeam1Name || "Team 1";
+    const name2 = tempTeam2Name || "Team 2";
+    setTeam1Name(name1);
+    setTeam2Name(name2);
     setShowTeamNameModal(false);
+    
+    // For multiplayer, go to lobby phase and wait for players
+    // For local, show wildcard modal immediately
+    if (isMultiplayer) {
+      const newState: DraftState = {
+        ...draftState,
+        phase: "lobby" as const,
+        multiplayer: {
+          ...draftState.multiplayer,
+          enabled: true,
+          connectionType: draftState.multiplayer?.connectionType || "host",
+          localTeam: draftState.multiplayer?.localTeam || "team1",
+          roomId: draftState.multiplayer?.roomId || "",
+          team1Name: name1,
+          team2Name: name2,
+        },
+      };
+      setDraftState(newState);
+      // Update room state so new joiners get correct phase
+      updateRoomDraftState(newState);
+      // Sync to any players already in room
+      syncUpdateDraftState(newState);
+    } else {
+      setShowWildcardModal(true);
+    }
+  };
+
+  // Handle starting the draft from lobby (host only)
+  const handleStartDraft = () => {
+    if (!isHost) return;
+    
+    // Set phase to wildcard-reveal and sync to all clients
+    const newState = {
+      ...draftState,
+      phase: "wildcard-reveal" as const,
+    };
+    
+    setDraftState(newState);
+    
+    // Broadcast to all clients
+    if (isMultiplayer) {
+      updateRoomDraftState(newState);
+      syncUpdateDraftState(newState);
+    }
+    
+    // Start the reveal animation
     setShowWildcardModal(true);
   };
 
@@ -220,6 +618,39 @@ export default function Draft5v5({ onBackToMenu }: Draft5v5Props) {
     return getBannableMaps().filter((m) => m.track === track);
   };
 
+  // Waiting room view for multiplayer lobby phase
+  if (isMultiplayer && draftState.phase === "lobby") {
+    const playerCount = (roomState?.connections.filter(c => c.type === "player").length || 0) + 1; // +1 for host
+    const spectatorCount = roomState?.connections.filter(c => c.type === "spectator").length || 0;
+    
+    return (
+      <WaitingRoom
+        roomCode={localRoomCode || roomState?.roomId || ""}
+        team1Name={team1Name}
+        team2Name={team2Name}
+        isHost={multiplayerConfig?.isHost || false}
+        playerCount={playerCount}
+        spectatorCount={spectatorCount}
+        onStartDraft={handleStartDraft}
+        onLeave={onBackToMenu}
+      />
+    );
+  }
+
+  // Spectator view for multiplayer spectators (after wildcard reveal is complete)
+  if (isMultiplayer && multiplayerConfig?.isSpectator && draftState.phase !== "wildcard-reveal" && draftState.phase !== "lobby") {
+    return (
+      <SpectatorView
+        draftState={draftState}
+        roomCode={multiplayerConfig.roomCode}
+        team1Name={team1Name}
+        team2Name={team2Name}
+        connectionStatus={status}
+        onBackToMenu={onBackToMenu}
+      />
+    );
+  }
+
   return (
     <div className="h-screen bg-linear-to-br from-gray-950 to-gray-900 flex gap-4 px-6 py-6 overflow-hidden">
       <div className="w-96 shrink-0 flex flex-col px-2 min-h-0">
@@ -251,6 +682,11 @@ export default function Draft5v5({ onBackToMenu }: Draft5v5Props) {
             team2Name={team2Name}
             canUndo={history.length > 1}
             wildcardMap={draftState.wildcardMap}
+            isMultiplayer={isMultiplayer}
+            connectionStatus={status}
+            roomCode={localRoomCode || roomState?.roomId}
+            playerCount={(roomState?.connections.filter(c => c.type === "player").length || 0) + 1}
+            isHost={multiplayerConfig?.isHost || false}
           />
         </div>
 
@@ -360,7 +796,7 @@ export default function Draft5v5({ onBackToMenu }: Draft5v5Props) {
                 <div className="bg-gray-700 border-4 border-blue-500 rounded-xl p-8 max-w-md">
                   <div className="aspect-video bg-gray-600 rounded-lg mb-4 overflow-hidden">
                     <img
-                      src={`./racetrack-portraits/${draftState.wildcardMap.track.toLowerCase()}.png`}
+                      src={`./racetrack-portraits/${draftState.wildcardMap.track?.toLowerCase()}.png`}
                       alt={draftState.wildcardMap.track}
                       className="w-full h-full object-cover"
                       onError={(e) => {
@@ -374,7 +810,7 @@ export default function Draft5v5({ onBackToMenu }: Draft5v5Props) {
                   </h3>
                   <div
                     className={`inline-block px-4 py-2 rounded-lg mb-2 ${
-                      draftState.wildcardMap.surface.toLowerCase() === "turf"
+                      draftState.wildcardMap.surface?.toLowerCase() === "turf"
                         ? "bg-green-700"
                         : "bg-amber-800"
                     }`}
@@ -499,7 +935,7 @@ export default function Draft5v5({ onBackToMenu }: Draft5v5Props) {
                   <>
                     <div className="aspect-video bg-gray-600 rounded-lg mb-4 overflow-hidden">
                       <img
-                        src={`./racetrack-portraits/${cyclingMap.track.toLowerCase()}.png`}
+                        src={`./racetrack-portraits/${cyclingMap.track?.toLowerCase()}.png`}
                         alt={cyclingMap.track}
                         className="w-full h-full object-cover"
                         onError={(e) => {
@@ -513,7 +949,7 @@ export default function Draft5v5({ onBackToMenu }: Draft5v5Props) {
                     </h3>
                     <div
                       className={`inline-block px-4 py-2 rounded-lg mb-2 ${
-                        cyclingMap.surface.toLowerCase() === "turf"
+                        cyclingMap.surface?.toLowerCase() === "turf"
                           ? "bg-green-700"
                           : "bg-amber-800"
                       } w-full text-center`}
@@ -538,7 +974,7 @@ export default function Draft5v5({ onBackToMenu }: Draft5v5Props) {
                   <>
                     <div className="aspect-video bg-gray-600 rounded-lg mb-4 overflow-hidden">
                       <img
-                        src={`./racetrack-portraits/${draftState.wildcardMap.track.toLowerCase()}.png`}
+                        src={`./racetrack-portraits/${draftState.wildcardMap.track?.toLowerCase()}.png`}
                         alt={draftState.wildcardMap.track}
                         className="w-full h-full object-cover"
                         onError={(e) => {
@@ -552,7 +988,7 @@ export default function Draft5v5({ onBackToMenu }: Draft5v5Props) {
                     </h3>
                     <div
                       className={`inline-block px-4 py-2 rounded-lg mb-2 ${
-                        draftState.wildcardMap.surface.toLowerCase() === "turf"
+                        draftState.wildcardMap.surface?.toLowerCase() === "turf"
                           ? "bg-green-700"
                           : "bg-amber-800"
                       } w-full text-center`}
@@ -591,7 +1027,7 @@ export default function Draft5v5({ onBackToMenu }: Draft5v5Props) {
                   onClick={acknowledgeDraft}
                   className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-12 rounded-lg text-xl transition-colors shadow-lg"
                 >
-                  Start Draft
+                  {isMultiplayer && isHost ? "Start Draft" : isMultiplayer ? "Continue" : "Start Draft"}
                 </button>
               )}
             </div>

@@ -10,6 +10,7 @@ interface TeamPanelProps {
   isCurrentTurn?: boolean;
   distanceCounts?: Record<string, number>;
   dirtCount?: number;
+  pulsingBorder?: boolean;
 }
 
 export default function TeamPanel({
@@ -22,6 +23,7 @@ export default function TeamPanel({
   isCurrentTurn = false,
   distanceCounts = {},
   dirtCount = 0,
+  pulsingBorder = false,
 }: TeamPanelProps) {
   const isTeam1 = team === "team1";
   const teamColor = isTeam1 ? "text-blue-500" : "text-red-500";
@@ -32,6 +34,12 @@ export default function TeamPanel({
       : "border-red-500 shadow-red-500/50"
     : "border-gray-700";
 
+  const pulseClass = pulsingBorder && isCurrentTurn
+    ? isTeam1
+      ? "animate-pulse-blue"
+      : "animate-pulse-red"
+    : "";
+
   const defaultTeamName = isTeam1 ? "Team 1" : "Team 2";
   const displayName = teamName || defaultTeamName;
 
@@ -40,7 +48,7 @@ export default function TeamPanel({
 
   return (
     <div
-      className={`bg-linear-to-br from-gray-900 to-gray-800 rounded-xl p-6 text-gray-100 h-full flex flex-col border-2 transition-all overflow-y-auto hide-scrollbar ${borderColor} ${
+      className={`bg-linear-to-br from-gray-900 to-gray-800 rounded-xl p-6 text-gray-100 h-full flex flex-col border-2 transition-all overflow-y-auto hide-scrollbar ${borderColor} ${pulseClass} ${
         isCurrentTurn ? "shadow-lg" : "shadow-2xl"
       }`}
     >

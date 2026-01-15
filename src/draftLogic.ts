@@ -264,3 +264,73 @@ export const selectMap = (state: DraftState, map: Map): DraftState => {
 
   return newState;
 };
+
+/**
+ * Validates if the local team can perform an action in multiplayer mode
+ * 
+ * @param state - Current draft state
+ * @param actionTeam - Team attempting to perform the action
+ * @returns true if action is allowed, false otherwise
+ */
+export const validateLocalTeamAction = (
+  state: DraftState,
+  actionTeam: Team
+): boolean => {
+  // In local mode, all actions are allowed
+  if (!state.multiplayer?.enabled) {
+    return true;
+  }
+
+  // Spectators cannot perform actions
+  if (state.multiplayer.connectionType === "spectator") {
+    return false;
+  }
+
+  // Check if it's the local team's turn
+  const isLocalTeamTurn = state.multiplayer.localTeam === actionTeam;
+  const isCurrentTeamTurn = state.currentTeam === actionTeam;
+
+  return isLocalTeamTurn && isCurrentTeamTurn;
+};
+
+/**
+ * Wrapper for selectUma that validates multiplayer permissions
+ * 
+ * @param state - Current draft state
+ * @param uma - Uma to select
+ * @param team - Team making the selection
+ * @returns New state if allowed, original state if not
+ */
+export const selectUmaMultiplayer = (
+  state: DraftState,
+  uma: UmaMusume,
+  team: Team
+): DraftState => {
+  if (!validateLocalTeamAction(state, team)) {
+    console.warn("Action not allowed: not your turn or team");
+    return state;
+  }
+
+  return selectUma(state, uma);
+};
+
+/**
+ * Wrapper for selectMap that validates multiplayer permissions
+ * 
+ * @param state - Current draft state
+ * @param map - Map to select
+ * @param team - Team making the selection
+ * @returns New state if allowed, original state if not
+ */
+export const selectMapMultiplayer = (
+  state: DraftState,
+  map: Map,
+  team: Team
+): DraftState => {
+  if (!validateLocalTeamAction(state, team)) {
+    console.warn("Action not allowed: not your turn or team");
+    return state;
+  }
+
+  return selectMap(state, map);
+};
