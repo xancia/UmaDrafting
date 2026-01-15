@@ -8,6 +8,8 @@ interface TeamPanelProps {
   pickedMaps: Map[];
   bannedMaps: Map[];
   isCurrentTurn?: boolean;
+  distanceCounts?: Record<string, number>;
+  dirtCount?: number;
 }
 
 export default function TeamPanel({
@@ -18,6 +20,8 @@ export default function TeamPanel({
   pickedMaps,
   bannedMaps,
   isCurrentTurn = false,
+  distanceCounts = {},
+  dirtCount = 0,
 }: TeamPanelProps) {
   const isTeam1 = team === "team1";
   const teamColor = isTeam1 ? "text-blue-500" : "text-red-500";
@@ -106,6 +110,43 @@ export default function TeamPanel({
         <h3 className="text-lg font-bold mb-3 text-gray-300 uppercase tracking-wider">
           Maps <span className="text-sm">({allMaps.length}/4)</span>
         </h3>
+        
+        {/* Constraint Indicators */}
+        {(Object.keys(distanceCounts).length > 0 || dirtCount > 0) && (
+          <div className="mb-3 p-2 bg-gray-800/50 rounded-lg border border-gray-700">
+            <div className="text-xs font-semibold text-gray-400 mb-1">CONSTRAINTS:</div>
+            <div className="flex flex-wrap gap-2">
+              {['sprint', 'mile', 'medium', 'long'].map(category => {
+                const count = distanceCounts[category] || 0;
+                if (count === 0) return null;
+                return (
+                  <span
+                    key={category}
+                    className={`text-xs px-2 py-1 rounded capitalize ${
+                      count >= 2
+                        ? "bg-red-900/50 text-red-300 font-bold"
+                        : "bg-gray-700 text-gray-300"
+                    }`}
+                  >
+                    {category}: {count}/2
+                  </span>
+                );
+              })}
+              {dirtCount > 0 && (
+                <span
+                  className={`text-xs px-2 py-1 rounded ${
+                    dirtCount >= 2
+                      ? "bg-red-900/50 text-red-300 font-bold"
+                      : "bg-gray-700 text-gray-300"
+                  }`}
+                >
+                  Dirt: {dirtCount}/2
+                </span>
+              )}
+            </div>
+          </div>
+        )}
+        
         <div className="space-y-2.5">
           {[...Array(4)].map((_, index) => {
             const map = allMaps[index];

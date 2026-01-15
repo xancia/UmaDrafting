@@ -1,4 +1,4 @@
-import type { DraftPhase, Team } from "../types";
+import type { DraftPhase, Team, Map } from "../types";
 
 interface DraftHeaderProps {
   phase: DraftPhase;
@@ -9,6 +9,7 @@ interface DraftHeaderProps {
   canUndo: boolean;
   team1Name?: string;
   team2Name?: string;
+  wildcardMap?: Map;
 }
 
 export default function DraftHeader({
@@ -20,6 +21,7 @@ export default function DraftHeader({
   canUndo,
   team1Name = "Team 1",
   team2Name = "Team 2",
+  wildcardMap,
 }: DraftHeaderProps) {
   const getPhaseText = () => {
     switch (phase) {
@@ -54,6 +56,11 @@ export default function DraftHeader({
               <span className={`font-bold ${getTeamColor(currentTeam)}`}>
                 {currentTeam === "team1" ? team1Name : team2Name}
               </span>
+            </p>
+          )}
+          {wildcardMap && (
+            <p className="text-sm text-gray-400 mt-1">
+              Tiebreaker: <span className={`font-semibold ${wildcardMap.surface.toLowerCase() === 'turf' ? 'text-green-400' : 'text-amber-500'}`}>{wildcardMap.track} ({wildcardMap.distance}m)</span>
             </p>
           )}
         </div>

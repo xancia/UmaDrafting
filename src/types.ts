@@ -46,5 +46,5 @@ export interface DraftState {
   };
   availableUmas: UmaMusume[];
   availableMaps: Map[];
-  wildcardMap?: Map;
+  wildcardMap: Map;
 }

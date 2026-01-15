@@ -1,24 +1,36 @@
 import type { DraftState, DraftPhase, Team, UmaMusume, Map } from "./types";
 import { SAMPLE_UMAS, SAMPLE_MAPS } from "./data";
+import { generateTrackConditions } from "./utils/trackConditions";
+import { findUmaVariations } from "./utils/umaUtils";
 
-export const getInitialDraftState = (): DraftState => ({
-  phase: "uma-pick",
-  currentTeam: "team1",
-  team1: {
-    pickedUmas: [],
-    bannedUmas: [],
-    pickedMaps: [],
-    bannedMaps: [],
-  },
-  team2: {
-    pickedUmas: [],
-    bannedUmas: [],
-    pickedMaps: [],
-    bannedMaps: [],
-  },
-  availableUmas: [...SAMPLE_UMAS],
-  availableMaps: [...SAMPLE_MAPS],
-});
+export const getInitialDraftState = (): DraftState => {
+  // Generate wildcard map at initialization
+  const randomMap = SAMPLE_MAPS[Math.floor(Math.random() * SAMPLE_MAPS.length)];
+  const wildcardMapWithConditions: Map = {
+    ...randomMap,
+    conditions: generateTrackConditions(),
+  };
+
+  return {
+    phase: "map-pick",
+    currentTeam: "team1",
+    team1: {
+      pickedUmas: [],
+      bannedUmas: [],
+      pickedMaps: [],
+      bannedMaps: [],
+    },
+    team2: {
+      pickedUmas: [],
+      bannedUmas: [],
+      pickedMaps: [],
+      bannedMaps: [],
+    },
+    availableUmas: [...SAMPLE_UMAS],
+    availableMaps: [...SAMPLE_MAPS],
+    wildcardMap: wildcardMapWithConditions,
+  };
+};
 
 export const getNextTeam = (current: Team): Team => {
   return current === "team1" ? "team2" : "team1";
@@ -27,17 +39,17 @@ export const getNextTeam = (current: Team): Team => {
 export const getNextPhase = (state: DraftState): DraftPhase => {
   const { phase, team1, team2 } = state;
 
-  if (phase === "uma-pick") {
-    const totalPicks = team1.pickedUmas.length + team2.pickedUmas.length;
-    if (totalPicks >= 12) return "uma-ban";
-  } else if (phase === "uma-ban") {
-    const totalBans = team1.bannedUmas.length + team2.bannedUmas.length;
-    if (totalBans >= 2) return "map-pick";
-  } else if (phase === "map-pick") {
+  if (phase === "map-pick") {
     const totalPicks = team1.pickedMaps.length + team2.pickedMaps.length;
     if (totalPicks >= 8) return "map-ban";
   } else if (phase === "map-ban") {
     const totalBans = team1.bannedMaps.length + team2.bannedMaps.length;
+    if (totalBans >= 2) return "uma-pick";
+  } else if (phase === "uma-pick") {
+    const totalPicks = team1.pickedUmas.length + team2.pickedUmas.length;
+    if (totalPicks >= 12) return "uma-ban";
+  } else if (phase === "uma-ban") {
+    const totalBans = team1.bannedUmas.length + team2.bannedUmas.length;
     if (totalBans >= 2) {
       return "complete";
     }
@@ -63,6 +75,61 @@ export const canTeamAct = (state: DraftState): boolean => {
   return false;
 };
 
+/**
+ * Counts occurrences of each distance in a team's picked maps
+ * @param maps - Array of picked maps
+ * @returns Object mapping distance to count
+ */
+/**
+ * Gets the distance category for a given distance
+ * @param distance - The distance in meters
+ * @returns Category: 'sprint' | 'mile' | 'medium' | 'long'
+ */
+export const getDistanceCategory = (distance: number): string => {
+  if (distance <= 1400) return 'sprint';
+  if (distance <= 1800) return 'mile';
+  if (distance <= 2400) return 'medium';
+  return 'long';
+};
+
+export const countDistances = (maps: Map[]): Record<string, number> => {
+  return maps.reduce((acc, map) => {
+    const category = getDistanceCategory(map.distance);
+    acc[category] = (acc[category] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+};
+
+/**
+ * Checks if a team can pick a map with the given distance (max 2 per category)
+ * @param maps - Team's currently picked maps
+ * @param distance - Distance to check
+ * @returns true if can pick (count < 2), false otherwise
+ */
+export const canPickDistance = (maps: Map[], distance: number): boolean => {
+  const category = getDistanceCategory(distance);
+  const counts = countDistances(maps);
+  return (counts[category] || 0) < 2;
+};
+
+/**
+ * Counts number of dirt surface maps in picked maps
+ * @param maps - Array of picked maps
+ * @returns Count of dirt tracks
+ */
+export const countDirtTracks = (maps: Map[]): number => {
+  return maps.filter((m) => m.surface === "Dirt").length;
+};
+
+/**
+ * Checks if a team can pick another dirt track (max 2 dirt tracks)
+ * @param maps - Team's currently picked maps
+ * @returns true if can pick (count < 2), false otherwise
+ */
+export const canPickDirt = (maps: Map[]): boolean => {
+  return countDirtTracks(maps) < 2;
+};
+
 export const selectUma = (state: DraftState, uma: UmaMusume): DraftState => {
   const { phase, currentTeam } = state;
   const newState = { ...state };
@@ -76,14 +143,20 @@ export const selectUma = (state: DraftState, uma: UmaMusume): DraftState => {
       (u) => u.id !== uma.id
     );
   } else if (phase === "uma-ban") {
-    // Remove from the opponent's picked umas and add to opponent team's banned list
+    // Remove all variations of the banned uma from opponent's picked list
     const opponentTeam = currentTeam === "team1" ? "team2" : "team1";
+    
+    // Find all variations of the banned uma in opponent's picked umas
+    const variations = findUmaVariations(uma.name, newState[opponentTeam].pickedUmas);
+    
+    // Remove all variations from opponent's picked list
     newState[opponentTeam] = {
       ...newState[opponentTeam],
       pickedUmas: newState[opponentTeam].pickedUmas.filter(
-        (u) => u.id !== uma.id
+        (u) => !variations.some((v) => v.id === u.id)
       ),
-      bannedUmas: [...newState[opponentTeam].bannedUmas, uma],
+      // Add all removed variations to opponent's banned list
+      bannedUmas: [...newState[opponentTeam].bannedUmas, ...variations],
     };
   }
 
@@ -136,6 +209,21 @@ export const selectMap = (state: DraftState, map: Map): DraftState => {
   const newState = { ...state };
 
   if (phase === "map-pick") {
+    // Validate constraints before allowing pick
+    const currentTeamMaps = newState[currentTeam].pickedMaps;
+    
+    // Check max 2 per distance constraint
+    if (!canPickDistance(currentTeamMaps, map.distance)) {
+      console.warn(`Cannot pick ${map.distance}m - already at maximum (2)`);
+      return state; // Return unchanged state
+    }
+    
+    // Check max 2 dirt tracks constraint
+    if (map.surface === "Dirt" && !canPickDirt(currentTeamMaps)) {
+      console.warn("Cannot pick dirt track - already at maximum (2)");
+      return state; // Return unchanged state
+    }
+    
     newState[currentTeam] = {
       ...newState[currentTeam],
       pickedMaps: [...newState[currentTeam].pickedMaps, map],
@@ -157,11 +245,11 @@ export const selectMap = (state: DraftState, map: Map): DraftState => {
 
   const nextPhase = getNextPhase(newState);
 
-  // When transitioning to map-pick phase, set team2 first
-  // When transitioning to map-ban phase, set team1 first
-  if (phase === "uma-ban" && nextPhase === "map-pick") {
-    newState.currentTeam = "team2";
-  } else if (phase === "map-pick" && nextPhase === "map-ban") {
+  // Map-pick → Map-ban: Team 1 bans first
+  // Map-ban → Uma-pick: Team 1 picks first
+  if (phase === "map-pick" && nextPhase === "map-ban") {
+    newState.currentTeam = "team1";
+  } else if (phase === "map-ban" && nextPhase === "uma-pick") {
     newState.currentTeam = "team1";
   } else {
     newState.currentTeam = getNextTeam(currentTeam);
