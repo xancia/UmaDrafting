@@ -482,11 +482,6 @@ export default function Draft5v5({ onBackToMenu }: Draft5v5Props) {
             <h2 className="text-4xl font-bold text-gray-100 mb-4 text-center">
               {!revealStarted ? "Wildcard Tiebreaker Map" : "Tiebreaker Map Revealed!"}
             </h2>
-            <p className="text-gray-400 mb-8 text-center text-lg">
-              {!revealStarted 
-                ? "This map will be used as the tiebreaker for the draft" 
-                : "This map will be used if the draft results in a tie"}
-            </p>
             <div className="flex justify-center mb-8 relative" style={{ perspective: '1000px', height: '350px' }}>
               <div 
                 className={`bg-gray-700 border-4 ${revealStarted && !cyclingMap ? 'border-blue-500' : 'border-gray-600'} rounded-xl p-8 max-w-md transition-all duration-300`}
