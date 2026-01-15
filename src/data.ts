@@ -243,6 +243,16 @@ export const SAMPLE_UMAS: UmaMusume[] = [
     name: "Mejiro Dober",
     imageUrl: "./uma-portraits/mejiro-dober.png",
   },
+  {
+    id: "58",
+    name: "Oguri Cap (Christmas)",
+    imageUrl: "./uma-portraits/oguri-cap-christmas.png",
+  },
+  {
+    id: "59",
+    name: "Biwa Hayahide (Christmas)",
+    imageUrl: "./uma-portraits/biwa-hayahide-christmas.png",
+  },
 ];
 
 // Race tracks with distances and surfaces

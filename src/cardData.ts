@@ -2,7 +2,7 @@ import type { Card } from "./types3v3v3";
 
 // Support card data with all images from supoka folder
 export const SAMPLE_CARDS: Card[] = [
-  // SSR Cards (54 total)
+  // SSR Cards (57 total)
   {
     id: "ssr1",
     name: "Air Shakur",
@@ -415,6 +415,27 @@ export const SAMPLE_CARDS: Card[] = [
     rarity: "SSR",
     type: "power",
     imageUrl: "./supoka/daitaku-helios-ssr-power.png",
+  },
+  {
+    id: "ssr60",
+    name: "Marvelous Sunday",
+    rarity: "SSR",
+    type: "power",
+    imageUrl: "./supoka/marvelous-sunday-ssr-power.png",
+  },
+  {
+    id: "ssr61",
+    name: "Narita Taishin",
+    rarity: "SSR",
+    type: "wit",
+    imageUrl: "./supoka/narita-taishin-ssr-wit.png",
+  },
+  {
+    id: "ssr62",
+    name: "Mayano Top Gun",
+    rarity: "SSR",
+    type: "speed",
+    imageUrl: "./supoka/mayano-top-gun-ssr-speed.png",
   },
 
   // SR Cards (36 total)
