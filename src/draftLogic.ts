@@ -139,25 +139,30 @@ export const selectUma = (state: DraftState, uma: UmaMusume): DraftState => {
       ...newState[currentTeam],
       pickedUmas: [...newState[currentTeam].pickedUmas, uma],
     };
+    
+    // Remove the picked uma and all its variations from available pool
+    const variations = findUmaVariations(uma.name, newState.availableUmas);
     newState.availableUmas = newState.availableUmas.filter(
-      (u) => u.id !== uma.id
+      (u) => !variations.some((v) => v.id === u.id)
     );
   } else if (phase === "uma-ban") {
-    // Remove all variations of the banned uma from opponent's picked list
+    // Remove only the specific banned uma from opponent's picked list
     const opponentTeam = currentTeam === "team1" ? "team2" : "team1";
     
-    // Find all variations of the banned uma in opponent's picked umas
-    const variations = findUmaVariations(uma.name, newState[opponentTeam].pickedUmas);
+    // Check if opponent has this specific uma
+    const bannedUma = newState[opponentTeam].pickedUmas.find(u => u.id === uma.id);
     
-    // Remove all variations from opponent's picked list
-    newState[opponentTeam] = {
-      ...newState[opponentTeam],
-      pickedUmas: newState[opponentTeam].pickedUmas.filter(
-        (u) => !variations.some((v) => v.id === u.id)
-      ),
-      // Add all removed variations to opponent's banned list
-      bannedUmas: [...newState[opponentTeam].bannedUmas, ...variations],
-    };
+    if (bannedUma) {
+      // Remove only this specific uma from opponent's picked list
+      newState[opponentTeam] = {
+        ...newState[opponentTeam],
+        pickedUmas: newState[opponentTeam].pickedUmas.filter(
+          (u) => u.id !== uma.id
+        ),
+        // Add only this uma to opponent's banned list
+        bannedUmas: [...newState[opponentTeam].bannedUmas, bannedUma],
+      };
+    }
   }
 
   const nextPhase = getNextPhase(newState);
