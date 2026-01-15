@@ -112,8 +112,8 @@ export default function Draft5v5({ onBackToMenu }: Draft5v5Props) {
     }
 
     let cycleCount = 0;
-    const fastCycles = 30; // Fast spin for ~2.4 seconds
-    const slowCycles = 10; // Slowdown for ~1.5 seconds
+    const fastCycles = 20; // Fast spin for ~1.5 seconds
+    const slowCycles = 8; // Slowdown for ~1.0 seconds
     const totalCycles = fastCycles + slowCycles;
     let timeoutId: number;
 
@@ -132,10 +132,10 @@ export default function Draft5v5({ onBackToMenu }: Draft5v5Props) {
       setCyclingMap({ ...randomMap, conditions });
 
       // Calculate delay - fast at first, then slow down
-      let delay = 80;
+      let delay = 75;
       if (cycleCount > fastCycles) {
         const slowdownProgress = (cycleCount - fastCycles) / slowCycles;
-        delay = 80 + (slowdownProgress * 200); // Gradually slow from 80ms to 280ms
+        delay = 75 + (slowdownProgress * 175); // Gradually slow from 75ms to 250ms
       }
 
       cycleCount++;
