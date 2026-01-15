@@ -40,7 +40,7 @@ export default function TeamPanel({
 
   return (
     <div
-      className={`bg-linear-to-br from-gray-900 to-gray-800 rounded-xl p-6 text-gray-100 h-full flex flex-col border-2 transition-all overflow-y-auto ${borderColor} ${
+      className={`bg-linear-to-br from-gray-900 to-gray-800 rounded-xl p-6 text-gray-100 h-full flex flex-col border-2 transition-all overflow-y-auto hide-scrollbar ${borderColor} ${
         isCurrentTurn ? "shadow-lg" : "shadow-2xl"
       }`}
     >
@@ -51,7 +51,7 @@ export default function TeamPanel({
       </div>
 
       <div className="mb-6 shrink-0">
-        <h3 className="text-lg font-bold mb-3 text-gray-300 uppercase tracking-wider">
+        <h3 className="text-lg font-bold mb-2 text-gray-300 uppercase tracking-wider">
           Umamusume <span className="text-sm">({allUmas.length}/6)</span>
         </h3>
         <div className="grid grid-cols-3 gap-3">
@@ -106,8 +106,8 @@ export default function TeamPanel({
         </div>
       </div>
 
-      <div className="mt-6 shrink-0 min-w-0">
-        <h3 className="text-lg font-bold mb-3 text-gray-300 uppercase tracking-wider">
+      <div className="mt-3 shrink-0 min-w-0">
+        <h3 className="text-lg font-bold mb-2 text-gray-300 uppercase tracking-wider">
           Maps <span className="text-sm">({allMaps.length}/4)</span>
         </h3>
         
@@ -147,7 +147,7 @@ export default function TeamPanel({
           </div>
         )}
         
-        <div className="space-y-2.5">
+        <div className="space-y-1.5">
           {[...Array(4)].map((_, index) => {
             const map = allMaps[index];
             const isBanned = map && bannedMaps.some((b) => b.id === map.id);
@@ -159,21 +159,21 @@ export default function TeamPanel({
             return map ? (
               <div
                 key={map.id}
-                className={`px-4 py-3 rounded-lg border min-w-0 relative ${
+                className={`px-3 py-2 rounded-lg border min-w-0 relative ${
                   isBanned
                     ? `${surfaceColor}/30 border-gray-700`
                     : `${surfaceColor} border-gray-700`
                 }`}
               >
                 <div
-                  className={`text-base font-semibold truncate ${
+                  className={`text-sm font-semibold truncate ${
                     isBanned ? "text-gray-400 line-through" : "text-white"
                   }`}
                 >
                   {map.track}
                 </div>
                 <div
-                  className={`text-sm truncate ${
+                  className={`text-xs truncate ${
                     isBanned ? "text-gray-500 line-through" : "text-gray-100"
                   }`}
                 >
@@ -191,7 +191,7 @@ export default function TeamPanel({
                   </div>
                 )}
                 {isBanned && (
-                  <div className="absolute right-4 top-1/2 -translate-y-1/2 text-red-500 text-2xl font-bold">
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 text-red-500 text-xl font-bold">
                     ✕
                   </div>
                 )}
@@ -199,9 +199,9 @@ export default function TeamPanel({
             ) : (
               <div
                 key={`empty-${index}`}
-                className="bg-gray-800/50 px-4 py-3 rounded-lg border border-gray-700"
+                className="bg-gray-800/50 px-3 py-2 rounded-lg border border-gray-700"
               >
-                <div className="text-sm text-gray-600">Empty slot</div>
+                <div className="text-xs text-gray-600">Empty slot</div>
               </div>
             );
           })}
