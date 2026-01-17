@@ -42,7 +42,7 @@ The drafting system supports real-time multiplayer using peer-to-peer WebRTC con
 
 ## Usage
 
-https://xancia.github.io/UmaDrafting/
+https://drafter.uma.guide/
 
 ## Draft Flow
 
