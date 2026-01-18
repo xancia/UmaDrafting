@@ -667,6 +667,7 @@ export default function Draft5v5({ onBackToMenu, multiplayerConfig }: Draft5v5Pr
           }
           distanceCounts={countDistances(draftState.team1.pickedMaps)}
           dirtCount={countDirtTracks(draftState.team1.pickedMaps)}
+          showMapOrder={draftState.phase === "uma-pick" || draftState.phase === "uma-ban" || draftState.phase === "complete"}
         />
       </div>
 
@@ -849,8 +850,11 @@ export default function Draft5v5({ onBackToMenu, multiplayerConfig }: Draft5v5Pr
           isCurrentTurn={
             draftState.phase !== "complete" &&
             draftState.currentTeam === "team2"
-          }          distanceCounts={countDistances(draftState.team2.pickedMaps)}
-          dirtCount={countDirtTracks(draftState.team2.pickedMaps)}        />
+          }
+          distanceCounts={countDistances(draftState.team2.pickedMaps)}
+          dirtCount={countDirtTracks(draftState.team2.pickedMaps)}
+          showMapOrder={draftState.phase === "uma-pick" || draftState.phase === "uma-ban" || draftState.phase === "complete"}
+        />
       </div>
 
       {/* Reset Confirmation Modal */}

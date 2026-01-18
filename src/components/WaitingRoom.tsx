@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { formatRoomCode } from "../utils/roomCode";
 
 interface WaitingRoomProps {
@@ -33,11 +34,14 @@ export default function WaitingRoom({
   onStartDraft,
   onLeave,
 }: WaitingRoomProps) {
+  const [copied, setCopied] = useState(false);
   const canStart = playerCount >= 2;
 
   const handleCopyRoomCode = async () => {
     try {
       await navigator.clipboard.writeText(roomCode);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
     } catch (err) {
       console.error("Failed to copy room code:", err);
     }
@@ -54,12 +58,16 @@ export default function WaitingRoom({
           <p className="text-sm text-gray-400 mb-2">Room Code</p>
           <button
             onClick={handleCopyRoomCode}
-            className="text-5xl font-mono font-bold text-blue-400 hover:text-blue-300 transition-colors tracking-wider"
+            className={`text-5xl font-mono font-bold transition-colors tracking-wider ${
+              copied ? 'text-green-400' : 'text-blue-400 hover:text-blue-300'
+            }`}
             title="Click to copy"
           >
             {formatRoomCode(roomCode)}
           </button>
-          <p className="text-xs text-gray-500 mt-2">Click to copy</p>
+          <p className={`text-xs mt-2 transition-colors ${copied ? 'text-green-400' : 'text-gray-500'}`}>
+            {copied ? '✓ Copied!' : 'Click to copy'}
+          </p>
         </div>
 
         {/* Team Names */}

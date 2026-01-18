@@ -53,6 +53,7 @@ export default function SpectatorView({
           dirtCount={countDirtTracks(team1.pickedMaps)}
           isCurrentTurn={phase !== "complete" && currentTeam === "team1"}
           pulsingBorder={true}
+          showMapOrder={phase === "uma-pick" || phase === "uma-ban" || phase === "complete"}
         />
       </div>
 
@@ -147,6 +148,7 @@ export default function SpectatorView({
           dirtCount={countDirtTracks(team2.pickedMaps)}
           isCurrentTurn={phase !== "complete" && currentTeam === "team2"}
           pulsingBorder={true}
+          showMapOrder={phase === "uma-pick" || phase === "uma-ban" || phase === "complete"}
         />
       </div>
     </div>

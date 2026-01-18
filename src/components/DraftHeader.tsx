@@ -133,7 +133,7 @@ export default function DraftHeader({
             </button>
           </div>
           {isMultiplayer && roomCode && (
-            <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg ${isSpectator ? 'bg-purple-900/30 border border-purple-700/50' : 'bg-gray-700/50'}`}>
+            <div className={`group flex items-center gap-2 px-3 py-1.5 rounded-lg ${isSpectator ? 'bg-purple-900/30 border border-purple-700/50' : 'bg-gray-700/50'}`}>
               {isSpectator ? (
                 <span className="w-2 h-2 rounded-full bg-purple-400 animate-pulse" />
               ) : (
@@ -144,8 +144,8 @@ export default function DraftHeader({
               </span>
               <button
                 onClick={handleCopyRoomCode}
-                className={`font-mono text-sm transition-colors ${isSpectator ? 'text-purple-400 hover:text-purple-300' : 'text-blue-400 hover:text-blue-300'}`}
-                title="Click to copy"
+                className={`font-mono text-sm transition-all duration-200 blur-sm group-hover:blur-none ${isSpectator ? 'text-purple-400 hover:text-purple-300' : 'text-blue-400 hover:text-blue-300'}`}
+                title="Hover to reveal, click to copy"
               >
                 {formatRoomCode(roomCode)}
               </button>

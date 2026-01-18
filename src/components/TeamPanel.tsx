@@ -11,6 +11,7 @@ interface TeamPanelProps {
   distanceCounts?: Record<string, number>;
   dirtCount?: number;
   pulsingBorder?: boolean;
+  showMapOrder?: boolean;
 }
 
 export default function TeamPanel({
@@ -24,6 +25,7 @@ export default function TeamPanel({
   distanceCounts = {},
   dirtCount = 0,
   pulsingBorder = false,
+  showMapOrder = false,
 }: TeamPanelProps) {
   const isTeam1 = team === "team1";
   const teamColor = isTeam1 ? "text-blue-500" : "text-red-500";
@@ -103,6 +105,12 @@ export default function TeamPanel({
           {[...Array(4)].map((_, index) => {
             const map = allMaps[index];
             const isBanned = map && bannedMaps.some((b) => b.id === map.id);
+            // Calculate play order: Team1 picks odd positions (1,3,5,7), Team2 picks even (2,4,6,8)
+            // Only picked (non-banned) maps get numbers
+            const pickIndex = pickedMaps.findIndex((m) => map && m.id === map.id);
+            const playOrder = pickIndex !== -1 
+              ? (isTeam1 ? pickIndex * 2 + 1 : pickIndex * 2 + 2)
+              : null;
             const surfaceColor = map
               ? map.surface.toLowerCase() === "turf"
                 ? "bg-green-700"
@@ -111,37 +119,45 @@ export default function TeamPanel({
             return map ? (
               <div
                 key={map.id}
-                className={`px-3 py-2 rounded-lg border min-w-0 relative ${
+                className={`px-3 py-2 rounded-lg border min-w-0 relative flex gap-3 items-center ${
                   isBanned
                     ? `${surfaceColor}/30 border-gray-700`
                     : `${surfaceColor} border-gray-700`
                 }`}
               >
-                <div
-                  className={`text-sm font-semibold truncate ${
-                    isBanned ? "text-gray-400 line-through" : "text-white"
-                  }`}
-                >
-                  {map.track}
-                </div>
-                <div
-                  className={`text-xs truncate ${
-                    isBanned ? "text-gray-500 line-through" : "text-gray-100"
-                  }`}
-                >
-                  {map.distance} • {map.surface}
-                  {map.variant && ` • ${map.variant}`}
-                </div>
-                {map.conditions && (
-                  <div
-                    className={`text-xs truncate ${
-                      isBanned ? "text-gray-500 line-through" : "text-gray-300"
-                    }`}
-                  >
-                    {map.conditions.season} • {map.conditions.ground} •{" "}
-                    {map.conditions.weather}
+                {/* Play order number badge */}
+                {showMapOrder && !isBanned && (
+                  <div className="w-7 h-7 shrink-0 bg-black/30 rounded-md flex items-center justify-center border border-white/20">
+                    <span className="text-sm font-bold text-white">{playOrder}</span>
                   </div>
                 )}
+                <div className="flex-1 min-w-0">
+                  <div
+                    className={`text-sm font-semibold truncate ${
+                      isBanned ? "text-gray-400 line-through" : "text-white"
+                    }`}
+                  >
+                    {map.track}
+                  </div>
+                  <div
+                    className={`text-xs truncate ${
+                      isBanned ? "text-gray-500 line-through" : "text-gray-100"
+                    }`}
+                  >
+                    {map.distance} • {map.surface}
+                    {map.variant && ` • ${map.variant}`}
+                  </div>
+                  {map.conditions && (
+                    <div
+                      className={`text-xs truncate ${
+                        isBanned ? "text-gray-500 line-through" : "text-gray-300"
+                      }`}
+                    >
+                      {map.conditions.season} • {map.conditions.ground} •{" "}
+                      {map.conditions.weather}
+                    </div>
+                  )}
+                </div>
                 {isBanned && (
                   <div className="absolute right-3 top-1/2 -translate-y-1/2 text-red-500 text-xl font-bold">
                     ✕
