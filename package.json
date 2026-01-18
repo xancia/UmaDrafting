@@ -8,7 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "deploy": "npm run build && gh-pages -d dist --no-history"
+    "deploy": "npm run build && node deploy.js"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.18",
