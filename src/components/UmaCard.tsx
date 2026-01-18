@@ -24,7 +24,7 @@ export default function UmaCard({ uma, onSelect, disabled }: UmaCardProps) {
           <span className="text-xl text-gray-400">?</span>
         )}
       </div>
-      <p className="text-xs font-semibold text-gray-100 text-center">
+      <p className="text-xs font-semibold text-gray-100 text-center whitespace-pre-line leading-tight break-words">
         {uma.name}
       </p>
     </button>

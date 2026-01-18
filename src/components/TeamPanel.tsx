@@ -216,7 +216,7 @@ export default function TeamPanel({
                       </div>
                     )}
                     <div className="absolute inset-0 bg-black/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center p-2">
-                      <span className="text-sm font-semibold text-center wrap-break-word text-white">
+                      <span className="text-sm font-semibold text-center whitespace-pre-line leading-tight break-words text-white">
                         {uma.name}
                       </span>
                     </div>

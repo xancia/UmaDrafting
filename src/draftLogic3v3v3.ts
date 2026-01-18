@@ -1,6 +1,5 @@
 import type { DraftState3v3v3, Team3v3v3 } from "./types3v3v3";
-import { SAMPLE_UMAS } from "./data";
-import { SAMPLE_CARDS } from "./cardData";
+import { SAMPLE_UMAS, SAMPLE_CARDS } from "./data";
 
 export function getInitialDraftState3v3v3(): DraftState3v3v3 {
   return {

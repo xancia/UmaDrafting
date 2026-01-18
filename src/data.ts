@@ -1,259 +1,122 @@
 import type { UmaMusume, Map } from "./types";
+import type { Card } from "./types3v3v3";
+import { getIconCardId } from "./iconMappings";
 
-// All available Uma Musume in global version
-export const SAMPLE_UMAS: UmaMusume[] = [
-  {
-    id: "1",
-    name: "Tosen Jordan",
-    imageUrl: "./uma-portraits/tosen-jordan.png",
-  },
-  {
-    id: "2",
-    name: "Symboli Rudolf (Festival)",
-    imageUrl: "./uma-portraits/symboli-rudolf-festival.png",
-  },
-  {
-    id: "3",
-    name: "Gold City (Festival)",
-    imageUrl: "./uma-portraits/gold-city-festival.png",
-  },
-  {
-    id: "4",
-    name: "Manhattan Cafe",
-    imageUrl: "./uma-portraits/manhattan-cafe.png",
-  },
-  {
-    id: "5",
-    name: "Kawakami Princess",
-    imageUrl: "./uma-portraits/kawakami-princess.png",
-  },
-  {
-    id: "6",
-    name: "Rice Shower (Halloween)",
-    imageUrl: "./uma-portraits/rice-shower-halloween.png",
-  },
-  {
-    id: "7",
-    name: "Super Creek (Halloween)",
-    imageUrl: "./uma-portraits/super-creek-halloween.png",
-  },
-  {
-    id: "8",
-    name: "Agnes Digital",
-    imageUrl: "./uma-portraits/agnes-digital.png",
-  },
-  {
-    id: "9",
-    name: "Hishi Akebono",
-    imageUrl: "./uma-portraits/hishi-akebono.png",
-  },
-  {
-    id: "10",
-    name: "Matifuku (Full Armor)",
-    imageUrl: "./uma-portraits/matikanefukukitaru-fullarmor.png",
-  },
-  {
-    id: "11",
-    name: "Eishin Flash",
-    imageUrl: "./uma-portraits/eishin-flash.png",
-  },
-  {
-    id: "12",
-    name: "Meisho Doto",
-    imageUrl: "./uma-portraits/meisho-doto.png",
-  },
-  {
-    id: "13",
-    name: "Special Week (Summer)",
-    imageUrl: "./uma-portraits/special-week-summer.png",
-  },
-  {
-    id: "14",
-    name: "Maruzensky (Summer)",
-    imageUrl: "./uma-portraits/maruzensky-summer.png",
-  },
-  { id: "15", name: "Gold City", imageUrl: "./uma-portraits/gold-city.png" },
-  {
-    id: "16",
-    name: "Fuji Kiseki",
-    imageUrl: "./uma-portraits/fuji-kiseki.png",
-  },
-  {
-    id: "17",
-    name: "Grass Wonder (Fantasy)",
-    imageUrl: "./uma-portraits/grass-wonder-fantasy.png",
-  },
-  {
-    id: "18",
-    name: "El Condor Pasa (Fantasy)",
-    imageUrl: "./uma-portraits/el-condor-pasa-fantasy.png",
-  },
-  {
-    id: "19",
-    name: "Hishi Amazon",
-    imageUrl: "./uma-portraits/hishi-amazon.png",
-  },
-  { id: "20", name: "Seiun Sky", imageUrl: "./uma-portraits/seiun-sky.png" },
-  {
-    id: "21",
-    name: "Air Groove (Wedding)",
-    imageUrl: "./uma-portraits/air-groove-wedding.png",
-  },
-  {
-    id: "22",
-    name: "Mayano Top Gun (Wedding)",
-    imageUrl: "./uma-portraits/mayano-top-gun-wedding.png",
-  },
-  {
-    id: "23",
-    name: "Narita Brian",
-    imageUrl: "./uma-portraits/narita-brian.png",
-  },
-  {
-    id: "24",
-    name: "Smart Falcon",
-    imageUrl: "./uma-portraits/smart-falcon.png",
-  },
-  {
-    id: "25",
-    name: "Narita Taishin",
-    imageUrl: "./uma-portraits/narita-taishin.png",
-  },
-  {
-    id: "26",
-    name: "Curren Chan",
-    imageUrl: "./uma-portraits/curren-chan.png",
-  },
-  {
-    id: "27",
-    name: "Tokai Teio (Anime Collab)",
-    imageUrl: "./uma-portraits/tokai-teio-anime.png",
-  },
-  {
-    id: "28",
-    name: "Mejiro McQueen (Anime Collab)",
-    imageUrl: "./uma-portraits/mejiro-mcqueen-anime.png",
-  },
-  {
-    id: "29",
-    name: "Biwa Hayahide",
-    imageUrl: "./uma-portraits/biwa-hayahide.png",
-  },
-  {
-    id: "30",
-    name: "Mihono Bourbon",
-    imageUrl: "./uma-portraits/mihono-bourbon.png",
-  },
-  { id: "31", name: "TM Opera O", imageUrl: "./uma-portraits/tm-opera-o.png" },
-  {
-    id: "32",
-    name: "Special Week",
-    imageUrl: "./uma-portraits/special-week.png",
-  },
-  {
-    id: "33",
-    name: "Silence Suzuka",
-    imageUrl: "./uma-portraits/silence-suzuka.png",
-  },
-  { id: "34", name: "Tokai Teio", imageUrl: "./uma-portraits/tokai-teio.png" },
-  { id: "35", name: "Maruzensky", imageUrl: "./uma-portraits/maruzensky.png" },
-  { id: "36", name: "Oguri Cap", imageUrl: "./uma-portraits/oguri-cap.png" },
-  {
-    id: "37",
-    name: "Taiki Shuttle",
-    imageUrl: "./uma-portraits/taiki-shuttle.png",
-  },
-  {
-    id: "38",
-    name: "Mejiro McQueen",
-    imageUrl: "./uma-portraits/mejiro-mcqueen.png",
-  },
-  {
-    id: "39",
-    name: "Symboli Rudolf",
-    imageUrl: "./uma-portraits/symboli-rudolf.png",
-  },
-  {
-    id: "40",
-    name: "Rice Shower",
-    imageUrl: "./uma-portraits/rice-shower.png",
-  },
-  { id: "41", name: "Gold Ship", imageUrl: "./uma-portraits/gold-ship.png" },
-  { id: "42", name: "Vodka", imageUrl: "./uma-portraits/vodka.png" },
-  {
-    id: "43",
-    name: "Daiwa Scarlet",
-    imageUrl: "./uma-portraits/daiwa-scarlet.png",
-  },
-  {
-    id: "44",
-    name: "Grass Wonder",
-    imageUrl: "./uma-portraits/grass-wonder.png",
-  },
-  {
-    id: "45",
-    name: "El Condor Pasa",
-    imageUrl: "./uma-portraits/el-condor-pasa.png",
-  },
-  { id: "46", name: "Air Groove", imageUrl: "./uma-portraits/air-groove.png" },
-  {
-    id: "47",
-    name: "Mayano Top Gun",
-    imageUrl: "./uma-portraits/mayano-top-gun.png",
-  },
-  {
-    id: "48",
-    name: "Super Creek",
-    imageUrl: "./uma-portraits/super-creek.png",
-  },
-  {
-    id: "49",
-    name: "Mejiro Ryan",
-    imageUrl: "./uma-portraits/mejiro-ryan.png",
-  },
-  {
-    id: "50",
-    name: "Agnes Tachyon",
-    imageUrl: "./uma-portraits/agnes-tachyon.png",
-  },
-  {
-    id: "51",
-    name: "Winning Ticket",
-    imageUrl: "./uma-portraits/winning-ticket.png",
-  },
-  {
-    id: "52",
-    name: "Sakura Bakushin O",
-    imageUrl: "./uma-portraits/sakura-bakushin-o.png",
-  },
-  { id: "53", name: "Haru Urara", imageUrl: "./uma-portraits/haru-urara.png" },
-  {
-    id: "54",
-    name: "Matifuku",
-    imageUrl: "./uma-portraits/matikanefukukitaru.png",
-  },
-  {
-    id: "55",
-    name: "Nice Nature",
-    imageUrl: "./uma-portraits/nice-nature.png",
-  },
-  { id: "56", name: "King Halo", imageUrl: "./uma-portraits/king-halo.png" },
-  {
-    id: "57",
-    name: "Mejiro Dober",
-    imageUrl: "./uma-portraits/mejiro-dober.png",
-  },
-  {
-    id: "58",
-    name: "Oguri Cap (Christmas)",
-    imageUrl: "./uma-portraits/oguri-cap-christmas.png",
-  },
-  {
-    id: "59",
-    name: "Biwa Hayahide (Christmas)",
-    imageUrl: "./uma-portraits/biwa-hayahide-christmas.png",
-  },
-];
+// Import JSON data
+import characterDataJson from "./data/TerumiCharacterData.json";
+import supportCardDataJson from "./data/TerumiSupportCardData.json";
+
+// Type definitions for the JSON data
+interface CharacterData {
+  charaId: number;
+  charaName: string;
+  voiceActor: string;
+  cardId: number;
+  cardTitle: string;
+  supportCardId: number;
+  startDate: string;
+  baseSpeed: number;
+  baseStamina: number;
+  basePower: number;
+  baseGuts: number;
+  baseWisdom: number;
+  talentSpeed: number;
+  talentStamina: number;
+  talentPower: number;
+  talentGuts: number;
+  talentWisdom: number;
+  aptitudeTurf: string;
+  aptitudeDirt: string;
+  aptitudeShort: string;
+  aptitudeMile: string;
+  aptitudeMiddle: string;
+  aptitudeLong: string;
+  aptitudeRunner: string;
+  aptitudeLeader: string;
+  aptitudeBetweener: string;
+  aptitudeChaser: string;
+  birthYear: number;
+  birthMonth: number;
+  birthDay: number;
+  sex: number;
+  height: number;
+  bust: number;
+  charaCategory: number;
+  uraObjectives: number;
+  skillIds: string;
+}
+
+interface SupportCardData {
+  supportCardId: number;
+  charaId: number;
+  charaName: string;
+  supportCardTitle: string;
+  rarity: number;
+  rarityDisplay: string;
+  supportCardType: number;
+  supportCardTypeName: string;
+  effectTableId: number;
+  uniqueEffectId: number;
+  skillSetId: number;
+  commandType: number;
+  commandId: number;
+  startDate: string;
+  outingMax: number;
+  effectId: number;
+  effects: unknown[];
+  skillHints: unknown[];
+}
+
+// Helper function to map support card type number to type string
+function mapSupportCardType(
+  typeName: string
+): "speed" | "stamina" | "power" | "guts" | "wit" | "friend" | undefined {
+  const typeMap: Record<
+    string,
+    "speed" | "stamina" | "power" | "guts" | "wit" | "friend"
+  > = {
+    Speed: "speed",
+    Stamina: "stamina",
+    Power: "power",
+    Guts: "guts",
+    Intelligence: "wit",
+    Friend: "friend",
+  };
+  return typeMap[typeName];
+}
+
+// Helper function to map rarity number to string
+function mapRarity(rarityDisplay: string): "SSR" | "SR" | "R" {
+  if (rarityDisplay === "SSR") return "SSR";
+  if (rarityDisplay === "SR") return "SR";
+  return "R";
+}
+
+// Generate Uma Musume data from JSON
+// Each entry in the JSON represents a unique trainable card (charaId + cardId combination)
+// Portrait path: ./uma/chara_stand_{charaId}_{iconCardId}.webp
+const characterData = characterDataJson.value as CharacterData[];
+
+export const SAMPLE_UMAS: UmaMusume[] = characterData.map((char) => {
+  const iconCardId = getIconCardId(char.cardId);
+  return {
+    id: `${char.cardId}`,
+    name: char.charaName,
+    imageUrl: `./uma/chara_stand_${char.charaId}_${iconCardId}.webp`,
+  };
+});
+
+// Generate Support Card data from JSON
+// Portrait path: ./card/tex_support_card_{supportCardId}.webp
+const supportCardData = supportCardDataJson.value as SupportCardData[];
+
+export const SAMPLE_CARDS: Card[] = supportCardData.map((card) => ({
+  id: `${card.supportCardId}`,
+  name: card.charaName,
+  rarity: mapRarity(card.rarityDisplay),
+  type: mapSupportCardType(card.supportCardTypeName),
+  imageUrl: `./card/tex_support_card_${card.supportCardId}.webp`,
+}));
 
 // Race tracks with distances and surfaces
 // TODO: Fill in complete distance/surface data for each track

@@ -400,7 +400,7 @@ export default function Draft3v3v3({ onBackToMenu }: Draft3v3v3Props) {
                       )}
                       {card.type && (
                         <img
-                          src={`./supoka/${card.type}-icon.png`}
+                          src={`./type/${card.type === 'friend' ? 'pal' : card.type}.svg`}
                           alt={card.type}
                           className="absolute top-1 right-1 w-6 h-6 object-contain"
                         />
@@ -585,7 +585,7 @@ export default function Draft3v3v3({ onBackToMenu }: Draft3v3v3Props) {
                 }
                 className={`px-6 py-2 rounded-lg font-semibold transition-colors ${
                   cardRarityFilter === "SSR"
-                    ? "bg-yellow-600 text-white"
+                    ? "bg-indigo-400 text-white"
                     : "bg-gray-700 text-gray-100 hover:bg-gray-600"
                 } border border-gray-600`}
               >
@@ -597,7 +597,7 @@ export default function Draft3v3v3({ onBackToMenu }: Draft3v3v3Props) {
                 }
                 className={`px-6 py-2 rounded-lg font-semibold transition-colors ${
                   cardRarityFilter === "SR"
-                    ? "bg-purple-600 text-white"
+                    ? "bg-yellow-500 text-white"
                     : "bg-gray-700 text-gray-100 hover:bg-gray-600"
                 } border border-gray-600`}
               >
@@ -609,7 +609,7 @@ export default function Draft3v3v3({ onBackToMenu }: Draft3v3v3Props) {
                 }
                 className={`px-6 py-2 rounded-lg font-semibold transition-colors ${
                   cardRarityFilter === "R"
-                    ? "bg-blue-600 text-white"
+                    ? "bg-gray-400 text-white"
                     : "bg-gray-700 text-gray-100 hover:bg-gray-600"
                 } border border-gray-600`}
               >
@@ -642,7 +642,7 @@ export default function Draft3v3v3({ onBackToMenu }: Draft3v3v3Props) {
                     )}
                     {card.type && (
                       <img
-                        src={`./supoka/${card.type}-icon.png`}
+                        src={`./type/${card.type === 'friend' ? 'pal' : card.type}.svg`}
                         alt={card.type}
                         className="absolute top-1 right-1 w-6 h-6 object-contain"
                       />
@@ -768,7 +768,7 @@ export default function Draft3v3v3({ onBackToMenu }: Draft3v3v3Props) {
                     />
                     {card.type && (
                       <img
-                        src={`./supoka/${card.type}-icon.png`}
+                        src={`./type/${card.type === 'friend' ? 'pal' : card.type}.svg`}
                         alt={card.type}
                         className="absolute top-0.5 right-0.5 w-4 h-4 object-contain"
                       />

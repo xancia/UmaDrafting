@@ -73,7 +73,7 @@ export default function TeamPanel3v3v3({
                       />
                       {card.type && (
                         <img
-                          src={`./supoka/${card.type}-icon.png`}
+                          src={`./type/${card.type === 'friend' ? 'pal' : card.type}.svg`}
                           alt={card.type}
                           className="absolute top-0.5 right-0.5 w-4 h-4 object-contain"
                         />
