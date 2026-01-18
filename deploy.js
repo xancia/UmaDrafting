@@ -11,13 +11,16 @@ try {
     rmSync(deployDir, { recursive: true, force: true });
   }
 
+  // Get the remote URL
+  const remoteUrl = execSync('git remote get-url origin', { encoding: 'utf-8' }).trim();
+
   // Clone the gh-pages branch (or create new)
   console.log('Setting up gh-pages branch...');
   try {
-    execSync(`git clone --branch gh-pages --single-branch --depth 1 . ${deployDir}`, { stdio: 'inherit' });
+    execSync(`git clone --branch gh-pages --single-branch --depth 1 ${remoteUrl} ${deployDir}`, { stdio: 'inherit' });
   } catch {
     // Branch doesn't exist, create a new orphan branch
-    execSync(`git clone . ${deployDir}`, { stdio: 'inherit' });
+    execSync(`git clone --depth 1 ${remoteUrl} ${deployDir}`, { stdio: 'inherit' });
     process.chdir(deployDir);
     execSync('git checkout --orphan gh-pages', { stdio: 'inherit' });
     execSync('git rm -rf .', { stdio: 'inherit' });
