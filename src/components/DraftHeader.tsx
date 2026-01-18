@@ -19,6 +19,9 @@ interface DraftHeaderProps {
   playerCount?: number;
   isHost?: boolean;
   isSpectator?: boolean;
+  // Timer props
+  timeRemaining?: number;
+  timerEnabled?: boolean;
 }
 
 export default function DraftHeader({
@@ -37,7 +40,21 @@ export default function DraftHeader({
   playerCount = 0,
   isHost = false,
   isSpectator = false,
+  timeRemaining,
+  timerEnabled = true,
 }: DraftHeaderProps) {
+  // Timer display helpers
+  const isTimerActive = timerEnabled && 
+    timeRemaining !== undefined && 
+    ["map-pick", "map-ban", "uma-pick", "uma-ban"].includes(phase);
+  const isWarning = isTimerActive && timeRemaining <= 10 && timeRemaining > 5;
+  const isCritical = isTimerActive && timeRemaining <= 5;
+  
+  const formatTime = (seconds: number): string => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return mins > 0 ? `${mins}:${secs.toString().padStart(2, '0')}` : `${secs}s`;
+  };
   const getPhaseText = () => {
     switch (phase) {
       case "lobby":
@@ -152,6 +169,20 @@ export default function DraftHeader({
               {!isSpectator && (
                 <span className="text-xs text-gray-400">({playerCount} player{playerCount !== 1 ? "s" : ""})</span>
               )}
+            </div>
+          )}
+          {/* Timer display - bottom right */}
+          {isTimerActive && timeRemaining !== undefined && (
+            <div
+              className={`px-4 py-2 rounded-lg font-mono text-xl font-bold transition-colors ${
+                isCritical
+                  ? "bg-red-900/50 text-red-400 animate-pulse"
+                  : isWarning
+                  ? "bg-yellow-900/50 text-yellow-400"
+                  : "bg-gray-700/50 text-gray-300"
+              }`}
+            >
+              ⏱ {formatTime(timeRemaining)}
             </div>
           )}
         </div>

@@ -334,3 +334,110 @@ export const selectMapMultiplayer = (
 
   return selectMap(state, map);
 };
+
+// ============================================================================
+// Random Selection Functions (for turn timer timeout)
+// ============================================================================
+
+/**
+ * Gets a random element from an array
+ * @param arr - Array to pick from
+ * @returns Random element or undefined if array is empty
+ */
+const getRandomElement = <T>(arr: T[]): T | undefined => {
+  if (arr.length === 0) return undefined;
+  return arr[Math.floor(Math.random() * arr.length)];
+};
+
+/**
+ * Gets a random available uma for picking during uma-pick phase
+ * @param state - Current draft state
+ * @returns Random available uma or undefined if none available
+ */
+export const getRandomAvailableUma = (state: DraftState): UmaMusume | undefined => {
+  return getRandomElement(state.availableUmas);
+};
+
+/**
+ * Gets a random uma from opponent's picked umas for banning during uma-ban phase
+ * @param state - Current draft state
+ * @returns Random bannable uma or undefined if none available
+ */
+export const getRandomBanUma = (state: DraftState): UmaMusume | undefined => {
+  const opponentTeam = state.currentTeam === "team1" ? "team2" : "team1";
+  const opponentUmas = state[opponentTeam].pickedUmas;
+  return getRandomElement(opponentUmas);
+};
+
+/**
+ * Gets a random available map for picking during map-pick phase
+ * Respects distance and dirt track constraints
+ * @param state - Current draft state
+ * @returns Random valid map or undefined if none available
+ */
+export const getRandomAvailableMap = (state: DraftState): Map | undefined => {
+  const currentTeamMaps = state[state.currentTeam].pickedMaps;
+  
+  // Filter available maps by constraints
+  const validMaps = state.availableMaps.filter((map) => {
+    // Check distance constraint (max 2 per category)
+    if (!canPickDistance(currentTeamMaps, map.distance)) {
+      return false;
+    }
+    // Check dirt constraint (max 2 dirt tracks)
+    if (map.surface === "Dirt" && !canPickDirt(currentTeamMaps)) {
+      return false;
+    }
+    return true;
+  });
+  
+  return getRandomElement(validMaps);
+};
+
+/**
+ * Gets a random map from opponent's picked maps for banning during map-ban phase
+ * @param state - Current draft state
+ * @returns Random bannable map or undefined if none available
+ */
+export const getRandomBanMap = (state: DraftState): Map | undefined => {
+  const opponentTeam = state.currentTeam === "team1" ? "team2" : "team1";
+  const opponentMaps = state[opponentTeam].pickedMaps;
+  return getRandomElement(opponentMaps);
+};
+
+/**
+ * Performs a random selection based on current phase
+ * Used when turn timer expires
+ * @param state - Current draft state
+ * @returns Object with type and selected item, or undefined if no valid selection
+ */
+export const getRandomTimeoutSelection = (
+  state: DraftState
+): { type: "uma" | "map"; item: UmaMusume | Map } | undefined => {
+  const { phase } = state;
+  
+  switch (phase) {
+    case "uma-pick": {
+      const uma = getRandomAvailableUma(state);
+      if (uma) return { type: "uma", item: uma };
+      break;
+    }
+    case "uma-ban": {
+      const uma = getRandomBanUma(state);
+      if (uma) return { type: "uma", item: uma };
+      break;
+    }
+    case "map-pick": {
+      const map = getRandomAvailableMap(state);
+      if (map) return { type: "map", item: map };
+      break;
+    }
+    case "map-ban": {
+      const map = getRandomBanMap(state);
+      if (map) return { type: "map", item: map };
+      break;
+    }
+  }
+  
+  return undefined;
+};

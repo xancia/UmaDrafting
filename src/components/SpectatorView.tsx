@@ -16,6 +16,8 @@ interface SpectatorViewProps {
   connectionStatus?: ConnectionStatus;
   /** Callback to leave spectating */
   onBackToMenu?: () => void;
+  /** Timer remaining seconds */
+  timeRemaining?: number;
 }
 
 /**
@@ -31,6 +33,7 @@ export default function SpectatorView({
   team2Name = "Team 2",
   connectionStatus = "connected",
   onBackToMenu,
+  timeRemaining,
 }: SpectatorViewProps) {
   const { phase, currentTeam, team1, team2, wildcardMap } = draftState;
 
@@ -76,6 +79,8 @@ export default function SpectatorView({
             playerCount={2}
             isHost={false}
             isSpectator={true}
+            timeRemaining={timeRemaining}
+            timerEnabled={true}
           />
         </div>
 

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import type { DraftState, UmaMusume, Map } from "../types";
 import {
   getInitialDraftState,
@@ -10,6 +10,7 @@ import {
   canPickDirt,
   countDistances,
   countDirtTracks,
+  getRandomTimeoutSelection,
 } from "../draftLogic";
 import { SAMPLE_MAPS } from "../data";
 import { generateTrackConditions } from "../utils/trackConditions";
@@ -23,6 +24,7 @@ import { usePeer } from "../hooks/usePeer";
 import { useRoom } from "../hooks/useRoom";
 import { useMultiplayerConnections } from "../hooks/useMultiplayerConnections";
 import { useDraftSync } from "../hooks/useDraftSync";
+import { useTurnTimer, DEFAULT_TURN_DURATION } from "../hooks/useTurnTimer";
 import { generateRoomCode } from "../utils/roomCode";
 
 interface MultiplayerConfig {
@@ -103,6 +105,62 @@ export default function Draft5v5({ onBackToMenu, multiplayerConfig }: Draft5v5Pr
   const isUmaPhase =
     draftState.phase === "uma-pick" || draftState.phase === "uma-ban";
   const isComplete = draftState.phase === "complete";
+
+  // Timer authority: host controls timer in multiplayer, always in local mode
+  const isTimerAuthority = !isMultiplayer || isHost;
+
+  // Handle turn timeout - make random selection
+  const handleTurnTimeout = useCallback(() => {
+    console.log("Turn timeout triggered, current phase:", draftState.phase);
+    
+    const selection = getRandomTimeoutSelection(draftState);
+    if (!selection) {
+      console.warn("No valid random selection available for timeout");
+      return;
+    }
+
+    console.log("Auto-selecting:", selection.type, selection.item);
+
+    if (selection.type === "uma") {
+      const uma = selection.item as UmaMusume;
+      const newState = selectUma(draftState, uma);
+      
+      if (newState !== draftState) {
+        if (isMultiplayer && isHost) {
+          syncUpdateDraftState(newState);
+        }
+        setDraftState(newState);
+        setHistory((prev) => [...prev, newState]);
+      }
+    } else {
+      const map = selection.item as Map;
+      // Add conditions for picked maps
+      const mapWithConditions: Map = {
+        ...map,
+        conditions: map.conditions || generateTrackConditions(),
+      };
+      const newState = selectMap(draftState, mapWithConditions);
+      
+      if (newState !== draftState) {
+        if (isMultiplayer && isHost) {
+          syncUpdateDraftState(newState);
+        }
+        setDraftState(newState);
+        setHistory((prev) => [...prev, newState]);
+        setSelectedTrack(null);
+      }
+    }
+  }, [draftState, isMultiplayer, isHost, syncUpdateDraftState]);
+
+  // Turn timer hook
+  const { timeRemaining } = useTurnTimer({
+    duration: DEFAULT_TURN_DURATION,
+    enabled: true,
+    onTimeout: handleTurnTimeout,
+    phase: draftState.phase,
+    currentTurnKey: `${draftState.phase}-${draftState.currentTeam}`,
+    isTimerAuthority,
+  });
 
   // Initialize multiplayer connection
   useEffect(() => {
@@ -647,6 +705,7 @@ export default function Draft5v5({ onBackToMenu, multiplayerConfig }: Draft5v5Pr
         team2Name={team2Name}
         connectionStatus={status}
         onBackToMenu={onBackToMenu}
+        timeRemaining={timeRemaining}
       />
     );
   }
@@ -688,6 +747,8 @@ export default function Draft5v5({ onBackToMenu, multiplayerConfig }: Draft5v5Pr
             roomCode={localRoomCode || roomState?.roomId}
             playerCount={(roomState?.connections.filter(c => c.type === "player").length || 0) + 1}
             isHost={multiplayerConfig?.isHost || false}
+            timeRemaining={timeRemaining}
+            timerEnabled={true}
           />
         </div>
 
