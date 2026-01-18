@@ -1,6 +1,3 @@
-// UnifiedTopBar.tsx - React Component
-// Copy this file to your React app
-// Import the unified-topbar.css stylesheet
 
 import { useState } from 'react';
 import './unified-topbar.css'; // Copy the CSS file too
