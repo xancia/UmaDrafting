@@ -3,10 +3,10 @@
   position: sticky;
   top: 0;
   z-index: 100;
-  background: var(--topbar-bg, rgba(30, 30, 32, 0.95));
+  background: var(--topbar-bg, rgba(3, 7, 18, 0.95));
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--topbar-border, rgba(255, 255, 255, 0.08));
+  border-bottom: 1px solid var(--topbar-border, rgb(55, 65, 81));
 }
 
 .topbar-inner {
@@ -124,8 +124,8 @@
   top: 100%;
   left: 0;
   right: 0;
-  background: var(--topbar-bg, rgba(30, 30, 32, 0.98));
-  border-bottom: 1px solid var(--topbar-border, rgba(255, 255, 255, 0.08));
+  background: var(--topbar-bg, rgba(3, 7, 18, 0.98));
+  border-bottom: 1px solid var(--topbar-border, rgb(55, 65, 81));
   padding: 0.75rem;
   animation: slideDown 0.3s ease;
 }
