@@ -2,6 +2,7 @@ import { useState } from "react";
 import FormatSelection from "./components/FormatSelection";
 import Draft5v5 from "./components/Draft5v5";
 import Draft3v3v3 from "./components/Draft3v3v3";
+import UnifiedTopBar from "./components/UnifiedTopBar";
 
 type DraftFormat = "5v5" | "3v3v3" | null;
 
@@ -47,7 +48,12 @@ function App() {
     );
   }
 
-  return <FormatSelection onSelectFormat={handleSelectFormat} />;
+  return (
+    <div className="h-screen flex flex-col overflow-hidden">
+      <UnifiedTopBar currentApp="drafter" />
+      <FormatSelection onSelectFormat={handleSelectFormat} />
+    </div>
+  );
 }
 
 export default App;
