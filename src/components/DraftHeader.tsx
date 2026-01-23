@@ -104,13 +104,13 @@ export default function DraftHeader({
   };
 
   return (
-    <div className="bg-gray-800 text-gray-100 p-6 rounded-lg shadow-lg border border-gray-700">
-      <div className="flex justify-between items-start">
-        <div className="flex-1">
-          <h1 className="text-3xl font-bold mb-2">Uma Drafting</h1>
-          <p className="text-xl mb-1 text-gray-300">{getPhaseText()}</p>
+    <div className="bg-gray-800 text-gray-100 p-3 lg:p-4 xl:p-6 rounded-lg shadow-lg border border-gray-700">
+      <div className="flex justify-between items-start gap-2">
+        <div className="flex-1 min-w-0">
+          <h1 className="text-xl lg:text-2xl xl:text-3xl font-bold mb-1 lg:mb-2">Uma Drafting</h1>
+          <p className="text-base lg:text-lg xl:text-xl mb-0.5 lg:mb-1 text-gray-300">{getPhaseText()}</p>
           {phase !== "complete" && (
-            <p className="text-lg text-gray-300">
+            <p className="text-sm lg:text-base xl:text-lg text-gray-300">
               Current Turn:{" "}
               <span className={`font-bold ${getTeamColor(currentTeam)}`}>
                 {currentTeam === "team1" ? team1Name : team2Name}
@@ -123,20 +123,20 @@ export default function DraftHeader({
             </p>
           )}
         </div>
-        <div className="flex flex-col items-end gap-3">
-          <div className="flex gap-3">
+        <div className="flex flex-col items-end gap-2 lg:gap-3">
+          <div className="flex gap-1.5 lg:gap-2 xl:gap-3">
             {!isSpectator && (
               <>
                 <button
                   onClick={onUndo}
                   disabled={!canUndo}
-                  className="bg-gray-700 text-gray-100 font-semibold py-2 px-6 rounded-lg hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-gray-700 border border-gray-600"
+                  className="bg-gray-700 text-gray-100 font-semibold py-1.5 lg:py-2 px-3 lg:px-4 xl:px-6 rounded-lg hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-gray-700 border border-gray-600 text-xs lg:text-sm xl:text-base"
                 >
                   ← Undo
                 </button>
                 <button
                   onClick={onReset}
-                  className="bg-gray-700 text-gray-100 font-semibold py-2 px-6 rounded-lg hover:bg-gray-600 transition-colors border border-gray-600"
+                  className="bg-gray-700 text-gray-100 font-semibold py-1.5 lg:py-2 px-3 lg:px-4 xl:px-6 rounded-lg hover:bg-gray-600 transition-colors border border-gray-600 text-xs lg:text-sm xl:text-base"
                 >
                   Reset
                 </button>
@@ -144,7 +144,7 @@ export default function DraftHeader({
             )}
             <button
               onClick={onBackToMenu}
-              className="bg-gray-700 text-gray-100 font-semibold py-2 px-6 rounded-lg hover:bg-gray-600 transition-colors border border-gray-600"
+              className="bg-gray-700 text-gray-100 font-semibold py-1.5 lg:py-2 px-3 lg:px-4 xl:px-6 rounded-lg hover:bg-gray-600 transition-colors border border-gray-600 text-xs lg:text-sm xl:text-base"
             >
               {isSpectator ? "Leave" : "Format Selection"}
             </button>

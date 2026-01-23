@@ -50,18 +50,18 @@ export default function TeamPanel({
 
   return (
     <div
-      className={`bg-linear-to-br from-gray-900 to-gray-800 rounded-xl p-6 text-gray-100 h-full flex flex-col border-2 transition-all overflow-y-auto hide-scrollbar ${borderColor} ${pulseClass} ${
+      className={`bg-linear-to-br from-gray-900 to-gray-800 rounded-xl p-3 lg:p-4 xl:p-6 text-gray-100 h-full flex flex-col border-2 transition-all overflow-y-auto hide-scrollbar ${borderColor} ${pulseClass} ${
         isCurrentTurn ? "shadow-lg" : "shadow-2xl"
       }`}
     >
-      <div className="text-center mb-6 pb-4 border-b-2 border-gray-700 shrink-0">
-        <h2 className={`text-3xl font-bold tracking-wide ${teamColor}`}>
+      <div className="text-center mb-3 lg:mb-4 xl:mb-6 pb-2 lg:pb-3 xl:pb-4 border-b-2 border-gray-700 shrink-0">
+        <h2 className={`text-xl lg:text-2xl xl:text-3xl font-bold tracking-wide ${teamColor}`}>
           {displayName}
         </h2>
       </div>
 
-      <div className="mb-6 shrink-0 min-w-0">
-        <h3 className="text-lg font-bold mb-2 text-gray-300 uppercase tracking-wider">
+      <div className="mb-3 lg:mb-4 xl:mb-6 shrink-0 min-w-0">
+        <h3 className="text-sm lg:text-base xl:text-lg font-bold mb-1 lg:mb-2 text-gray-300 uppercase tracking-wider">
           Maps <span className="text-sm">({allMaps.length}/4)</span>
         </h3>
         
@@ -176,11 +176,11 @@ export default function TeamPanel({
         </div>
       </div>
 
-      <div className="mt-3 shrink-0">
-        <h3 className="text-lg font-bold mb-2 text-gray-300 uppercase tracking-wider">
+      <div className="mt-2 lg:mt-3 shrink-0">
+        <h3 className="text-sm lg:text-base xl:text-lg font-bold mb-1 lg:mb-2 text-gray-300 uppercase tracking-wider">
           Umamusume <span className="text-sm">({allUmas.length}/6)</span>
         </h3>
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-3 gap-1.5 lg:gap-2 xl:gap-3">
           {[...Array(6)].map((_, index) => {
             const uma = allUmas[index];
             const isBanned = uma && bannedUmas.some((b) => b.id === uma.id);

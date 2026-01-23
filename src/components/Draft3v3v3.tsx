@@ -258,17 +258,17 @@ export default function Draft3v3v3({ onBackToMenu }: Draft3v3v3Props) {
   // Team Names Phase
   if (draftState.phase === "team-names") {
     return (
-      <div className="h-screen bg-linear-to-br from-gray-950 to-gray-900 flex items-center justify-center px-6">
-        <div className="bg-gray-800 rounded-xl shadow-2xl p-8 border-2 border-gray-700 max-w-md w-full">
-          <h2 className="text-2xl font-bold text-gray-100 mb-4">
+      <div className="h-screen bg-linear-to-br from-gray-950 to-gray-900 flex items-center justify-center px-4 lg:px-6">
+        <div className="bg-gray-800 rounded-xl shadow-2xl p-4 lg:p-6 xl:p-8 border-2 border-gray-700 max-w-md w-full">
+          <h2 className="text-xl lg:text-2xl font-bold text-gray-100 mb-2 lg:mb-4">
             Enter Team Names
           </h2>
-          <p className="text-gray-400 mb-6">
+          <p className="text-sm lg:text-base text-gray-400 mb-4 lg:mb-6">
             Name the three teams for this 3v3v3 draft
           </p>
-          <div className="space-y-4 mb-6">
+          <div className="space-y-3 lg:space-y-4 mb-4 lg:mb-6">
             <div>
-              <label className="block text-sm font-semibold text-blue-400 mb-2">
+              <label className="block text-xs lg:text-sm font-semibold text-blue-400 mb-1 lg:mb-2">
                 Team 1 Name
               </label>
               <input
@@ -277,11 +277,11 @@ export default function Draft3v3v3({ onBackToMenu }: Draft3v3v3Props) {
                 onChange={(e) => setTempTeam1Name(e.target.value)}
                 placeholder="Team 1"
                 maxLength={30}
-                className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 placeholder-gray-400 focus:outline-none focus:border-blue-500"
+                className="w-full px-3 lg:px-4 py-1.5 lg:py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm lg:text-base text-gray-100 placeholder-gray-400 focus:outline-none focus:border-blue-500"
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-red-400 mb-2">
+              <label className="block text-xs lg:text-sm font-semibold text-red-400 mb-1 lg:mb-2">
                 Team 2 Name
               </label>
               <input
@@ -290,11 +290,11 @@ export default function Draft3v3v3({ onBackToMenu }: Draft3v3v3Props) {
                 onChange={(e) => setTempTeam2Name(e.target.value)}
                 placeholder="Team 2"
                 maxLength={30}
-                className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 placeholder-gray-400 focus:outline-none focus:border-red-500"
+                className="w-full px-3 lg:px-4 py-1.5 lg:py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm lg:text-base text-gray-100 placeholder-gray-400 focus:outline-none focus:border-red-500"
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-green-400 mb-2">
+              <label className="block text-xs lg:text-sm font-semibold text-green-400 mb-1 lg:mb-2">
                 Team 3 Name
               </label>
               <input
@@ -303,11 +303,11 @@ export default function Draft3v3v3({ onBackToMenu }: Draft3v3v3Props) {
                 onChange={(e) => setTempTeam3Name(e.target.value)}
                 placeholder="Team 3"
                 maxLength={30}
-                className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 placeholder-gray-400 focus:outline-none focus:border-green-500"
+                className="w-full px-3 lg:px-4 py-1.5 lg:py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm lg:text-base text-gray-100 placeholder-gray-400 focus:outline-none focus:border-green-500"
               />
             </div>
           </div>
-          <div className="flex justify-end gap-3">
+          <div className="flex justify-end gap-2 lg:gap-3">
             <button
               onClick={onBackToMenu}
               className="bg-gray-700 hover:bg-gray-600 text-gray-100 font-semibold py-2 px-6 rounded-lg transition-colors border border-gray-600"
@@ -329,41 +329,41 @@ export default function Draft3v3v3({ onBackToMenu }: Draft3v3v3Props) {
   // Card Pre-ban Phase
   if (draftState.phase === "card-preban") {
     return (
-      <div className="h-screen bg-linear-to-br from-gray-950 to-gray-900 flex flex-col px-6 py-6">
-        <div className="bg-gray-800 rounded-lg shadow-lg p-6 border border-gray-700 mb-4">
+      <div className="h-screen bg-linear-to-br from-gray-950 to-gray-900 flex flex-col px-3 lg:px-4 xl:px-6 py-3 lg:py-4 xl:py-6">
+        <div className="bg-gray-800 rounded-lg shadow-lg p-3 lg:p-4 xl:p-6 border border-gray-700 mb-2 lg:mb-3 xl:mb-4">
           <div className="flex justify-between items-center">
             <div>
-              <h2 className="text-2xl font-bold text-gray-100">
+              <h2 className="text-lg lg:text-xl xl:text-2xl font-bold text-gray-100">
                 Card Pre-ban Phase
               </h2>
-              <p className="text-gray-400">
+              <p className="text-sm lg:text-base text-gray-400">
                 Select cards to ban from the draft pool (
                 {draftState.preBannedCards.length} banned)
               </p>
             </div>
             <button
               onClick={startUmaDraft}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-8 rounded-lg transition-colors"
+              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-1.5 lg:py-2 px-4 lg:px-6 xl:px-8 rounded-lg transition-colors text-sm lg:text-base"
             >
               Start Draft →
             </button>
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto bg-gray-800 rounded-lg shadow-lg p-6 border border-gray-700">
-          <h3 className="text-xl font-bold text-gray-100 mb-4">
+        <div className="flex-1 overflow-y-auto bg-gray-800 rounded-lg shadow-lg p-3 lg:p-4 xl:p-6 border border-gray-700">
+          <h3 className="text-base lg:text-lg xl:text-xl font-bold text-gray-100 mb-2 lg:mb-3 xl:mb-4">
             Available Cards
           </h3>
-          <div className="mb-4">
+          <div className="mb-2 lg:mb-3 xl:mb-4">
             <input
               type="text"
               placeholder="Search cards..."
               value={cardSearch}
               onChange={(e) => setCardSearch(e.target.value)}
-              className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 lg:px-4 py-1.5 lg:py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm lg:text-base text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 lg:grid-cols-15 gap-4">
+          <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 xl:grid-cols-15 gap-2 lg:gap-3 xl:gap-4">
             {draftState.availableCards
               .filter((card) =>
                 card.name.toLowerCase().includes(cardSearch.toLowerCase())
@@ -432,36 +432,36 @@ export default function Draft3v3v3({ onBackToMenu }: Draft3v3v3Props) {
       : "text-green-400";
 
   return (
-    <div className="h-screen bg-linear-to-br from-gray-950 to-gray-900 flex flex-col px-6 py-4 gap-3">
+    <div className="h-screen bg-linear-to-br from-gray-950 to-gray-900 flex flex-col px-2 lg:px-4 xl:px-6 py-2 lg:py-3 xl:py-4 gap-2 lg:gap-3">
       {/* Compact Header */}
-      <div className="bg-gray-800 rounded-lg shadow-lg px-4 py-2 border border-gray-700 shrink-0">
+      <div className="bg-gray-800 rounded-lg shadow-lg px-2 lg:px-3 xl:px-4 py-1.5 lg:py-2 border border-gray-700 shrink-0">
         <div className="flex items-center">
           <div className="flex-1" />
-          <div className="flex items-center gap-4">
-            <span className="text-xl font-semibold text-gray-100">
+          <div className="flex items-center gap-2 lg:gap-3 xl:gap-4">
+            <span className="text-base lg:text-lg xl:text-xl font-semibold text-gray-100">
               Round {draftState.round}
             </span>
             {draftState.phase !== "complete" && (
               <>
-                <span className="text-xl text-gray-500">•</span>
-                <span className="text-2xl font-bold text-gray-100">
+                <span className="text-base lg:text-lg xl:text-xl text-gray-500">•</span>
+                <span className="text-lg lg:text-xl xl:text-2xl font-bold text-gray-100">
                   {draftState.phase === "uma-ban" && "Uma Ban"}
                   {draftState.phase === "uma-pick" && "Uma Pick"}
                   {draftState.phase === "card-pick" && "Card Draft"}
                 </span>
-                <span className="text-xl text-gray-500">•</span>
-                <span className={`text-lg font-semibold ${currentTeamColor}`}>
+                <span className="text-base lg:text-lg xl:text-xl text-gray-500">•</span>
+                <span className={`text-sm lg:text-base xl:text-lg font-semibold ${currentTeamColor}`}>
                   {getTeamName(draftState.currentTeam)}
                 </span>
               </>
             )}
             {draftState.phase === "complete" && (
-              <span className="text-2xl font-bold text-gray-100">
+              <span className="text-lg lg:text-xl xl:text-2xl font-bold text-gray-100">
                 Complete!
               </span>
             )}
           </div>
-          <div className="flex-1 flex items-center justify-end gap-2">
+          <div className="flex-1 flex items-center justify-end gap-1 lg:gap-2">
             {/* Continue button for uma-pick complete */}
             {draftState.phase === "uma-pick" &&
               draftState.round === 3 &&
@@ -515,7 +515,7 @@ export default function Draft3v3v3({ onBackToMenu }: Draft3v3v3Props) {
       {(draftState.phase === "uma-ban" ||
         draftState.phase === "uma-pick" ||
         draftState.phase === "card-pick") && (
-        <div className="grid grid-cols-3 gap-3 shrink-0">
+        <div className="grid grid-cols-3 gap-2 lg:gap-3 shrink-0">
           <TeamPanel3v3v3
             team="team1"
             teamName={team1Name}
@@ -540,12 +540,12 @@ export default function Draft3v3v3({ onBackToMenu }: Draft3v3v3Props) {
         </div>
       )}
 
-      <div className="flex-1 overflow-y-auto hide-scrollbar bg-gray-800 rounded-lg shadow-lg p-6 border border-gray-700">
+      <div className="flex-1 overflow-y-auto hide-scrollbar bg-gray-800 rounded-lg shadow-lg p-3 lg:p-4 xl:p-6 border border-gray-700">
         {/* Uma Draft */}
         {(draftState.phase === "uma-ban" ||
           draftState.phase === "uma-pick") && (
           <>
-            <h2 className="text-2xl font-bold mb-4 text-gray-100">
+            <h2 className="text-lg lg:text-xl xl:text-2xl font-bold mb-2 lg:mb-4 text-gray-100">
               {draftState.phase === "uma-pick" && "Available Umamusume"}
               {draftState.phase === "uma-ban" && "Available Umamusume"}
             </h2>
@@ -554,9 +554,9 @@ export default function Draft3v3v3({ onBackToMenu }: Draft3v3v3Props) {
               placeholder="Search Umamusume..."
               value={umaSearch}
               onChange={(e) => setUmaSearch(e.target.value)}
-              className="w-full mb-4 px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 placeholder-gray-400 focus:outline-none focus:border-gray-500"
+              className="w-full mb-2 lg:mb-4 px-3 lg:px-4 py-1.5 lg:py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm lg:text-base text-gray-100 placeholder-gray-400 focus:outline-none focus:border-gray-500"
             />
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-15 gap-4">
+            <div className="grid grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-2 lg:gap-3 xl:gap-4">
               {getFilteredUmas().map((uma) => (
                 <UmaCard key={uma.id} uma={uma} onSelect={handleUmaSelect} />
               ))}
@@ -566,24 +566,24 @@ export default function Draft3v3v3({ onBackToMenu }: Draft3v3v3Props) {
         {/* Card Draft */}
         {draftState.phase === "card-pick" && (
           <>
-            <h3 className="text-xl font-bold text-gray-100 mb-4">
+            <h3 className="text-base lg:text-lg xl:text-xl font-bold text-gray-100 mb-2 lg:mb-3 xl:mb-4">
               Available Cards
             </h3>
-            <div className="mb-4">
+            <div className="mb-2 lg:mb-3 xl:mb-4">
               <input
                 type="text"
                 placeholder="Search cards..."
                 value={cardSearch}
                 onChange={(e) => setCardSearch(e.target.value)}
-                className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 lg:px-4 py-1.5 lg:py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm lg:text-base text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
-            <div className="flex gap-3 mb-6">
+            <div className="flex gap-2 lg:gap-3 mb-3 lg:mb-4 xl:mb-6">
               <button
                 onClick={() =>
                   setCardRarityFilter(cardRarityFilter === "SSR" ? null : "SSR")
                 }
-                className={`px-6 py-2 rounded-lg font-semibold transition-colors ${
+                className={`px-3 lg:px-4 xl:px-6 py-1.5 lg:py-2 rounded-lg text-sm lg:text-base font-semibold transition-colors ${
                   cardRarityFilter === "SSR"
                     ? "bg-indigo-400 text-white"
                     : "bg-gray-700 text-gray-100 hover:bg-gray-600"
@@ -595,7 +595,7 @@ export default function Draft3v3v3({ onBackToMenu }: Draft3v3v3Props) {
                 onClick={() =>
                   setCardRarityFilter(cardRarityFilter === "SR" ? null : "SR")
                 }
-                className={`px-6 py-2 rounded-lg font-semibold transition-colors ${
+                className={`px-3 lg:px-4 xl:px-6 py-1.5 lg:py-2 rounded-lg text-sm lg:text-base font-semibold transition-colors ${
                   cardRarityFilter === "SR"
                     ? "bg-yellow-500 text-white"
                     : "bg-gray-700 text-gray-100 hover:bg-gray-600"
@@ -607,7 +607,7 @@ export default function Draft3v3v3({ onBackToMenu }: Draft3v3v3Props) {
                 onClick={() =>
                   setCardRarityFilter(cardRarityFilter === "R" ? null : "R")
                 }
-                className={`px-6 py-2 rounded-lg font-semibold transition-colors ${
+                className={`px-3 lg:px-4 xl:px-6 py-1.5 lg:py-2 rounded-lg text-sm lg:text-base font-semibold transition-colors ${
                   cardRarityFilter === "R"
                     ? "bg-gray-400 text-white"
                     : "bg-gray-700 text-gray-100 hover:bg-gray-600"
@@ -617,7 +617,7 @@ export default function Draft3v3v3({ onBackToMenu }: Draft3v3v3Props) {
               </button>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 lg:grid-cols-15 gap-4">
+            <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 xl:grid-cols-15 gap-2 lg:gap-3 xl:gap-4">
               {getFilteredCards().map((card) => (
                 <button
                   key={card.id}
@@ -657,19 +657,19 @@ export default function Draft3v3v3({ onBackToMenu }: Draft3v3v3Props) {
           </>
         )}
         {draftState.phase === "complete" && (
-          <div className="space-y-6">
-            <div className="text-center mb-6">
-              <h3 className="text-3xl font-bold text-gray-100 mb-2">
+          <div className="space-y-3 lg:space-y-4 xl:space-y-6">
+            <div className="text-center mb-3 lg:mb-4 xl:mb-6">
+              <h3 className="text-xl lg:text-2xl xl:text-3xl font-bold text-gray-100 mb-1 lg:mb-2">
                 Draft Complete!
               </h3>
-              <p className="text-gray-400">All selections have been made.</p>
+              <p className="text-sm lg:text-base text-gray-400">All selections have been made.</p>
             </div>
 
             {/* Team Results - Uma Musume Only */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 lg:gap-4 xl:gap-6 mb-4 lg:mb-6 xl:mb-8">
               {/* Team 1 */}
-              <div className="bg-gray-700 rounded-lg p-4">
-                <h4 className="text-xl font-bold text-blue-400 mb-4 text-center border-b border-gray-600 pb-2">
+              <div className="bg-gray-700 rounded-lg p-3 lg:p-4">
+                <h4 className="text-base lg:text-lg xl:text-xl font-bold text-blue-400 mb-2 lg:mb-3 xl:mb-4 text-center border-b border-gray-600 pb-1 lg:pb-2">
                   {team1Name}
                 </h4>
 
@@ -694,8 +694,8 @@ export default function Draft3v3v3({ onBackToMenu }: Draft3v3v3Props) {
               </div>
 
               {/* Team 2 */}
-              <div className="bg-gray-700 rounded-lg p-4">
-                <h4 className="text-xl font-bold text-red-400 mb-4 text-center border-b border-gray-600 pb-2">
+              <div className="bg-gray-700 rounded-lg p-3 lg:p-4">
+                <h4 className="text-base lg:text-lg xl:text-xl font-bold text-red-400 mb-2 lg:mb-3 xl:mb-4 text-center border-b border-gray-600 pb-1 lg:pb-2">
                   {team2Name}
                 </h4>
 
@@ -720,8 +720,8 @@ export default function Draft3v3v3({ onBackToMenu }: Draft3v3v3Props) {
               </div>
 
               {/* Team 3 */}
-              <div className="bg-gray-700 rounded-lg p-4">
-                <h4 className="text-xl font-bold text-green-400 mb-4 text-center border-b border-gray-600 pb-2">
+              <div className="bg-gray-700 rounded-lg p-3 lg:p-4">
+                <h4 className="text-base lg:text-lg xl:text-xl font-bold text-green-400 mb-2 lg:mb-3 xl:mb-4 text-center border-b border-gray-600 pb-1 lg:pb-2">
                   {team3Name}
                 </h4>
 
@@ -747,11 +747,11 @@ export default function Draft3v3v3({ onBackToMenu }: Draft3v3v3Props) {
             </div>
 
             {/* Card Pool - All Cards Together */}
-            <div className="bg-gray-700 rounded-lg p-6">
-              <h4 className="text-2xl font-bold text-gray-100 mb-4 text-center border-b border-gray-600 pb-3">
+            <div className="bg-gray-700 rounded-lg p-3 lg:p-4 xl:p-6">
+              <h4 className="text-lg lg:text-xl xl:text-2xl font-bold text-gray-100 mb-2 lg:mb-3 xl:mb-4 text-center border-b border-gray-600 pb-2 lg:pb-3">
                 Card Pool
               </h4>
-              <div className="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-15 gap-2">
+              <div className="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-15 gap-1 lg:gap-2">
                 {draftState.pickedCards.map((card) => (
                   <div
                     key={card.id}
@@ -783,25 +783,25 @@ export default function Draft3v3v3({ onBackToMenu }: Draft3v3v3Props) {
 
       {/* Reset Confirmation Modal */}
       {showResetConfirm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-gray-800 rounded-xl shadow-2xl p-8 border-2 border-gray-700 max-w-md">
-            <h2 className="text-2xl font-bold text-gray-100 mb-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-800 rounded-xl shadow-2xl p-4 lg:p-6 xl:p-8 border-2 border-gray-700 max-w-md w-full">
+            <h2 className="text-lg lg:text-xl xl:text-2xl font-bold text-gray-100 mb-2 lg:mb-3 xl:mb-4">
               Reset Draft?
             </h2>
-            <p className="text-gray-400 mb-6">
+            <p className="text-sm lg:text-base text-gray-400 mb-4 lg:mb-5 xl:mb-6">
               Are you sure you want to reset the draft? All progress will be
               lost and you will return to the team name selection.
             </p>
-            <div className="flex gap-3 justify-end">
+            <div className="flex gap-2 lg:gap-3 justify-end">
               <button
                 onClick={() => setShowResetConfirm(false)}
-                className="bg-gray-700 hover:bg-gray-600 text-gray-100 font-semibold py-2 px-6 rounded-lg transition-colors border border-gray-600"
+                className="bg-gray-700 hover:bg-gray-600 text-gray-100 font-semibold py-1.5 lg:py-2 px-4 lg:px-6 rounded-lg transition-colors border border-gray-600 text-sm lg:text-base"
               >
                 Cancel
               </button>
               <button
                 onClick={confirmReset}
-                className="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors"
+                className="bg-red-600 hover:bg-red-700 text-white font-semibold py-1.5 lg:py-2 px-4 lg:px-6 rounded-lg transition-colors text-sm lg:text-base"
               >
                 Reset Draft
               </button>
@@ -812,25 +812,25 @@ export default function Draft3v3v3({ onBackToMenu }: Draft3v3v3Props) {
 
       {/* Back to Menu Confirmation Modal */}
       {showMenuConfirm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-gray-800 rounded-xl shadow-2xl p-8 border-2 border-gray-700 max-w-md">
-            <h2 className="text-2xl font-bold text-gray-100 mb-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-800 rounded-xl shadow-2xl p-4 lg:p-6 xl:p-8 border-2 border-gray-700 max-w-md w-full">
+            <h2 className="text-lg lg:text-xl xl:text-2xl font-bold text-gray-100 mb-2 lg:mb-3 xl:mb-4">
               Return to Menu?
             </h2>
-            <p className="text-gray-400 mb-6">
+            <p className="text-sm lg:text-base text-gray-400 mb-4 lg:mb-5 xl:mb-6">
               Are you sure you want to return to the format selection menu?
               Current draft progress will be lost.
             </p>
-            <div className="flex gap-3 justify-end">
+            <div className="flex gap-2 lg:gap-3 justify-end">
               <button
                 onClick={() => setShowMenuConfirm(false)}
-                className="bg-gray-700 hover:bg-gray-600 text-gray-100 font-semibold py-2 px-6 rounded-lg transition-colors border border-gray-600"
+                className="bg-gray-700 hover:bg-gray-600 text-gray-100 font-semibold py-1.5 lg:py-2 px-4 lg:px-6 rounded-lg transition-colors border border-gray-600 text-sm lg:text-base"
               >
                 Cancel
               </button>
               <button
                 onClick={confirmBackToMenu}
-                className="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors"
+                className="bg-red-600 hover:bg-red-700 text-white font-semibold py-1.5 lg:py-2 px-4 lg:px-6 rounded-lg transition-colors text-sm lg:text-base"
               >
                 Return to Menu
               </button>

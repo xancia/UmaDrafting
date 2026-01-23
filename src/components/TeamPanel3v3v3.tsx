@@ -34,12 +34,12 @@ export default function TeamPanel3v3v3({
 
   return (
     <div
-      className={`bg-gray-800 rounded-lg shadow-lg p-1.5 border-2 transition-all ${borderColor} ${
+      className={`bg-gray-800 rounded-lg shadow-lg p-1 lg:p-1.5 xl:p-2 border-2 transition-all ${borderColor} ${
         isCurrentTurn ? "shadow-lg" : ""
       }`}
     >
-      <div className="text-center mb-1 pb-1 border-b border-gray-700">
-        <h3 className={`text-xs font-bold ${teamColor}`}>{teamName}</h3>
+      <div className="text-center mb-0.5 lg:mb-1 pb-0.5 lg:pb-1 border-b border-gray-700">
+        <h3 className={`text-[10px] lg:text-xs xl:text-sm font-bold ${teamColor}`}>{teamName}</h3>
       </div>
 
       {showCards ? (

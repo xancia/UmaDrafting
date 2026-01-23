@@ -711,8 +711,8 @@ export default function Draft5v5({ onBackToMenu, multiplayerConfig }: Draft5v5Pr
   }
 
   return (
-    <div className="h-screen bg-linear-to-br from-gray-950 to-gray-900 flex gap-4 px-6 py-6 overflow-hidden">
-      <div className="w-96 shrink-0 flex flex-col px-2 min-h-0">
+    <div className="h-screen bg-linear-to-br from-gray-950 to-gray-900 flex gap-2 lg:gap-4 px-2 lg:px-4 xl:px-6 py-2 lg:py-4 xl:py-6 overflow-hidden">
+      <div className="w-56 lg:w-72 xl:w-96 shrink-0 flex flex-col px-1 lg:px-2 min-h-0">
         <TeamPanel
           team="team1"
           teamName={team1Name}
@@ -730,7 +730,7 @@ export default function Draft5v5({ onBackToMenu, multiplayerConfig }: Draft5v5Pr
         />
       </div>
 
-      <div className="flex-1 flex flex-col gap-4 overflow-hidden">
+      <div className="flex-1 flex flex-col gap-2 lg:gap-4 overflow-hidden">
         <div className="shrink-0">
           <DraftHeader
             phase={draftState.phase}
@@ -754,8 +754,8 @@ export default function Draft5v5({ onBackToMenu, multiplayerConfig }: Draft5v5Pr
 
         <div className="flex-1 overflow-y-auto hide-scrollbar">
           {!isComplete && (
-            <div className="bg-gray-800 rounded-lg shadow-lg p-6 border border-gray-700">
-              <h2 className="text-2xl font-bold mb-4 text-gray-100">
+            <div className="bg-gray-800 rounded-lg shadow-lg p-3 lg:p-4 xl:p-6 border border-gray-700">
+              <h2 className="text-lg lg:text-xl xl:text-2xl font-bold mb-2 lg:mb-4 text-gray-100">
                 {draftState.phase === "uma-pick" && "Available Umamusume"}
                 {draftState.phase === "uma-ban" && "Ban Opponent's Umamusume"}
                 {draftState.phase === "map-pick" &&
@@ -773,20 +773,20 @@ export default function Draft5v5({ onBackToMenu, multiplayerConfig }: Draft5v5Pr
                   placeholder="Search Umamusume..."
                   value={umaSearch}
                   onChange={(e) => setUmaSearch(e.target.value)}
-                  className="w-full mb-4 px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 placeholder-gray-400 focus:outline-none focus:border-gray-500"
+                  className="w-full mb-2 lg:mb-4 px-3 lg:px-4 py-1.5 lg:py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm lg:text-base text-gray-100 placeholder-gray-400 focus:outline-none focus:border-gray-500"
                 />
               )}
 
               {draftState.phase === "map-pick" && selectedTrack && (
                 <button
                   onClick={() => setSelectedTrack(null)}
-                  className="mb-4 bg-gray-700 hover:bg-gray-600 text-gray-100 font-semibold py-2 px-4 rounded-lg transition-colors border border-gray-600"
+                  className="mb-2 lg:mb-4 bg-gray-700 hover:bg-gray-600 text-gray-100 font-semibold py-1.5 lg:py-2 px-3 lg:px-4 rounded-lg transition-colors border border-gray-600 text-sm lg:text-base"
                 >
                   ← Back to Racecourses
                 </button>
               )}
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+              <div className="grid grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 lg:gap-3 xl:gap-4">
                 {isUmaPhase &&
                   getFilteredUmas().map((uma) => (
                     <UmaCard
@@ -802,9 +802,9 @@ export default function Draft5v5({ onBackToMenu, multiplayerConfig }: Draft5v5Pr
                     <button
                       key={track}
                       onClick={() => setSelectedTrack(track)}
-                      className="p-4 bg-gray-700 border-2 border-gray-600 rounded-lg hover:border-gray-500 hover:shadow-lg transition-all overflow-hidden"
+                      className="p-2 lg:p-3 xl:p-4 bg-gray-700 border-2 border-gray-600 rounded-lg hover:border-gray-500 hover:shadow-lg transition-all overflow-hidden"
                     >
-                      <div className="aspect-video bg-gray-600 rounded mb-2 flex items-center justify-center overflow-hidden">
+                      <div className="aspect-video bg-gray-600 rounded mb-1 lg:mb-2 flex items-center justify-center overflow-hidden">
                         <img
                           src={`./racetrack-portraits/${track.toLowerCase()}.png`}
                           alt={track}
@@ -816,10 +816,10 @@ export default function Draft5v5({ onBackToMenu, multiplayerConfig }: Draft5v5Pr
                         />
                       </div>
                       <div className="text-center">
-                        <p className="text-lg font-bold text-gray-100">
+                        <p className="text-sm lg:text-base xl:text-lg font-bold text-gray-100">
                           {track}
                         </p>
-                        <p className="text-xs text-gray-400 mt-1">
+                        <p className="text-xs text-gray-400 mt-0.5 lg:mt-1">
                           {getMapsForTrack(track).length} options
                         </p>
                       </div>
@@ -850,13 +850,13 @@ export default function Draft5v5({ onBackToMenu, multiplayerConfig }: Draft5v5Pr
           )}
 
           {isComplete && (
-            <div className="bg-gray-800 rounded-lg shadow-lg p-8 text-center border border-gray-700">
-              <h2 className="text-4xl font-bold text-gray-100 mb-8">
+            <div className="bg-gray-800 rounded-lg shadow-lg p-4 lg:p-6 xl:p-8 text-center border border-gray-700">
+              <h2 className="text-2xl lg:text-3xl xl:text-4xl font-bold text-gray-100 mb-4 lg:mb-6 xl:mb-8">
                 Tiebreaker Map
               </h2>
-              <div className="flex justify-center mb-8">
-                <div className="bg-gray-700 border-4 border-blue-500 rounded-xl p-8 max-w-md">
-                  <div className="aspect-video bg-gray-600 rounded-lg mb-4 overflow-hidden">
+              <div className="flex justify-center mb-4 lg:mb-6 xl:mb-8">
+                <div className="bg-gray-700 border-4 border-blue-500 rounded-xl p-4 lg:p-6 xl:p-8 max-w-md">
+                  <div className="aspect-video bg-gray-600 rounded-lg mb-2 lg:mb-4 overflow-hidden">
                     <img
                       src={`./racetrack-portraits/${draftState.wildcardMap.track?.toLowerCase()}.png`}
                       alt={draftState.wildcardMap.track}
@@ -867,27 +867,27 @@ export default function Draft5v5({ onBackToMenu, multiplayerConfig }: Draft5v5Pr
                       }}
                     />
                   </div>
-                  <h3 className="text-3xl font-bold text-white mb-2">
+                  <h3 className="text-xl lg:text-2xl xl:text-3xl font-bold text-white mb-1 lg:mb-2">
                     {draftState.wildcardMap.track}
                   </h3>
                   <div
-                    className={`inline-block px-4 py-2 rounded-lg mb-2 ${
+                    className={`inline-block px-3 lg:px-4 py-1.5 lg:py-2 rounded-lg mb-1 lg:mb-2 ${
                       draftState.wildcardMap.surface?.toLowerCase() === "turf"
                         ? "bg-green-700"
                         : "bg-amber-800"
                     }`}
                   >
-                    <span className="text-lg font-semibold text-white">
+                    <span className="text-sm lg:text-base xl:text-lg font-semibold text-white">
                       {draftState.wildcardMap.surface}
                     </span>
                   </div>
-                  <p className="text-xl text-gray-200">
+                  <p className="text-base lg:text-lg xl:text-xl text-gray-200">
                     {draftState.wildcardMap.distance}m
                     {draftState.wildcardMap.variant &&
                       ` (${draftState.wildcardMap.variant})`}
                   </p>
                   {draftState.wildcardMap.conditions && (
-                    <p className="text-lg text-gray-300 mt-2">
+                    <p className="text-sm lg:text-base xl:text-lg text-gray-300 mt-1 lg:mt-2">
                       {draftState.wildcardMap.conditions.season} •{" "}
                       {draftState.wildcardMap.conditions.ground} •{" "}
                       {draftState.wildcardMap.conditions.weather}
@@ -900,7 +900,7 @@ export default function Draft5v5({ onBackToMenu, multiplayerConfig }: Draft5v5Pr
         </div>
       </div>
 
-      <div className="w-96 shrink-0 flex flex-col px-2 min-h-0">
+      <div className="w-56 lg:w-72 xl:w-96 shrink-0 flex flex-col px-1 lg:px-2 min-h-0">
         <TeamPanel
           team="team2"
           teamName={team2Name}
@@ -920,25 +920,25 @@ export default function Draft5v5({ onBackToMenu, multiplayerConfig }: Draft5v5Pr
 
       {/* Reset Confirmation Modal */}
       {showResetConfirm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-gray-800 rounded-xl shadow-2xl p-8 border-2 border-gray-700 max-w-md">
-            <h2 className="text-2xl font-bold text-gray-100 mb-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-800 rounded-xl shadow-2xl p-4 lg:p-6 xl:p-8 border-2 border-gray-700 max-w-md w-full">
+            <h2 className="text-xl lg:text-2xl font-bold text-gray-100 mb-2 lg:mb-4">
               Reset Draft?
             </h2>
-            <p className="text-gray-400 mb-6">
+            <p className="text-sm lg:text-base text-gray-400 mb-4 lg:mb-6">
               Are you sure you want to reset the draft? All current progress
               will be lost.
             </p>
-            <div className="flex gap-3 justify-end">
+            <div className="flex gap-2 lg:gap-3 justify-end">
               <button
                 onClick={() => setShowResetConfirm(false)}
-                className="bg-gray-700 hover:bg-gray-600 text-gray-100 font-semibold py-2 px-6 rounded-lg transition-colors border border-gray-600"
+                className="bg-gray-700 hover:bg-gray-600 text-gray-100 font-semibold py-1.5 lg:py-2 px-4 lg:px-6 rounded-lg transition-colors border border-gray-600 text-sm lg:text-base"
               >
                 Cancel
               </button>
               <button
                 onClick={confirmReset}
-                className="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors"
+                className="bg-red-600 hover:bg-red-700 text-white font-semibold py-1.5 lg:py-2 px-4 lg:px-6 rounded-lg transition-colors text-sm lg:text-base"
               >
                 Reset
               </button>
@@ -949,25 +949,25 @@ export default function Draft5v5({ onBackToMenu, multiplayerConfig }: Draft5v5Pr
 
       {/* Back to Menu Confirmation Modal */}
       {showMenuConfirm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-gray-800 rounded-xl shadow-2xl p-8 border-2 border-gray-700 max-w-md">
-            <h2 className="text-2xl font-bold text-gray-100 mb-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-800 rounded-xl shadow-2xl p-4 lg:p-6 xl:p-8 border-2 border-gray-700 max-w-md w-full">
+            <h2 className="text-xl lg:text-2xl font-bold text-gray-100 mb-2 lg:mb-4">
               Return to Menu?
             </h2>
-            <p className="text-gray-400 mb-6">
+            <p className="text-sm lg:text-base text-gray-400 mb-4 lg:mb-6">
               Are you sure you want to return to the format selection menu?
               Current draft progress will be lost.
             </p>
-            <div className="flex gap-3 justify-end">
+            <div className="flex gap-2 lg:gap-3 justify-end">
               <button
                 onClick={() => setShowMenuConfirm(false)}
-                className="bg-gray-700 hover:bg-gray-600 text-gray-100 font-semibold py-2 px-6 rounded-lg transition-colors border border-gray-600"
+                className="bg-gray-700 hover:bg-gray-600 text-gray-100 font-semibold py-1.5 lg:py-2 px-4 lg:px-6 rounded-lg transition-colors border border-gray-600 text-sm lg:text-base"
               >
                 Cancel
               </button>
               <button
                 onClick={confirmBackToMenu}
-                className="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors"
+                className="bg-red-600 hover:bg-red-700 text-white font-semibold py-1.5 lg:py-2 px-4 lg:px-6 rounded-lg transition-colors text-sm lg:text-base"
               >
                 Return to Menu
               </button>
@@ -978,14 +978,14 @@ export default function Draft5v5({ onBackToMenu, multiplayerConfig }: Draft5v5Pr
 
       {/* Wildcard Map Reveal Modal */}
       {showWildcardModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-gray-800 rounded-xl shadow-2xl p-8 border-2 border-gray-700 max-w-2xl w-full">
-            <h2 className="text-4xl font-bold text-gray-100 mb-4 text-center">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-800 rounded-xl shadow-2xl p-4 lg:p-6 xl:p-8 border-2 border-gray-700 max-w-2xl w-full">
+            <h2 className="text-2xl lg:text-3xl xl:text-4xl font-bold text-gray-100 mb-2 lg:mb-4 text-center">
               {!revealStarted ? "Wildcard Tiebreaker Map" : "Tiebreaker Map Revealed!"}
             </h2>
-            <div className="flex justify-center mb-8 relative" style={{ perspective: '1000px', height: '350px' }}>
+            <div className="flex justify-center mb-4 lg:mb-6 xl:mb-8 relative" style={{ perspective: '1000px', height: '280px' }}>
               <div 
-                className={`bg-gray-700 border-4 ${revealStarted && !cyclingMap ? 'border-blue-500' : 'border-gray-600'} rounded-xl p-8 max-w-md transition-all duration-300`}
+                className={`bg-gray-700 border-4 ${revealStarted && !cyclingMap ? 'border-blue-500' : 'border-gray-600'} rounded-xl p-4 lg:p-6 xl:p-8 max-w-md transition-all duration-300`}
                 style={cyclingMap ? {
                   position: 'absolute',
                   animation: 'spin3d 0.6s linear infinite',
@@ -993,12 +993,12 @@ export default function Draft5v5({ onBackToMenu, multiplayerConfig }: Draft5v5Pr
                 } : { position: 'absolute' }}
               >
                 {!revealStarted ? (
-                  <div className="flex flex-col items-center justify-center" style={{ height: '280px', width: '240px' }}>
-                    <div className="text-8xl text-gray-400">?</div>
+                  <div className="flex flex-col items-center justify-center" style={{ height: '200px', width: '200px' }}>
+                    <div className="text-6xl lg:text-8xl text-gray-400">?</div>
                   </div>
                 ) : cyclingMap ? (
                   <>
-                    <div className="aspect-video bg-gray-600 rounded-lg mb-4 overflow-hidden">
+                    <div className="aspect-video bg-gray-600 rounded-lg mb-2 lg:mb-4 overflow-hidden">
                       <img
                         src={`./racetrack-portraits/${cyclingMap.track?.toLowerCase()}.png`}
                         alt={cyclingMap.track}
@@ -1009,26 +1009,26 @@ export default function Draft5v5({ onBackToMenu, multiplayerConfig }: Draft5v5Pr
                         }}
                       />
                     </div>
-                    <h3 className="text-3xl font-bold text-white mb-2 text-center">
+                    <h3 className="text-xl lg:text-2xl xl:text-3xl font-bold text-white mb-1 lg:mb-2 text-center">
                       {cyclingMap.track}
                     </h3>
                     <div
-                      className={`inline-block px-4 py-2 rounded-lg mb-2 ${
+                      className={`inline-block px-3 lg:px-4 py-1.5 lg:py-2 rounded-lg mb-1 lg:mb-2 ${
                         cyclingMap.surface?.toLowerCase() === "turf"
                           ? "bg-green-700"
                           : "bg-amber-800"
                       } w-full text-center`}
                     >
-                      <span className="text-lg font-semibold text-white">
+                      <span className="text-sm lg:text-base xl:text-lg font-semibold text-white">
                         {cyclingMap.surface}
                       </span>
                     </div>
-                    <p className="text-xl text-gray-200 text-center">
+                    <p className="text-base lg:text-lg xl:text-xl text-gray-200 text-center">
                       {cyclingMap.distance}m
                       {cyclingMap.variant && ` (${cyclingMap.variant})`}
                     </p>
                     {cyclingMap.conditions && (
-                      <p className="text-lg text-gray-300 mt-2 text-center">
+                      <p className="text-sm lg:text-base xl:text-lg text-gray-300 mt-1 lg:mt-2 text-center">
                         {cyclingMap.conditions.season} •{" "}
                         {cyclingMap.conditions.ground} •{" "}
                         {cyclingMap.conditions.weather}
@@ -1037,7 +1037,7 @@ export default function Draft5v5({ onBackToMenu, multiplayerConfig }: Draft5v5Pr
                   </>
                 ) : (
                   <>
-                    <div className="aspect-video bg-gray-600 rounded-lg mb-4 overflow-hidden">
+                    <div className="aspect-video bg-gray-600 rounded-lg mb-2 lg:mb-4 overflow-hidden">
                       <img
                         src={`./racetrack-portraits/${draftState.wildcardMap.track?.toLowerCase()}.png`}
                         alt={draftState.wildcardMap.track}
@@ -1048,26 +1048,26 @@ export default function Draft5v5({ onBackToMenu, multiplayerConfig }: Draft5v5Pr
                         }}
                       />
                     </div>
-                    <h3 className="text-3xl font-bold text-white mb-2 text-center">
+                    <h3 className="text-xl lg:text-2xl xl:text-3xl font-bold text-white mb-1 lg:mb-2 text-center">
                       {draftState.wildcardMap.track}
                     </h3>
                     <div
-                      className={`inline-block px-4 py-2 rounded-lg mb-2 ${
+                      className={`inline-block px-3 lg:px-4 py-1.5 lg:py-2 rounded-lg mb-1 lg:mb-2 ${
                         draftState.wildcardMap.surface?.toLowerCase() === "turf"
                           ? "bg-green-700"
                           : "bg-amber-800"
                       } w-full text-center`}
                     >
-                      <span className="text-lg font-semibold text-white">
+                      <span className="text-sm lg:text-base xl:text-lg font-semibold text-white">
                         {draftState.wildcardMap.surface}
                       </span>
                     </div>
-                    <p className="text-xl text-gray-200 text-center">
+                    <p className="text-base lg:text-lg xl:text-xl text-gray-200 text-center">
                       {draftState.wildcardMap.distance}m
                       {draftState.wildcardMap.variant && ` (${draftState.wildcardMap.variant})`}
                     </p>
                     {draftState.wildcardMap.conditions && (
-                      <p className="text-lg text-gray-300 mt-2 text-center">
+                      <p className="text-sm lg:text-base xl:text-lg text-gray-300 mt-1 lg:mt-2 text-center">
                         {draftState.wildcardMap.conditions.season} •{" "}
                         {draftState.wildcardMap.conditions.ground} •{" "}
                         {draftState.wildcardMap.conditions.weather}
@@ -1081,16 +1081,16 @@ export default function Draft5v5({ onBackToMenu, multiplayerConfig }: Draft5v5Pr
               {!revealStarted ? (
                 <button
                   onClick={startReveal}
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-12 rounded-lg text-xl transition-colors shadow-lg"
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 lg:py-3 px-8 lg:px-12 rounded-lg text-base lg:text-lg xl:text-xl transition-colors shadow-lg"
                 >
                   Reveal Wildcard Map
                 </button>
               ) : cyclingMap ? (
-                <div className="text-gray-400 text-lg">Revealing...</div>
+                <div className="text-gray-400 text-base lg:text-lg">Revealing...</div>
               ) : (
                 <button
                   onClick={acknowledgeDraft}
-                  className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-12 rounded-lg text-xl transition-colors shadow-lg"
+                  className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 lg:py-3 px-8 lg:px-12 rounded-lg text-base lg:text-lg xl:text-xl transition-colors shadow-lg"
                 >
                   {isMultiplayer && isHost ? "Start Draft" : isMultiplayer ? "Continue" : "Start Draft"}
                 </button>
@@ -1102,17 +1102,17 @@ export default function Draft5v5({ onBackToMenu, multiplayerConfig }: Draft5v5Pr
 
       {/* Team Name Input Modal */}
       {showTeamNameModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-gray-800 rounded-xl shadow-2xl p-8 border-2 border-gray-700 max-w-md w-full">
-            <h2 className="text-2xl font-bold text-gray-100 mb-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-800 rounded-xl shadow-2xl p-4 lg:p-6 xl:p-8 border-2 border-gray-700 max-w-md w-full">
+            <h2 className="text-xl lg:text-2xl font-bold text-gray-100 mb-2 lg:mb-4">
               Enter Team Names
             </h2>
-            <p className="text-gray-400 mb-6">
+            <p className="text-sm lg:text-base text-gray-400 mb-4 lg:mb-6">
               Give your teams custom names for this draft
             </p>
-            <div className="space-y-4 mb-6">
+            <div className="space-y-3 lg:space-y-4 mb-4 lg:mb-6">
               <div>
-                <label className="block text-sm font-semibold text-blue-400 mb-2">
+                <label className="block text-xs lg:text-sm font-semibold text-blue-400 mb-1 lg:mb-2">
                   Team 1 Name
                 </label>
                 <input
@@ -1121,11 +1121,11 @@ export default function Draft5v5({ onBackToMenu, multiplayerConfig }: Draft5v5Pr
                   onChange={(e) => setTempTeam1Name(e.target.value)}
                   placeholder="Team 1"
                   maxLength={30}
-                  className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 placeholder-gray-400 focus:outline-none focus:border-blue-500"
+                  className="w-full px-3 lg:px-4 py-1.5 lg:py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm lg:text-base text-gray-100 placeholder-gray-400 focus:outline-none focus:border-blue-500"
                 />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-red-400 mb-2">
+                <label className="block text-xs lg:text-sm font-semibold text-red-400 mb-1 lg:mb-2">
                   Team 2 Name
                 </label>
                 <input
@@ -1134,14 +1134,14 @@ export default function Draft5v5({ onBackToMenu, multiplayerConfig }: Draft5v5Pr
                   onChange={(e) => setTempTeam2Name(e.target.value)}
                   placeholder="Team 2"
                   maxLength={30}
-                  className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 placeholder-gray-400 focus:outline-none focus:border-red-500"
+                  className="w-full px-3 lg:px-4 py-1.5 lg:py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm lg:text-base text-gray-100 placeholder-gray-400 focus:outline-none focus:border-red-500"
                 />
               </div>
             </div>
             <div className="flex justify-end">
               <button
                 onClick={confirmTeamNames}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-8 rounded-lg transition-colors"
+                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-1.5 lg:py-2 px-6 lg:px-8 rounded-lg transition-colors text-sm lg:text-base"
               >
                 Start Draft
               </button>
