@@ -1103,6 +1103,44 @@
                       "skillIds":  "100201,200541,200542,200881,201191,201192,201522,201611"
                   },
                   {
+                      "charaId":  1021,
+                      "charaName":  "Tamamo Cross",
+                      "voiceActor":  "Naomi Ohzora",
+                      "cardId":  102101,
+                      "cardTitle":  "[Fast as Lightning]",
+                      "supportCardId":  10027,
+                      "startDate":  "2026-01-22T22:00:00",
+                      "baseSpeed":  101,
+                      "baseStamina":  116,
+                      "basePower":  129,
+                      "baseGuts":  102,
+                      "baseWisdom":  102,
+                      "talentSpeed":  0,
+                      "talentStamina":  20,
+                      "talentPower":  10,
+                      "talentGuts":  0,
+                      "talentWisdom":  0,
+                      "aptitudeTurf":  "A",
+                      "aptitudeDirt":  "F",
+                      "aptitudeShort":  "G",
+                      "aptitudeMile":  "E",
+                      "aptitudeMiddle":  "A",
+                      "aptitudeLong":  "A",
+                      "aptitudeRunner":  "G",
+                      "aptitudeLeader":  "A",
+                      "aptitudeBetweener":  "A",
+                      "aptitudeChaser":  "A",
+                      "birthYear":  1984,
+                      "birthMonth":  5,
+                      "birthDay":  23,
+                      "sex":  1,
+                      "height":  0,
+                      "bust":  0,
+                      "charaCategory":  0,
+                      "uraObjectives":  1021,
+                      "skillIds":  "100211,200572,200591,200592,200642,201132,201611,201612"
+                  },
+                  {
                       "charaId":  1022,
                       "charaName":  "Fine Motion",
                       "voiceActor":  "Chinami Hashimoto",
@@ -2281,5 +2319,5 @@
                       "skillIds":  "100611,200262,200671,200672,201072,201142,201431,201432"
                   }
               ],
-    "Count":  60
+    "Count":  61
 }
