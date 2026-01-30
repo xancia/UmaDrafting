@@ -805,7 +805,7 @@ export default function Draft5v5({ onBackToMenu, multiplayerConfig }: Draft5v5Pr
         />
       </div>
 
-      <div className="flex-1 flex flex-col gap-2 lg:gap-4 overflow-hidden">\
+      <div className="flex-1 flex flex-col gap-2 lg:gap-4 overflow-hidden">
         <div className="shrink-0">
           <DraftHeader
             phase={draftState.phase}
