@@ -14480,6 +14480,189 @@
                       "uniqueEffect":  null
                   },
                   {
+                      "supportCardId":  10075,
+                      "charaId":  1033,
+                      "charaName":  "Admire Vega",
+                      "supportCardTitle":  "[Tracen Academy]",
+                      "rarity":  1,
+                      "rarityDisplay":  "R",
+                      "supportCardType":  1,
+                      "supportCardTypeName":  "Power",
+                      "effectTableId":  10075,
+                      "uniqueEffectId":  0,
+                      "skillSetId":  9081033,
+                      "commandType":  1,
+                      "commandId":  102,
+                      "startDate":  "2026-01-29T22:00:00",
+                      "outingMax":  0,
+                      "effectId":  0,
+                      "effects":  [
+                                      {
+                                          "effectType":  1,
+                                          "effectTypeName":  "Friendship Bonus",
+                                          "initValue":  5,
+                                          "level5Value":  -1,
+                                          "level10Value":  -1,
+                                          "level15Value":  -1,
+                                          "level20Value":  15,
+                                          "level25Value":  -1,
+                                          "level30Value":  -1,
+                                          "level35Value":  -1,
+                                          "level40Value":  20,
+                                          "level45Value":  -1,
+                                          "level50Value":  -1
+                                      },
+                                      {
+                                          "effectType":  5,
+                                          "effectTypeName":  "Power Bonus",
+                                          "initValue":  -1,
+                                          "level5Value":  -1,
+                                          "level10Value":  -1,
+                                          "level15Value":  -1,
+                                          "level20Value":  -1,
+                                          "level25Value":  -1,
+                                          "level30Value":  -1,
+                                          "level35Value":  -1,
+                                          "level40Value":  1,
+                                          "level45Value":  -1,
+                                          "level50Value":  -1
+                                      },
+                                      {
+                                          "effectType":  8,
+                                          "effectTypeName":  "Training Effectiveness",
+                                          "initValue":  1,
+                                          "level5Value":  -1,
+                                          "level10Value":  -1,
+                                          "level15Value":  -1,
+                                          "level20Value":  5,
+                                          "level25Value":  -1,
+                                          "level30Value":  -1,
+                                          "level35Value":  -1,
+                                          "level40Value":  10,
+                                          "level45Value":  -1,
+                                          "level50Value":  -1
+                                      },
+                                      {
+                                          "effectType":  14,
+                                          "effectTypeName":  "Initial Friendship Gauge",
+                                          "initValue":  -1,
+                                          "level5Value":  10,
+                                          "level10Value":  -1,
+                                          "level15Value":  15,
+                                          "level20Value":  15,
+                                          "level25Value":  -1,
+                                          "level30Value":  -1,
+                                          "level35Value":  20,
+                                          "level40Value":  -1,
+                                          "level45Value":  -1,
+                                          "level50Value":  -1
+                                      },
+                                      {
+                                          "effectType":  17,
+                                          "effectTypeName":  "Hint Levels",
+                                          "initValue":  -1,
+                                          "level5Value":  1,
+                                          "level10Value":  -1,
+                                          "level15Value":  1,
+                                          "level20Value":  1,
+                                          "level25Value":  -1,
+                                          "level30Value":  -1,
+                                          "level35Value":  2,
+                                          "level40Value":  -1,
+                                          "level45Value":  -1,
+                                          "level50Value":  -1
+                                      },
+                                      {
+                                          "effectType":  18,
+                                          "effectTypeName":  "Hint Frequency",
+                                          "initValue":  -1,
+                                          "level5Value":  5,
+                                          "level10Value":  -1,
+                                          "level15Value":  20,
+                                          "level20Value":  20,
+                                          "level25Value":  -1,
+                                          "level30Value":  -1,
+                                          "level35Value":  30,
+                                          "level40Value":  -1,
+                                          "level45Value":  -1,
+                                          "level50Value":  -1
+                                      },
+                                      {
+                                          "effectType":  19,
+                                          "effectTypeName":  "Specialty Priority",
+                                          "initValue":  -1,
+                                          "level5Value":  5,
+                                          "level10Value":  -1,
+                                          "level15Value":  20,
+                                          "level20Value":  20,
+                                          "level25Value":  -1,
+                                          "level30Value":  -1,
+                                          "level35Value":  35,
+                                          "level40Value":  -1,
+                                          "level45Value":  -1,
+                                          "level50Value":  -1
+                                      }
+                                  ],
+                      "skillHints":  [
+                                         {
+                                             "skillId":  200632,
+                                             "skillName":  "Masterful Gambit",
+                                             "skillLevel":  0
+                                         },
+                                         {
+                                             "skillId":  201152,
+                                             "skillName":  "Tether",
+                                             "skillLevel":  0
+                                         },
+                                         {
+                                             "skillId":  201452,
+                                             "skillName":  "End Closer Straightaways ○",
+                                             "skillLevel":  0
+                                         },
+                                         {
+                                             "skillId":  201492,
+                                             "skillName":  "Levelheaded",
+                                             "skillLevel":  0
+                                         },
+                                         {
+                                             "skillId":  201502,
+                                             "skillName":  "Strategist",
+                                             "skillLevel":  0
+                                         },
+                                         {
+                                             "skillId":  0,
+                                             "skillName":  "+2 Stamina",
+                                             "skillLevel":  0
+                                         },
+                                         {
+                                             "skillId":  0,
+                                             "skillName":  "+6 Power",
+                                             "skillLevel":  0
+                                         }
+                                     ],
+                      "events":  [
+                                     {
+                                         "storyId":  801033001,
+                                         "eventTitle":  "Awkward Triangulum",
+                                         "eventType":  "Random Event",
+                                         "eventOrder":  0
+                                     },
+                                     {
+                                         "storyId":  801033002,
+                                         "eventTitle":  "Lonesome Cepheus",
+                                         "eventType":  "Random Event",
+                                         "eventOrder":  0
+                                     },
+                                     {
+                                         "storyId":  801033003,
+                                         "eventTitle":  "A Hint for Growth",
+                                         "eventType":  "Random Event",
+                                         "eventOrder":  0
+                                     }
+                                 ],
+                      "uniqueEffect":  null
+                  },
+                  {
                       "supportCardId":  20001,
                       "charaId":  1005,
                       "charaName":  "Fuji Kiseki",
@@ -39701,7 +39884,813 @@
                                            "value13":  0,
                                            "value14":  0
                                        }
+                  },
+                  {
+                      "supportCardId":  30077,
+                      "charaId":  1033,
+                      "charaName":  "Admire Vega",
+                      "supportCardTitle":  "[Lucky Star in the Sky]",
+                      "rarity":  3,
+                      "rarityDisplay":  "SSR",
+                      "supportCardType":  1,
+                      "supportCardTypeName":  "Power",
+                      "effectTableId":  30077,
+                      "uniqueEffectId":  30077,
+                      "skillSetId":  9081033,
+                      "commandType":  1,
+                      "commandId":  102,
+                      "startDate":  "2026-01-29T22:00:00",
+                      "outingMax":  0,
+                      "effectId":  0,
+                      "effects":  [
+                                      {
+                                          "effectType":  1,
+                                          "effectTypeName":  "Friendship Bonus",
+                                          "initValue":  10,
+                                          "level5Value":  -1,
+                                          "level10Value":  -1,
+                                          "level15Value":  -1,
+                                          "level20Value":  -1,
+                                          "level25Value":  -1,
+                                          "level30Value":  25,
+                                          "level35Value":  -1,
+                                          "level40Value":  -1,
+                                          "level45Value":  -1,
+                                          "level50Value":  30
+                                      },
+                                      {
+                                          "effectType":  5,
+                                          "effectTypeName":  "Power Bonus",
+                                          "initValue":  -1,
+                                          "level5Value":  -1,
+                                          "level10Value":  -1,
+                                          "level15Value":  -1,
+                                          "level20Value":  -1,
+                                          "level25Value":  -1,
+                                          "level30Value":  -1,
+                                          "level35Value":  1,
+                                          "level40Value":  -1,
+                                          "level45Value":  -1,
+                                          "level50Value":  -1
+                                      },
+                                      {
+                                          "effectType":  8,
+                                          "effectTypeName":  "Training Effectiveness",
+                                          "initValue":  1,
+                                          "level5Value":  -1,
+                                          "level10Value":  -1,
+                                          "level15Value":  -1,
+                                          "level20Value":  -1,
+                                          "level25Value":  -1,
+                                          "level30Value":  10,
+                                          "level35Value":  -1,
+                                          "level40Value":  -1,
+                                          "level45Value":  -1,
+                                          "level50Value":  15
+                                      },
+                                      {
+                                          "effectType":  14,
+                                          "effectTypeName":  "Initial Friendship Gauge",
+                                          "initValue":  -1,
+                                          "level5Value":  -1,
+                                          "level10Value":  -1,
+                                          "level15Value":  10,
+                                          "level20Value":  -1,
+                                          "level25Value":  15,
+                                          "level30Value":  15,
+                                          "level35Value":  -1,
+                                          "level40Value":  -1,
+                                          "level45Value":  20,
+                                          "level50Value":  -1
+                                      },
+                                      {
+                                          "effectType":  15,
+                                          "effectTypeName":  "Race Bonus",
+                                          "initValue":  -1,
+                                          "level5Value":  -1,
+                                          "level10Value":  -1,
+                                          "level15Value":  -1,
+                                          "level20Value":  -1,
+                                          "level25Value":  -1,
+                                          "level30Value":  -1,
+                                          "level35Value":  -1,
+                                          "level40Value":  -1,
+                                          "level45Value":  5,
+                                          "level50Value":  10
+                                      },
+                                      {
+                                          "effectType":  16,
+                                          "effectTypeName":  "Fan Bonus",
+                                          "initValue":  -1,
+                                          "level5Value":  -1,
+                                          "level10Value":  -1,
+                                          "level15Value":  -1,
+                                          "level20Value":  -1,
+                                          "level25Value":  -1,
+                                          "level30Value":  -1,
+                                          "level35Value":  -1,
+                                          "level40Value":  -1,
+                                          "level45Value":  10,
+                                          "level50Value":  15
+                                      },
+                                      {
+                                          "effectType":  17,
+                                          "effectTypeName":  "Hint Levels",
+                                          "initValue":  -1,
+                                          "level5Value":  -1,
+                                          "level10Value":  -1,
+                                          "level15Value":  -1,
+                                          "level20Value":  -1,
+                                          "level25Value":  1,
+                                          "level30Value":  -1,
+                                          "level35Value":  -1,
+                                          "level40Value":  -1,
+                                          "level45Value":  -1,
+                                          "level50Value":  -1
+                                      },
+                                      {
+                                          "effectType":  18,
+                                          "effectTypeName":  "Hint Frequency",
+                                          "initValue":  -1,
+                                          "level5Value":  -1,
+                                          "level10Value":  -1,
+                                          "level15Value":  -1,
+                                          "level20Value":  -1,
+                                          "level25Value":  20,
+                                          "level30Value":  -1,
+                                          "level35Value":  -1,
+                                          "level40Value":  -1,
+                                          "level45Value":  -1,
+                                          "level50Value":  -1
+                                      },
+                                      {
+                                          "effectType":  19,
+                                          "effectTypeName":  "Specialty Priority",
+                                          "initValue":  -1,
+                                          "level5Value":  -1,
+                                          "level10Value":  -1,
+                                          "level15Value":  5,
+                                          "level20Value":  -1,
+                                          "level25Value":  20,
+                                          "level30Value":  20,
+                                          "level35Value":  -1,
+                                          "level40Value":  -1,
+                                          "level45Value":  35,
+                                          "level50Value":  -1
+                                      }
+                                  ],
+                      "skillHints":  [
+                                         {
+                                             "skillId":  200632,
+                                             "skillName":  "Masterful Gambit",
+                                             "skillLevel":  0
+                                         },
+                                         {
+                                             "skillId":  201152,
+                                             "skillName":  "Tether",
+                                             "skillLevel":  0
+                                         },
+                                         {
+                                             "skillId":  201452,
+                                             "skillName":  "End Closer Straightaways ○",
+                                             "skillLevel":  0
+                                         },
+                                         {
+                                             "skillId":  201492,
+                                             "skillName":  "Levelheaded",
+                                             "skillLevel":  0
+                                         },
+                                         {
+                                             "skillId":  201502,
+                                             "skillName":  "Strategist",
+                                             "skillLevel":  0
+                                         },
+                                         {
+                                             "skillId":  0,
+                                             "skillName":  "+2 Stamina",
+                                             "skillLevel":  0
+                                         },
+                                         {
+                                             "skillId":  0,
+                                             "skillName":  "+6 Power",
+                                             "skillLevel":  0
+                                         }
+                                     ],
+                      "events":  [
+                                     {
+                                         "storyId":  830077001,
+                                         "eventTitle":  "Ayabe Shows Concern",
+                                         "eventType":  "Chain Event",
+                                         "eventOrder":  1
+                                     },
+                                     {
+                                         "storyId":  830077002,
+                                         "eventTitle":  "Ayabe Doesn\u0027t Cut Corners",
+                                         "eventType":  "Chain Event",
+                                         "eventOrder":  2
+                                     },
+                                     {
+                                         "storyId":  830077003,
+                                         "eventTitle":  "Ayabe Won\u0027t Be Disheartened!",
+                                         "eventType":  "Chain Event",
+                                         "eventOrder":  3
+                                     },
+                                     {
+                                         "storyId":  801033001,
+                                         "eventTitle":  "Awkward Triangulum",
+                                         "eventType":  "Random Event",
+                                         "eventOrder":  0
+                                     },
+                                     {
+                                         "storyId":  801033002,
+                                         "eventTitle":  "Lonesome Cepheus",
+                                         "eventType":  "Random Event",
+                                         "eventOrder":  0
+                                     },
+                                     {
+                                         "storyId":  801033003,
+                                         "eventTitle":  "A Hint for Growth",
+                                         "eventType":  "Random Event",
+                                         "eventOrder":  0
+                                     }
+                                 ],
+                      "uniqueEffect":  {
+                                           "level":  30,
+                                           "type0":  8,
+                                           "type0Name":  "Increases the effectiveness of training performed together",
+                                           "value0":  5,
+                                           "value01":  0,
+                                           "value02":  0,
+                                           "value03":  0,
+                                           "value04":  0,
+                                           "type1":  18,
+                                           "type1Name":  "Increases the frequency at which hint events occur",
+                                           "value1":  20,
+                                           "value11":  0,
+                                           "value12":  0,
+                                           "value13":  0,
+                                           "value14":  0
+                                       }
+                  },
+                  {
+                      "supportCardId":  30078,
+                      "charaId":  1056,
+                      "charaName":  "Matikanefukukitaru",
+                      "supportCardTitle":  "[Touching Sleeves Is Good Luck! ♪]",
+                      "rarity":  3,
+                      "rarityDisplay":  "SSR",
+                      "supportCardType":  1,
+                      "supportCardTypeName":  "Speed",
+                      "effectTableId":  30078,
+                      "uniqueEffectId":  30078,
+                      "skillSetId":  9081056,
+                      "commandType":  1,
+                      "commandId":  101,
+                      "startDate":  "2026-01-29T22:00:00",
+                      "outingMax":  0,
+                      "effectId":  0,
+                      "effects":  [
+                                      {
+                                          "effectType":  1,
+                                          "effectTypeName":  "Friendship Bonus",
+                                          "initValue":  10,
+                                          "level5Value":  -1,
+                                          "level10Value":  -1,
+                                          "level15Value":  -1,
+                                          "level20Value":  -1,
+                                          "level25Value":  15,
+                                          "level30Value":  15,
+                                          "level35Value":  -1,
+                                          "level40Value":  -1,
+                                          "level45Value":  20,
+                                          "level50Value":  -1
+                                      },
+                                      {
+                                          "effectType":  2,
+                                          "effectTypeName":  "Mood Effect",
+                                          "initValue":  -1,
+                                          "level5Value":  -1,
+                                          "level10Value":  -1,
+                                          "level15Value":  10,
+                                          "level20Value":  -1,
+                                          "level25Value":  20,
+                                          "level30Value":  20,
+                                          "level35Value":  -1,
+                                          "level40Value":  -1,
+                                          "level45Value":  30,
+                                          "level50Value":  -1
+                                      },
+                                      {
+                                          "effectType":  8,
+                                          "effectTypeName":  "Training Effectiveness",
+                                          "initValue":  -1,
+                                          "level5Value":  -1,
+                                          "level10Value":  -1,
+                                          "level15Value":  -1,
+                                          "level20Value":  -1,
+                                          "level25Value":  -1,
+                                          "level30Value":  -1,
+                                          "level35Value":  5,
+                                          "level40Value":  10,
+                                          "level45Value":  -1,
+                                          "level50Value":  -1
+                                      },
+                                      {
+                                          "effectType":  9,
+                                          "effectTypeName":  "Initial Speed",
+                                          "initValue":  7,
+                                          "level5Value":  -1,
+                                          "level10Value":  -1,
+                                          "level15Value":  -1,
+                                          "level20Value":  -1,
+                                          "level25Value":  -1,
+                                          "level30Value":  10,
+                                          "level35Value":  -1,
+                                          "level40Value":  -1,
+                                          "level45Value":  -1,
+                                          "level50Value":  30
+                                      },
+                                      {
+                                          "effectType":  10,
+                                          "effectTypeName":  "Initial Stamina",
+                                          "initValue":  7,
+                                          "level5Value":  -1,
+                                          "level10Value":  -1,
+                                          "level15Value":  -1,
+                                          "level20Value":  -1,
+                                          "level25Value":  -1,
+                                          "level30Value":  10,
+                                          "level35Value":  -1,
+                                          "level40Value":  -1,
+                                          "level45Value":  -1,
+                                          "level50Value":  30
+                                      },
+                                      {
+                                          "effectType":  11,
+                                          "effectTypeName":  "Initial Power",
+                                          "initValue":  7,
+                                          "level5Value":  -1,
+                                          "level10Value":  -1,
+                                          "level15Value":  -1,
+                                          "level20Value":  -1,
+                                          "level25Value":  -1,
+                                          "level30Value":  10,
+                                          "level35Value":  -1,
+                                          "level40Value":  -1,
+                                          "level45Value":  -1,
+                                          "level50Value":  30
+                                      },
+                                      {
+                                          "effectType":  12,
+                                          "effectTypeName":  "Initial Guts",
+                                          "initValue":  7,
+                                          "level5Value":  -1,
+                                          "level10Value":  -1,
+                                          "level15Value":  -1,
+                                          "level20Value":  -1,
+                                          "level25Value":  -1,
+                                          "level30Value":  10,
+                                          "level35Value":  -1,
+                                          "level40Value":  -1,
+                                          "level45Value":  -1,
+                                          "level50Value":  30
+                                      },
+                                      {
+                                          "effectType":  13,
+                                          "effectTypeName":  "Initial Wit",
+                                          "initValue":  7,
+                                          "level5Value":  -1,
+                                          "level10Value":  -1,
+                                          "level15Value":  -1,
+                                          "level20Value":  -1,
+                                          "level25Value":  -1,
+                                          "level30Value":  10,
+                                          "level35Value":  -1,
+                                          "level40Value":  -1,
+                                          "level45Value":  -1,
+                                          "level50Value":  30
+                                      },
+                                      {
+                                          "effectType":  14,
+                                          "effectTypeName":  "Initial Friendship Gauge",
+                                          "initValue":  -1,
+                                          "level5Value":  -1,
+                                          "level10Value":  -1,
+                                          "level15Value":  10,
+                                          "level20Value":  -1,
+                                          "level25Value":  15,
+                                          "level30Value":  15,
+                                          "level35Value":  -1,
+                                          "level40Value":  -1,
+                                          "level45Value":  20,
+                                          "level50Value":  -1
+                                      },
+                                      {
+                                          "effectType":  15,
+                                          "effectTypeName":  "Race Bonus",
+                                          "initValue":  -1,
+                                          "level5Value":  -1,
+                                          "level10Value":  -1,
+                                          "level15Value":  -1,
+                                          "level20Value":  -1,
+                                          "level25Value":  -1,
+                                          "level30Value":  -1,
+                                          "level35Value":  -1,
+                                          "level40Value":  -1,
+                                          "level45Value":  5,
+                                          "level50Value":  10
+                                      },
+                                      {
+                                          "effectType":  16,
+                                          "effectTypeName":  "Fan Bonus",
+                                          "initValue":  -1,
+                                          "level5Value":  -1,
+                                          "level10Value":  -1,
+                                          "level15Value":  -1,
+                                          "level20Value":  -1,
+                                          "level25Value":  -1,
+                                          "level30Value":  -1,
+                                          "level35Value":  -1,
+                                          "level40Value":  -1,
+                                          "level45Value":  10,
+                                          "level50Value":  15
+                                      },
+                                      {
+                                          "effectType":  28,
+                                          "effectTypeName":  "Energy Cost Reduction",
+                                          "initValue":  -1,
+                                          "level5Value":  -1,
+                                          "level10Value":  -1,
+                                          "level15Value":  1,
+                                          "level20Value":  -1,
+                                          "level25Value":  5,
+                                          "level30Value":  5,
+                                          "level35Value":  -1,
+                                          "level40Value":  -1,
+                                          "level45Value":  10,
+                                          "level50Value":  -1
+                                      }
+                                  ],
+                      "skillHints":  [
+                                         {
+                                             "skillId":  200092,
+                                             "skillName":  "Hakodate Racecourse ○",
+                                             "skillLevel":  0
+                                         },
+                                         {
+                                             "skillId":  200482,
+                                             "skillName":  "Calm in a Crowd",
+                                             "skillLevel":  0
+                                         },
+                                         {
+                                             "skillId":  200781,
+                                             "skillName":  "Trick (Rear)",
+                                             "skillLevel":  0
+                                         },
+                                         {
+                                             "skillId":  201392,
+                                             "skillName":  "Late Surger Corners ○",
+                                             "skillLevel":  0
+                                         },
+                                         {
+                                             "skillId":  201422,
+                                             "skillName":  "A Small Breather",
+                                             "skillLevel":  0
+                                         },
+                                         {
+                                             "skillId":  201562,
+                                             "skillName":  "Lucky Seven",
+                                             "skillLevel":  0
+                                         },
+                                         {
+                                             "skillId":  201571,
+                                             "skillName":  "Triple 7s",
+                                             "skillLevel":  0
+                                         },
+                                         {
+                                             "skillId":  0,
+                                             "skillName":  "+6 Speed",
+                                             "skillLevel":  0
+                                         },
+                                         {
+                                             "skillId":  0,
+                                             "skillName":  "+2 Power",
+                                             "skillLevel":  0
+                                         }
+                                     ],
+                      "events":  [
+                                     {
+                                         "storyId":  830078001,
+                                         "eventTitle":  "Mystery Fortune Ritual!",
+                                         "eventType":  "Chain Event",
+                                         "eventOrder":  1
+                                     },
+                                     {
+                                         "storyId":  830078002,
+                                         "eventTitle":  "Fortune Favors the Friends!",
+                                         "eventType":  "Chain Event",
+                                         "eventOrder":  2
+                                     },
+                                     {
+                                         "storyId":  830078003,
+                                         "eventTitle":  "Finding Miraculous Joy!",
+                                         "eventType":  "Chain Event",
+                                         "eventOrder":  3
+                                     },
+                                     {
+                                         "storyId":  801056001,
+                                         "eventTitle":  "Maximum Spirituality",
+                                         "eventType":  "Random Event",
+                                         "eventOrder":  0
+                                     },
+                                     {
+                                         "storyId":  801056002,
+                                         "eventTitle":  "When Piety and Kindness Intersect",
+                                         "eventType":  "Random Event",
+                                         "eventOrder":  0
+                                     },
+                                     {
+                                         "storyId":  801056003,
+                                         "eventTitle":  "A Hint for Growth",
+                                         "eventType":  "Random Event",
+                                         "eventOrder":  0
+                                     }
+                                 ],
+                      "uniqueEffect":  {
+                                           "level":  30,
+                                           "type0":  2,
+                                           "type0Name":  "Amplifies the effect of mood when training together",
+                                           "value0":  15,
+                                           "value01":  0,
+                                           "value02":  0,
+                                           "value03":  0,
+                                           "value04":  0,
+                                           "type1":  27,
+                                           "type1Name":  "Increases stat gain from Wit Training",
+                                           "value1":  10,
+                                           "value11":  0,
+                                           "value12":  0,
+                                           "value13":  0,
+                                           "value14":  0
+                                       }
+                  },
+                  {
+                      "supportCardId":  30079,
+                      "charaId":  1058,
+                      "charaName":  "Meisho Doto",
+                      "supportCardTitle":  "[Leaping into the Unknown]",
+                      "rarity":  3,
+                      "rarityDisplay":  "SSR",
+                      "supportCardType":  1,
+                      "supportCardTypeName":  "Stamina",
+                      "effectTableId":  30079,
+                      "uniqueEffectId":  30079,
+                      "skillSetId":  9081058,
+                      "commandType":  1,
+                      "commandId":  105,
+                      "startDate":  "2026-01-29T22:00:00",
+                      "outingMax":  0,
+                      "effectId":  0,
+                      "effects":  [
+                                      {
+                                          "effectType":  1,
+                                          "effectTypeName":  "Friendship Bonus",
+                                          "initValue":  10,
+                                          "level5Value":  -1,
+                                          "level10Value":  -1,
+                                          "level15Value":  -1,
+                                          "level20Value":  -1,
+                                          "level25Value":  20,
+                                          "level30Value":  20,
+                                          "level35Value":  -1,
+                                          "level40Value":  -1,
+                                          "level45Value":  25,
+                                          "level50Value":  -1
+                                      },
+                                      {
+                                          "effectType":  4,
+                                          "effectTypeName":  "Stamina Bonus",
+                                          "initValue":  -1,
+                                          "level5Value":  -1,
+                                          "level10Value":  -1,
+                                          "level15Value":  -1,
+                                          "level20Value":  -1,
+                                          "level25Value":  -1,
+                                          "level30Value":  -1,
+                                          "level35Value":  1,
+                                          "level40Value":  -1,
+                                          "level45Value":  -1,
+                                          "level50Value":  -1
+                                      },
+                                      {
+                                          "effectType":  8,
+                                          "effectTypeName":  "Training Effectiveness",
+                                          "initValue":  -1,
+                                          "level5Value":  -1,
+                                          "level10Value":  -1,
+                                          "level15Value":  1,
+                                          "level20Value":  -1,
+                                          "level25Value":  5,
+                                          "level30Value":  5,
+                                          "level35Value":  -1,
+                                          "level40Value":  -1,
+                                          "level45Value":  5,
+                                          "level50Value":  -1
+                                      },
+                                      {
+                                          "effectType":  10,
+                                          "effectTypeName":  "Initial Stamina",
+                                          "initValue":  10,
+                                          "level5Value":  -1,
+                                          "level10Value":  -1,
+                                          "level15Value":  -1,
+                                          "level20Value":  -1,
+                                          "level25Value":  -1,
+                                          "level30Value":  25,
+                                          "level35Value":  -1,
+                                          "level40Value":  -1,
+                                          "level45Value":  -1,
+                                          "level50Value":  35
+                                      },
+                                      {
+                                          "effectType":  12,
+                                          "effectTypeName":  "Initial Guts",
+                                          "initValue":  10,
+                                          "level5Value":  -1,
+                                          "level10Value":  -1,
+                                          "level15Value":  -1,
+                                          "level20Value":  -1,
+                                          "level25Value":  -1,
+                                          "level30Value":  25,
+                                          "level35Value":  -1,
+                                          "level40Value":  -1,
+                                          "level45Value":  -1,
+                                          "level50Value":  35
+                                      },
+                                      {
+                                          "effectType":  14,
+                                          "effectTypeName":  "Initial Friendship Gauge",
+                                          "initValue":  -1,
+                                          "level5Value":  -1,
+                                          "level10Value":  -1,
+                                          "level15Value":  10,
+                                          "level20Value":  -1,
+                                          "level25Value":  15,
+                                          "level30Value":  15,
+                                          "level35Value":  -1,
+                                          "level40Value":  -1,
+                                          "level45Value":  20,
+                                          "level50Value":  -1
+                                      },
+                                      {
+                                          "effectType":  17,
+                                          "effectTypeName":  "Hint Levels",
+                                          "initValue":  -1,
+                                          "level5Value":  -1,
+                                          "level10Value":  -1,
+                                          "level15Value":  -1,
+                                          "level20Value":  -1,
+                                          "level25Value":  -1,
+                                          "level30Value":  -1,
+                                          "level35Value":  -1,
+                                          "level40Value":  -1,
+                                          "level45Value":  2,
+                                          "level50Value":  3
+                                      },
+                                      {
+                                          "effectType":  18,
+                                          "effectTypeName":  "Hint Frequency",
+                                          "initValue":  -1,
+                                          "level5Value":  -1,
+                                          "level10Value":  -1,
+                                          "level15Value":  -1,
+                                          "level20Value":  -1,
+                                          "level25Value":  -1,
+                                          "level30Value":  -1,
+                                          "level35Value":  -1,
+                                          "level40Value":  -1,
+                                          "level45Value":  30,
+                                          "level50Value":  40
+                                      },
+                                      {
+                                          "effectType":  19,
+                                          "effectTypeName":  "Specialty Priority",
+                                          "initValue":  -1,
+                                          "level5Value":  -1,
+                                          "level10Value":  -1,
+                                          "level15Value":  5,
+                                          "level20Value":  -1,
+                                          "level25Value":  20,
+                                          "level30Value":  20,
+                                          "level35Value":  -1,
+                                          "level40Value":  -1,
+                                          "level45Value":  35,
+                                          "level50Value":  -1
+                                      }
+                                  ],
+                      "skillHints":  [
+                                         {
+                                             "skillId":  200142,
+                                             "skillName":  "Non-Standard Distance ○",
+                                             "skillLevel":  0
+                                         },
+                                         {
+                                             "skillId":  200152,
+                                             "skillName":  "Firm Conditions ○",
+                                             "skillLevel":  0
+                                         },
+                                         {
+                                             "skillId":  200252,
+                                             "skillName":  "Inner Post Proficiency ○",
+                                             "skillLevel":  0
+                                         },
+                                         {
+                                             "skillId":  200302,
+                                             "skillName":  "Long Shot ○",
+                                             "skillLevel":  0
+                                         },
+                                         {
+                                             "skillId":  201122,
+                                             "skillName":  "Hawkeye",
+                                             "skillLevel":  0
+                                         },
+                                         {
+                                             "skillId":  201382,
+                                             "skillName":  "Late Surger Straightaways ○",
+                                             "skillLevel":  0
+                                         },
+                                         {
+                                             "skillId":  201621,
+                                             "skillName":  "Shake It Out",
+                                             "skillLevel":  0
+                                         },
+                                         {
+                                             "skillId":  0,
+                                             "skillName":  "+6 Stamina",
+                                             "skillLevel":  0
+                                         },
+                                         {
+                                             "skillId":  0,
+                                             "skillName":  "+2 Guts",
+                                             "skillLevel":  0
+                                         }
+                                     ],
+                      "events":  [
+                                     {
+                                         "storyId":  830079001,
+                                         "eventTitle":  "Doomsday for the Overlord?!",
+                                         "eventType":  "Chain Event",
+                                         "eventOrder":  1
+                                     },
+                                     {
+                                         "storyId":  830079002,
+                                         "eventTitle":  "Coupon Gone Wrong",
+                                         "eventType":  "Chain Event",
+                                         "eventOrder":  2
+                                     },
+                                     {
+                                         "storyId":  830079003,
+                                         "eventTitle":  "New Recruit",
+                                         "eventType":  "Chain Event",
+                                         "eventOrder":  3
+                                     },
+                                     {
+                                         "storyId":  801058001,
+                                         "eventTitle":  "I... Will Change",
+                                         "eventType":  "Random Event",
+                                         "eventOrder":  0
+                                     },
+                                     {
+                                         "storyId":  801058002,
+                                         "eventTitle":  "Please... Buy Some Carrots",
+                                         "eventType":  "Random Event",
+                                         "eventOrder":  0
+                                     },
+                                     {
+                                         "storyId":  801058003,
+                                         "eventTitle":  "A Hint for Growth",
+                                         "eventType":  "Random Event",
+                                         "eventOrder":  0
+                                     }
+                                 ],
+                      "uniqueEffect":  {
+                                           "level":  40,
+                                           "type0":  8,
+                                           "type0Name":  "Increases the effectiveness of training performed together",
+                                           "value0":  5,
+                                           "value01":  0,
+                                           "value02":  0,
+                                           "value03":  0,
+                                           "value04":  0,
+                                           "type1":  18,
+                                           "type1Name":  "Increases the frequency at which hint events occur",
+                                           "value1":  20,
+                                           "value11":  0,
+                                           "value12":  0,
+                                           "value13":  0,
+                                           "value14":  0
+                                       }
                   }
               ],
-    "Count":  176
+    "Count":  180
 }
