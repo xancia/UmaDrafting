@@ -45,6 +45,12 @@ export const cardIdToIconMapping: Record<number, number> = {
   // Rice Shower
   103002: 103040, // Vampire Makeover
 
+  // TM Opera O
+  101502: 101510, // New Year, Same Radiance!
+
+  // Haru Urara
+  105202: 105210, // New Year ♪ New Urara!
+
   // Add more mappings as needed
   // Format: globalCardId: japaneseIconCardId,
 };
