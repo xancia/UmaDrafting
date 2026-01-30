@@ -169,7 +169,7 @@ export default function RoomSetup({
         <button
           onClick={handleCreateRoom}
           disabled={isProcessing}
-          className="flex-1 py-2 lg:py-3 px-3 lg:px-4 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-xl transition-colors border-2 border-purple-500 text-sm lg:text-base disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex-1 py-2 lg:py-3 px-3 lg:px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-colors border-2 border-blue-500 text-sm lg:text-base disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isProcessing ? "Creating..." : "Create Room"}
         </button>
@@ -238,11 +238,7 @@ export default function RoomSetup({
         <button
           onClick={handleJoinRoom}
           disabled={isProcessing}
-          className={`flex-1 py-2 lg:py-3 px-3 lg:px-4 ${
-            mode === "join"
-              ? "bg-green-600 hover:bg-green-700 border-green-500"
-              : "bg-gray-600 hover:bg-gray-700 border-gray-500"
-          } text-white font-semibold rounded-xl transition-colors border-2 text-sm lg:text-base disabled:opacity-50 disabled:cursor-not-allowed`}
+          className="flex-1 py-2 lg:py-3 px-3 lg:px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-colors border-2 border-blue-500 text-sm lg:text-base disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isProcessing ? "Joining..." : mode === "join" ? "Join" : "Spectate"}
         </button>

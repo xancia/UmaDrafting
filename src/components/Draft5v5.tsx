@@ -263,8 +263,8 @@ export default function Draft5v5({ onBackToMenu, multiplayerConfig }: Draft5v5Pr
         }
       }
       
-      // Close wildcard modal when phase transitions to map-pick
-      if (syncedDraftState.phase === "map-pick" && showWildcardModal) {
+      // Close wildcard modal when phase transitions to pre-draft-pause
+      if (syncedDraftState.phase === "pre-draft-pause" && showWildcardModal) {
         setShowWildcardModal(false);
         setWildcardAcknowledged(true);
       }
@@ -278,6 +278,31 @@ export default function Draft5v5({ onBackToMenu, multiplayerConfig }: Draft5v5Pr
     const unsubscribe = onDraftAction((action, senderId) => {
       console.log("Host received action from client:", action, senderId);
       console.log("Current phase:", draftState.phase, "Current team:", draftState.currentTeam);
+      
+      // Handle control actions (phase transitions)
+      if (action.itemType === "control") {
+        if (action.phase === "map-pick" && draftState.phase === "pre-draft-pause") {
+          const newState = {
+            ...draftState,
+            phase: "map-pick" as const,
+            currentTeam: "team1" as const,
+          };
+          syncUpdateDraftState(newState);
+          setDraftState(newState);
+          setHistory((prev) => [...prev, newState]);
+          return;
+        } else if (action.phase === "uma-pick" && draftState.phase === "post-map-pause") {
+          const newState = {
+            ...draftState,
+            phase: "uma-pick" as const,
+            currentTeam: "team1" as const,
+          };
+          syncUpdateDraftState(newState);
+          setDraftState(newState);
+          setHistory((prev) => [...prev, newState]);
+          return;
+        }
+      }
       
       // Process the action based on type
       if (action.itemType === "map") {
@@ -496,12 +521,12 @@ export default function Draft5v5({ onBackToMenu, multiplayerConfig }: Draft5v5Pr
     setShowWildcardModal(false);
     setWildcardAcknowledged(true);
     
-    // Everyone transitions to map-pick locally after acknowledging wildcard
+    // Everyone transitions to pre-draft-pause locally after acknowledging wildcard
     // This applies for wildcard-reveal phase OR lobby phase (spectator edge case)
     if (draftState.phase === "wildcard-reveal" || draftState.phase === "lobby") {
       const newState = {
         ...draftState,
-        phase: "map-pick" as const,
+        phase: "pre-draft-pause" as const,
       };
       setDraftState(newState);
       
@@ -510,6 +535,56 @@ export default function Draft5v5({ onBackToMenu, multiplayerConfig }: Draft5v5Pr
         updateRoomDraftState(newState);
         syncUpdateDraftState(newState);
       }
+    }
+  };
+
+  // Handle starting the map draft (from pre-draft-pause to map-pick)
+  const handleStartMapDraft = () => {
+    const newState = {
+      ...draftState,
+      phase: "map-pick" as const,
+      currentTeam: "team1" as const,
+    };
+    
+    setDraftState(newState);
+    
+    // Sync to all clients in multiplayer
+    if (isMultiplayer && isHost) {
+      updateRoomDraftState(newState);
+      syncUpdateDraftState(newState);
+    } else if (isMultiplayer && !isHost) {
+      // Non-host players send action to host
+      sendDraftAction({
+        action: "pick",
+        itemType: "control",
+        itemId: "start-map-draft",
+        phase: "map-pick",
+      });
+    }
+  };
+
+  // Handle continuing to uma draft (from post-map-pause to uma-pick)
+  const handleContinueToUma = () => {
+    const newState = {
+      ...draftState,
+      phase: "uma-pick" as const,
+      currentTeam: "team1" as const,
+    };
+    
+    setDraftState(newState);
+    
+    // Sync to all clients in multiplayer
+    if (isMultiplayer && isHost) {
+      updateRoomDraftState(newState);
+      syncUpdateDraftState(newState);
+    } else if (isMultiplayer && !isHost) {
+      // Non-host players send action to host
+      sendDraftAction({
+        action: "pick",
+        itemType: "control",
+        itemId: "continue-to-uma",
+        phase: "uma-pick",
+      });
     }
   };
 
@@ -726,11 +801,11 @@ export default function Draft5v5({ onBackToMenu, multiplayerConfig }: Draft5v5Pr
           }
           distanceCounts={countDistances(draftState.team1.pickedMaps)}
           dirtCount={countDirtTracks(draftState.team1.pickedMaps)}
-          showMapOrder={draftState.phase === "uma-pick" || draftState.phase === "uma-ban" || draftState.phase === "complete"}
+          showMapOrder={draftState.phase === "post-map-pause" || draftState.phase === "uma-pick" || draftState.phase === "uma-ban" || draftState.phase === "complete"}
         />
       </div>
 
-      <div className="flex-1 flex flex-col gap-2 lg:gap-4 overflow-hidden">
+      <div className="flex-1 flex flex-col gap-2 lg:gap-4 overflow-hidden">\
         <div className="shrink-0">
           <DraftHeader
             phase={draftState.phase}
@@ -753,7 +828,49 @@ export default function Draft5v5({ onBackToMenu, multiplayerConfig }: Draft5v5Pr
         </div>
 
         <div className="flex-1 overflow-y-auto hide-scrollbar">
-          {!isComplete && (
+          {/* Pre-draft pause phase (before starting map draft) */}
+          {draftState.phase === "pre-draft-pause" && (
+            <div className="bg-gray-800 rounded-lg shadow-lg p-6 lg:p-8 xl:p-10 text-center border border-gray-700">
+              <h2 className="text-2xl lg:text-3xl xl:text-4xl font-bold text-gray-100 mb-4 lg:mb-6">
+                Ready to Start Draft?
+              </h2>
+              <p className="text-base lg:text-lg xl:text-xl text-gray-300 mb-6 lg:mb-8">
+                Take your time to discuss strategy with your team.
+              </p>
+              <p className="text-sm lg:text-base text-gray-400 mb-6 lg:mb-8">
+                The draft will begin with map selection when you're ready.
+              </p>
+              <button
+                onClick={handleStartMapDraft}
+                className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 lg:py-4 px-8 lg:px-12 rounded-lg transition-colors text-lg lg:text-xl shadow-lg"
+              >
+                Start Draft
+              </button>
+            </div>
+          )}
+
+          {/* Post-map pause phase (after map bans, before uma picks) */}
+          {draftState.phase === "post-map-pause" && (
+            <div className="bg-gray-800 rounded-lg shadow-lg p-6 lg:p-8 xl:p-10 text-center border border-gray-700">
+              <h2 className="text-2xl lg:text-3xl xl:text-4xl font-bold text-gray-100 mb-4 lg:mb-6">
+                Map Draft Complete
+              </h2>
+              <p className="text-base lg:text-lg xl:text-xl text-gray-300 mb-6 lg:mb-8">
+                All maps have been selected. Take time to review and strategize.
+              </p>
+              <p className="text-sm lg:text-base text-gray-400 mb-6 lg:mb-8">
+                The draft will continue with Uma Musume selection when you're ready.
+              </p>
+              <button
+                onClick={handleContinueToUma}
+                className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 lg:py-4 px-8 lg:px-12 rounded-lg transition-colors text-lg lg:text-xl shadow-lg"
+              >
+                Continue Draft
+              </button>
+            </div>
+          )}
+
+          {!isComplete && draftState.phase !== "pre-draft-pause" && draftState.phase !== "post-map-pause" && (
             <div className="bg-gray-800 rounded-lg shadow-lg p-3 lg:p-4 xl:p-6 border border-gray-700">
               <h2 className="text-lg lg:text-xl xl:text-2xl font-bold mb-2 lg:mb-4 text-gray-100">
                 {draftState.phase === "uma-pick" && "Available Umamusume"}
@@ -914,7 +1031,7 @@ export default function Draft5v5({ onBackToMenu, multiplayerConfig }: Draft5v5Pr
           }
           distanceCounts={countDistances(draftState.team2.pickedMaps)}
           dirtCount={countDirtTracks(draftState.team2.pickedMaps)}
-          showMapOrder={draftState.phase === "uma-pick" || draftState.phase === "uma-ban" || draftState.phase === "complete"}
+          showMapOrder={draftState.phase === "post-map-pause" || draftState.phase === "uma-pick" || draftState.phase === "uma-ban" || draftState.phase === "complete"}
         />
       </div>
 
@@ -983,7 +1100,7 @@ export default function Draft5v5({ onBackToMenu, multiplayerConfig }: Draft5v5Pr
             <h2 className="text-2xl lg:text-3xl xl:text-4xl font-bold text-gray-100 mb-2 lg:mb-4 text-center">
               {!revealStarted ? "Wildcard Tiebreaker Map" : "Tiebreaker Map Revealed!"}
             </h2>
-            <div className="flex justify-center mb-4 lg:mb-6 xl:mb-8 relative" style={{ perspective: '1000px', height: '280px' }}>
+            <div className="flex justify-center mb-4 lg:mb-14 xl:mb-22 relative" style={{ perspective: '1000px', height: '280px' }}>
               <div 
                 className={`bg-gray-700 border-4 ${revealStarted && !cyclingMap ? 'border-blue-500' : 'border-gray-600'} rounded-xl p-4 lg:p-6 xl:p-8 max-w-md transition-all duration-300`}
                 style={cyclingMap ? {
@@ -993,7 +1110,7 @@ export default function Draft5v5({ onBackToMenu, multiplayerConfig }: Draft5v5Pr
                 } : { position: 'absolute' }}
               >
                 {!revealStarted ? (
-                  <div className="flex flex-col items-center justify-center" style={{ height: '200px', width: '200px' }}>
+                  <div className="flex flex-col items-center justify-center" style={{ height: '250px', width: '200px' }}>
                     <div className="text-6xl lg:text-8xl text-gray-400">?</div>
                   </div>
                 ) : cyclingMap ? (

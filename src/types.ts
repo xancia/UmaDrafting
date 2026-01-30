@@ -23,10 +23,12 @@ export interface Map {
 export type DraftPhase =
   | "lobby"
   | "wildcard-reveal"
+  | "pre-draft-pause" // Pause before starting map draft (after wildcard)
   | "uma-pick"
   | "uma-ban"
   | "map-pick"
   | "map-ban"
+  | "post-map-pause" // Pause after map bans, before uma picks
   | "complete";
 
 export type Team = "team1" | "team2";

@@ -12,7 +12,7 @@ export const getInitialDraftState = (): DraftState => {
   };
 
   return {
-    phase: "map-pick",
+    phase: "pre-draft-pause", // Start at pre-draft pause instead of map-pick
     currentTeam: "team1",
     team1: {
       pickedUmas: [],
@@ -44,7 +44,7 @@ export const getNextPhase = (state: DraftState): DraftPhase => {
     if (totalPicks >= 8) return "map-ban";
   } else if (phase === "map-ban") {
     const totalBans = team1.bannedMaps.length + team2.bannedMaps.length;
-    if (totalBans >= 2) return "uma-pick";
+    if (totalBans >= 2) return "post-map-pause"; // Pause after map bans
   } else if (phase === "uma-pick") {
     const totalPicks = team1.pickedUmas.length + team2.pickedUmas.length;
     if (totalPicks >= 12) return "uma-ban";
@@ -254,8 +254,9 @@ export const selectMap = (state: DraftState, map: Map): DraftState => {
   // Map-ban → Uma-pick: Team 1 picks first
   if (phase === "map-pick" && nextPhase === "map-ban") {
     newState.currentTeam = "team1";
-  } else if (phase === "map-ban" && nextPhase === "uma-pick") {
-    newState.currentTeam = "team1";
+  } else if (phase === "map-ban" && nextPhase === "post-map-pause") {
+    // Maintain current team during pause (will be set to team1 when resuming)
+    newState.currentTeam = currentTeam;
   } else {
     newState.currentTeam = getNextTeam(currentTeam);
   }

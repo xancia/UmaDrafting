@@ -115,8 +115,8 @@ export default function WaitingRoom({
               disabled={!canStart}
               className={`w-full py-3 lg:py-4 px-4 lg:px-6 rounded-xl font-bold text-base lg:text-lg transition-all transform ${
                 canStart
-                  ? 'bg-green-600 hover:bg-green-500 text-white hover:scale-[1.02] shadow-lg'
-                  : 'bg-gray-700 text-gray-500 cursor-not-allowed'
+                  ? 'bg-blue-600 hover:bg-blue-700 text-white hover:scale-[1.02] shadow-lg'
+                  : 'bg-gray-700 text-gray-500 cursor-not-allowed border-2 border-gray-700'
               }`}
             >
               {canStart ? 'Start Draft' : 'Waiting for Players...'}

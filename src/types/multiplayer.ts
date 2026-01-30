@@ -98,8 +98,9 @@ export interface JoinRejectedPayload {
  */
 export interface DraftActionPayload {
   action: "pick" | "ban";
-  itemType: "uma" | "map";
+  itemType: "uma" | "map" | "control";
   itemId: string;
+  phase?: string; // Optional phase parameter for control actions
 }
 
 /**

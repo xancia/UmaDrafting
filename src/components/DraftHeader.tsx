@@ -61,6 +61,8 @@ export default function DraftHeader({
         return "Waiting for Players";
       case "wildcard-reveal":
         return "Revealing Tiebreaker Map";
+      case "pre-draft-pause":
+        return "Ready to Start";
       case "uma-pick":
         return "Umamusume Picking Phase";
       case "uma-ban":
@@ -69,6 +71,8 @@ export default function DraftHeader({
         return "Map Picking Phase";
       case "map-ban":
         return "Map Banning Phase";
+      case "post-map-pause":
+        return "Map Draft Complete";
       case "complete":
         return "Draft Complete!";
       default:
@@ -109,7 +113,7 @@ export default function DraftHeader({
         <div className="flex-1 min-w-0">
           <h1 className="text-xl lg:text-2xl xl:text-3xl font-bold mb-1 lg:mb-2">Uma Drafting</h1>
           <p className="text-base lg:text-lg xl:text-xl mb-0.5 lg:mb-1 text-gray-300">{getPhaseText()}</p>
-          {phase !== "complete" && (
+          {phase !== "complete" && phase !== "pre-draft-pause" && phase !== "post-map-pause" && (
             <p className="text-sm lg:text-base xl:text-lg text-gray-300">
               Current Turn:{" "}
               <span className={`font-bold ${getTeamColor(currentTeam)}`}>
