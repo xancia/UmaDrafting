@@ -11,6 +11,11 @@ export const getInitialDraftState = (): DraftState => {
     conditions: generateTrackConditions(),
   };
 
+  // Remove wildcard map from available maps so it can't be selected again
+  const availableMapsWithoutWildcard = SAMPLE_MAPS.filter(
+    (map) => map.id !== randomMap.id
+  );
+
   return {
     phase: "pre-draft-pause", // Start at pre-draft pause instead of map-pick
     currentTeam: "team1",
@@ -27,7 +32,7 @@ export const getInitialDraftState = (): DraftState => {
       bannedMaps: [],
     },
     availableUmas: [...SAMPLE_UMAS],
-    availableMaps: [...SAMPLE_MAPS],
+    availableMaps: availableMapsWithoutWildcard,
     wildcardMap: wildcardMapWithConditions,
   };
 };
