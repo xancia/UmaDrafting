@@ -70,4 +70,7 @@ export interface DraftState {
   wildcardMap: Map;
   /** Optional multiplayer state - undefined means local mode */
   multiplayer?: MultiplayerState;
+  /** Ready state for pause phases (multiplayer) */
+  team1Ready?: boolean;
+  team2Ready?: boolean;
 }

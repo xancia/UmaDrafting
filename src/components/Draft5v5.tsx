@@ -370,8 +370,20 @@ export default function Draft5v5({
         draftState.currentTeam,
       );
 
-      // Handle control actions (phase transitions)
+      // Handle control actions (phase transitions and ready state)
       if (action.itemType === "control") {
+        // Handle ready action
+        if (action.action === "ready") {
+          const team = action.itemId as "team1" | "team2";
+          const newState = {
+            ...draftState,
+            [team === "team1" ? "team1Ready" : "team2Ready"]: true,
+          };
+          syncUpdateDraftState(newState);
+          setDraftState(newState);
+          return;
+        }
+
         if (
           action.phase === "map-pick" &&
           draftState.phase === "pre-draft-pause"
@@ -380,6 +392,8 @@ export default function Draft5v5({
             ...draftState,
             phase: "map-pick" as const,
             currentTeam: "team1" as const,
+            team1Ready: false,
+            team2Ready: false,
           };
           syncUpdateDraftState(newState);
           setDraftState(newState);
@@ -393,6 +407,8 @@ export default function Draft5v5({
             ...draftState,
             phase: "uma-pick" as const,
             currentTeam: "team1" as const,
+            team1Ready: false,
+            team2Ready: false,
           };
           syncUpdateDraftState(newState);
           setDraftState(newState);
@@ -694,12 +710,42 @@ export default function Draft5v5({
     }
   };
 
+  // Handle player ready up
+  const handleReady = () => {
+    const localTeam =
+      draftState.multiplayer?.localTeam || (isHost ? "team1" : "team2");
+
+    if (isMultiplayer && isHost) {
+      // Host sets their own ready state and syncs
+      const newState = {
+        ...draftState,
+        team1Ready: true,
+      };
+      syncUpdateDraftState(newState);
+      setDraftState(newState);
+    } else if (isMultiplayer) {
+      // Non-host sends ready action to host
+      sendDraftAction({
+        action: "ready",
+        itemType: "control",
+        itemId: localTeam,
+      });
+      // Optimistic update
+      setDraftState((prev) => ({
+        ...prev,
+        [localTeam === "team1" ? "team1Ready" : "team2Ready"]: true,
+      }));
+    }
+  };
+
   // Handle starting the map draft (from pre-draft-pause to map-pick)
   const handleStartMapDraft = () => {
     const newState = {
       ...draftState,
       phase: "map-pick" as const,
       currentTeam: "team1" as const,
+      team1Ready: false,
+      team2Ready: false,
     };
 
     setDraftState(newState);
@@ -725,6 +771,8 @@ export default function Draft5v5({
       ...draftState,
       phase: "uma-pick" as const,
       currentTeam: "team1" as const,
+      team1Ready: false,
+      team2Ready: false,
     };
 
     setDraftState(newState);
@@ -1013,12 +1061,83 @@ export default function Draft5v5({
               <p className="text-sm lg:text-base text-gray-400 mb-6 lg:mb-8">
                 The draft will begin with map selection when you're ready.
               </p>
-              <button
-                onClick={handleStartMapDraft}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 lg:py-4 px-8 lg:px-12 rounded-lg transition-colors text-lg lg:text-xl shadow-lg"
-              >
-                Start Draft
-              </button>
+
+              {/* Multiplayer ready-up system */}
+              {isMultiplayer && (
+                <div className="mb-6 lg:mb-8">
+                  <div className="flex justify-center gap-8 mb-6">
+                    <div
+                      className={`px-6 py-3 rounded-lg border-2 ${draftState.team1Ready ? "border-green-500 bg-green-900/30" : "border-gray-600 bg-gray-700/50"}`}
+                    >
+                      <p className="text-sm text-gray-400 mb-1">{team1Name}</p>
+                      <p
+                        className={`font-bold ${draftState.team1Ready ? "text-green-400" : "text-gray-500"}`}
+                      >
+                        {draftState.team1Ready ? "✓ Ready" : "Not Ready"}
+                      </p>
+                    </div>
+                    <div
+                      className={`px-6 py-3 rounded-lg border-2 ${draftState.team2Ready ? "border-green-500 bg-green-900/30" : "border-gray-600 bg-gray-700/50"}`}
+                    >
+                      <p className="text-sm text-gray-400 mb-1">{team2Name}</p>
+                      <p
+                        className={`font-bold ${draftState.team2Ready ? "text-green-400" : "text-gray-500"}`}
+                      >
+                        {draftState.team2Ready ? "✓ Ready" : "Not Ready"}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Show Ready button if local player hasn't readied up */}
+                  {(() => {
+                    const localTeam =
+                      draftState.multiplayer?.localTeam ||
+                      (isHost ? "team1" : "team2");
+                    const isLocalReady =
+                      localTeam === "team1"
+                        ? draftState.team1Ready
+                        : draftState.team2Ready;
+                    const bothReady =
+                      draftState.team1Ready && draftState.team2Ready;
+
+                    if (!isLocalReady) {
+                      return (
+                        <button
+                          onClick={handleReady}
+                          className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 lg:py-4 px-8 lg:px-12 rounded-lg transition-colors text-lg lg:text-xl shadow-lg"
+                        >
+                          Ready Up
+                        </button>
+                      );
+                    } else if (isHost && bothReady) {
+                      return (
+                        <button
+                          onClick={handleStartMapDraft}
+                          className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 lg:py-4 px-8 lg:px-12 rounded-lg transition-colors text-lg lg:text-xl shadow-lg"
+                        >
+                          Start Draft
+                        </button>
+                      );
+                    } else {
+                      return (
+                        <p className="text-gray-400 text-lg">
+                          Waiting for other player to ready up...
+                        </p>
+                      );
+                    }
+                  })()}
+                </div>
+              )}
+
+              {/* Local mode - simple start button */}
+              {!isMultiplayer && (
+                <button
+                  onClick={handleStartMapDraft}
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 lg:py-4 px-8 lg:px-12 rounded-lg transition-colors text-lg lg:text-xl shadow-lg"
+                >
+                  Start Draft
+                </button>
+              )}
             </div>
           )}
 
@@ -1035,12 +1154,83 @@ export default function Draft5v5({
                 The draft will continue with Uma Musume selection when you're
                 ready.
               </p>
-              <button
-                onClick={handleContinueToUma}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 lg:py-4 px-8 lg:px-12 rounded-lg transition-colors text-lg lg:text-xl shadow-lg"
-              >
-                Continue Draft
-              </button>
+
+              {/* Multiplayer ready-up system */}
+              {isMultiplayer && (
+                <div className="mb-6 lg:mb-8">
+                  <div className="flex justify-center gap-8 mb-6">
+                    <div
+                      className={`px-6 py-3 rounded-lg border-2 ${draftState.team1Ready ? "border-green-500 bg-green-900/30" : "border-gray-600 bg-gray-700/50"}`}
+                    >
+                      <p className="text-sm text-gray-400 mb-1">{team1Name}</p>
+                      <p
+                        className={`font-bold ${draftState.team1Ready ? "text-green-400" : "text-gray-500"}`}
+                      >
+                        {draftState.team1Ready ? "✓ Ready" : "Not Ready"}
+                      </p>
+                    </div>
+                    <div
+                      className={`px-6 py-3 rounded-lg border-2 ${draftState.team2Ready ? "border-green-500 bg-green-900/30" : "border-gray-600 bg-gray-700/50"}`}
+                    >
+                      <p className="text-sm text-gray-400 mb-1">{team2Name}</p>
+                      <p
+                        className={`font-bold ${draftState.team2Ready ? "text-green-400" : "text-gray-500"}`}
+                      >
+                        {draftState.team2Ready ? "✓ Ready" : "Not Ready"}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Show Ready button if local player hasn't readied up */}
+                  {(() => {
+                    const localTeam =
+                      draftState.multiplayer?.localTeam ||
+                      (isHost ? "team1" : "team2");
+                    const isLocalReady =
+                      localTeam === "team1"
+                        ? draftState.team1Ready
+                        : draftState.team2Ready;
+                    const bothReady =
+                      draftState.team1Ready && draftState.team2Ready;
+
+                    if (!isLocalReady) {
+                      return (
+                        <button
+                          onClick={handleReady}
+                          className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 lg:py-4 px-8 lg:px-12 rounded-lg transition-colors text-lg lg:text-xl shadow-lg"
+                        >
+                          Ready Up
+                        </button>
+                      );
+                    } else if (isHost && bothReady) {
+                      return (
+                        <button
+                          onClick={handleContinueToUma}
+                          className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 lg:py-4 px-8 lg:px-12 rounded-lg transition-colors text-lg lg:text-xl shadow-lg"
+                        >
+                          Continue Draft
+                        </button>
+                      );
+                    } else {
+                      return (
+                        <p className="text-gray-400 text-lg">
+                          Waiting for other player to ready up...
+                        </p>
+                      );
+                    }
+                  })()}
+                </div>
+              )}
+
+              {/* Local mode - simple continue button */}
+              {!isMultiplayer && (
+                <button
+                  onClick={handleContinueToUma}
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 lg:py-4 px-8 lg:px-12 rounded-lg transition-colors text-lg lg:text-xl shadow-lg"
+                >
+                  Continue Draft
+                </button>
+              )}
             </div>
           )}
 

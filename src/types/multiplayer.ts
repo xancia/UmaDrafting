@@ -49,26 +49,26 @@ export const MessageType = {
   JOIN_ACCEPTED: "join-accepted",
   JOIN_REJECTED: "join-rejected",
   LEAVE_ROOM: "leave-room",
-  
+
   // Draft actions
   SELECT_UMA: "select-uma",
   SELECT_MAP: "select-map",
   ADVANCE_PHASE: "advance-phase",
-  
+
   // State synchronization
   STATE_SYNC: "state-sync",
   STATE_REQUEST: "state-request",
-  
+
   // Lobby/reveal
   START_REVEAL: "start-reveal",
   REVEAL_COMPLETE: "reveal-complete",
-  
+
   // Heartbeat
   PING: "ping",
   PONG: "pong",
 } as const;
 
-export type MessageType = typeof MessageType[keyof typeof MessageType];
+export type MessageType = (typeof MessageType)[keyof typeof MessageType];
 
 /**
  * Message payload for join requests
@@ -97,7 +97,7 @@ export interface JoinRejectedPayload {
  * Message payload for draft actions
  */
 export interface DraftActionPayload {
-  action: "pick" | "ban";
+  action: "pick" | "ban" | "ready";
   itemType: "uma" | "map" | "control";
   itemId: string;
   phase?: string; // Optional phase parameter for control actions
@@ -128,7 +128,7 @@ export interface NetworkMessage<T = unknown> {
 /**
  * Connection status for UI display
  */
-export type ConnectionStatus = 
+export type ConnectionStatus =
   | "disconnected"
   | "connecting"
   | "connected"
@@ -148,7 +148,8 @@ export const ConnectionError = {
   INVALID_STATE: "invalid-state",
 } as const;
 
-export type ConnectionError = typeof ConnectionError[keyof typeof ConnectionError];
+export type ConnectionError =
+  (typeof ConnectionError)[keyof typeof ConnectionError];
 
 /**
  * Multiplayer configuration for a draft session
