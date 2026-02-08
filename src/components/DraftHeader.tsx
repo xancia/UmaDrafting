@@ -44,16 +44,19 @@ export default function DraftHeader({
   timerEnabled = true,
 }: DraftHeaderProps) {
   // Timer display helpers
-  const isTimerActive = timerEnabled && 
-    timeRemaining !== undefined && 
+  const isTimerActive =
+    timerEnabled &&
+    timeRemaining !== undefined &&
     ["map-pick", "map-ban", "uma-pick", "uma-ban"].includes(phase);
   const isWarning = isTimerActive && timeRemaining <= 10 && timeRemaining > 5;
   const isCritical = isTimerActive && timeRemaining <= 5;
-  
+
   const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return mins > 0 ? `${mins}:${secs.toString().padStart(2, '0')}` : `${secs}s`;
+    return mins > 0
+      ? `${mins}:${secs.toString().padStart(2, "0")}`
+      : `${secs}s`;
   };
   const getPhaseText = () => {
     switch (phase) {
@@ -87,14 +90,22 @@ export default function DraftHeader({
   const getStatusIndicator = () => {
     switch (connectionStatus) {
       case "connected":
-        return <span className="inline-block w-2 h-2 rounded-full bg-green-400 animate-pulse" />;
+        return (
+          <span className="inline-block w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+        );
       case "connecting":
       case "reconnecting":
-        return <span className="inline-block w-2 h-2 rounded-full bg-yellow-400 animate-pulse" />;
+        return (
+          <span className="inline-block w-2 h-2 rounded-full bg-yellow-400 animate-pulse" />
+        );
       case "error":
-        return <span className="inline-block w-2 h-2 rounded-full bg-red-400" />;
+        return (
+          <span className="inline-block w-2 h-2 rounded-full bg-red-400" />
+        );
       default:
-        return <span className="inline-block w-2 h-2 rounded-full bg-gray-400" />;
+        return (
+          <span className="inline-block w-2 h-2 rounded-full bg-gray-400" />
+        );
     }
   };
 
@@ -111,19 +122,38 @@ export default function DraftHeader({
     <div className="bg-gray-800 text-gray-100 p-3 lg:p-4 xl:p-6 rounded-lg shadow-lg border border-gray-700">
       <div className="flex justify-between items-start gap-2">
         <div className="flex-1 min-w-0">
-          <h1 className="text-xl lg:text-2xl xl:text-3xl font-bold mb-1 lg:mb-2">Uma Drafting</h1>
-          <p className="text-base lg:text-lg xl:text-xl mb-0.5 lg:mb-1 text-gray-300">{getPhaseText()}</p>
-          {phase !== "complete" && phase !== "pre-draft-pause" && phase !== "post-map-pause" && (
-            <p className="text-sm lg:text-base xl:text-lg text-gray-300">
-              Current Turn:{" "}
-              <span className={`font-bold ${getTeamColor(currentTeam)}`}>
-                {currentTeam === "team1" ? team1Name : team2Name}
-              </span>
-            </p>
-          )}
+          <h1 className="text-xl lg:text-2xl xl:text-3xl font-bold mb-1 lg:mb-2">
+            Uma Drafting
+          </h1>
+          <p className="text-base lg:text-lg xl:text-xl mb-0.5 lg:mb-1 text-gray-300">
+            {getPhaseText()}
+          </p>
+          {phase !== "complete" &&
+            phase !== "pre-draft-pause" &&
+            phase !== "post-map-pause" && (
+              <p className="text-sm lg:text-base xl:text-lg text-gray-300">
+                Current Turn:{" "}
+                <span className={`font-bold ${getTeamColor(currentTeam)}`}>
+                  {currentTeam === "team1" ? team1Name : team2Name}
+                </span>
+              </p>
+            )}
           {wildcardMap && (
             <p className="text-sm text-gray-400 mt-1">
-              Tiebreaker: <span className={`font-semibold ${wildcardMap.surface?.toLowerCase() === 'turf' ? 'text-green-400' : 'text-amber-500'}`}>{wildcardMap.track} ({wildcardMap.distance}m)</span>
+              Tiebreaker:{" "}
+              <span
+                className={`font-semibold ${wildcardMap.surface?.toLowerCase() === "turf" ? "text-green-400" : "text-amber-500"}`}
+              >
+                {wildcardMap.track} ({wildcardMap.distance}m)
+              </span>
+              {wildcardMap.conditions && (
+                <span className="text-gray-500">
+                  {" "}
+                  • {wildcardMap.conditions.season} •{" "}
+                  {wildcardMap.conditions.ground} •{" "}
+                  {wildcardMap.conditions.weather}
+                </span>
+              )}
             </p>
           )}
         </div>
@@ -154,24 +184,30 @@ export default function DraftHeader({
             </button>
           </div>
           {isMultiplayer && roomCode && (
-            <div className={`group flex items-center gap-2 px-3 py-1.5 rounded-lg ${isSpectator ? 'bg-purple-900/30 border border-purple-700/50' : 'bg-gray-700/50'}`}>
+            <div
+              className={`group flex items-center gap-2 px-3 py-1.5 rounded-lg ${isSpectator ? "bg-purple-900/30 border border-purple-700/50" : "bg-gray-700/50"}`}
+            >
               {isSpectator ? (
                 <span className="w-2 h-2 rounded-full bg-purple-400 animate-pulse" />
               ) : (
                 getStatusIndicator()
               )}
-              <span className={`text-sm ${isSpectator ? 'text-purple-300' : 'text-gray-300'}`}>
+              <span
+                className={`text-sm ${isSpectator ? "text-purple-300" : "text-gray-300"}`}
+              >
                 {isSpectator ? "Spectating" : isHost ? "Hosting" : "Room"}:
               </span>
               <button
                 onClick={handleCopyRoomCode}
-                className={`font-mono text-sm transition-all duration-200 blur-sm group-hover:blur-none ${isSpectator ? 'text-purple-400 hover:text-purple-300' : 'text-blue-400 hover:text-blue-300'}`}
+                className={`font-mono text-sm transition-all duration-200 blur-sm group-hover:blur-none ${isSpectator ? "text-purple-400 hover:text-purple-300" : "text-blue-400 hover:text-blue-300"}`}
                 title="Hover to reveal, click to copy"
               >
                 {formatRoomCode(roomCode)}
               </button>
               {!isSpectator && (
-                <span className="text-xs text-gray-400">({playerCount} player{playerCount !== 1 ? "s" : ""})</span>
+                <span className="text-xs text-gray-400">
+                  ({playerCount} player{playerCount !== 1 ? "s" : ""})
+                </span>
               )}
             </div>
           )}
@@ -182,8 +218,8 @@ export default function DraftHeader({
                 isCritical
                   ? "bg-red-900/50 text-red-400 animate-pulse"
                   : isWarning
-                  ? "bg-yellow-900/50 text-yellow-400"
-                  : "bg-gray-700/50 text-gray-300"
+                    ? "bg-yellow-900/50 text-yellow-400"
+                    : "bg-gray-700/50 text-gray-300"
               }`}
             >
               ⏱ {formatTime(timeRemaining)}

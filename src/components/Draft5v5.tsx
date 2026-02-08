@@ -39,18 +39,37 @@ interface Draft5v5Props {
   multiplayerConfig?: MultiplayerConfig;
 }
 
-export default function Draft5v5({ onBackToMenu, multiplayerConfig }: Draft5v5Props) {
+export default function Draft5v5({
+  onBackToMenu,
+  multiplayerConfig,
+}: Draft5v5Props) {
   // Multiplayer setup
   const isMultiplayer = !!multiplayerConfig;
   const { peer, peerId, status, initialize } = usePeer();
-  const { roomState, isHost, createRoom, joinRoom, onRoomMessage, sendToHost, updateRoomDraftState, getAllConnections } = useRoom(peer, peerId);
+  const {
+    roomState,
+    isHost,
+    createRoom,
+    joinRoom,
+    onRoomMessage,
+    sendToHost,
+    updateRoomDraftState,
+    getAllConnections,
+  } = useRoom(peer, peerId);
   const { onConnectionEvent } = useMultiplayerConnections();
-  const { 
-    draftState: syncedDraftState, 
-    updateDraftState: syncUpdateDraftState, 
+  const {
+    draftState: syncedDraftState,
+    updateDraftState: syncUpdateDraftState,
     sendDraftAction,
-    onDraftAction
-  } = useDraftSync(roomState, isHost, getAllConnections, peerId, onRoomMessage, sendToHost);
+    onDraftAction,
+  } = useDraftSync(
+    roomState,
+    isHost,
+    getAllConnections,
+    peerId,
+    onRoomMessage,
+    sendToHost,
+  );
 
   // Generate room code immediately for host
   const [localRoomCode] = useState<string>(() => {
@@ -62,7 +81,7 @@ export default function Draft5v5({ onBackToMenu, multiplayerConfig }: Draft5v5Pr
 
   const [draftState, setDraftState] = useState<DraftState>(() => {
     const initialState = getInitialDraftState();
-    
+
     // Add multiplayer state if in multiplayer mode
     if (isMultiplayer && multiplayerConfig) {
       // Non-host players start in lobby phase waiting for sync
@@ -71,15 +90,22 @@ export default function Draft5v5({ onBackToMenu, multiplayerConfig }: Draft5v5Pr
       }
       initialState.multiplayer = {
         enabled: true,
-        connectionType: multiplayerConfig.isHost ? "host" : 
-                        multiplayerConfig.isSpectator ? "spectator" : "player",
+        connectionType: multiplayerConfig.isHost
+          ? "host"
+          : multiplayerConfig.isSpectator
+            ? "spectator"
+            : "player",
         localTeam: multiplayerConfig.isHost ? "team1" : "team2", // Default assignments
         roomId: multiplayerConfig.roomCode,
-        team1Name: multiplayerConfig.isHost ? multiplayerConfig.playerName : "Team 1",
-        team2Name: multiplayerConfig.isHost ? "Team 2" : multiplayerConfig.playerName,
+        team1Name: multiplayerConfig.isHost
+          ? multiplayerConfig.playerName
+          : "Team 1",
+        team2Name: multiplayerConfig.isHost
+          ? "Team 2"
+          : multiplayerConfig.playerName,
       };
     }
-    
+
     return initialState;
   });
   const [history, setHistory] = useState<DraftState[]>([
@@ -92,11 +118,12 @@ export default function Draft5v5({ onBackToMenu, multiplayerConfig }: Draft5v5Pr
   const [showWildcardModal, setShowWildcardModal] = useState<boolean>(false);
   // For multiplayer guests/spectators, skip the team name modal (host controls names)
   const [showTeamNameModal, setShowTeamNameModal] = useState<boolean>(
-    !multiplayerConfig || multiplayerConfig.isHost
+    !multiplayerConfig || multiplayerConfig.isHost,
   );
   const [cyclingMap, setCyclingMap] = useState<Map | null>(null);
   const [revealStarted, setRevealStarted] = useState<boolean>(false);
-  const [wildcardAcknowledged, setWildcardAcknowledged] = useState<boolean>(false);
+  const [wildcardAcknowledged, setWildcardAcknowledged] =
+    useState<boolean>(false);
   const [team1Name, setTeam1Name] = useState<string>("Team 1");
   const [team2Name, setTeam2Name] = useState<string>("Team 2");
   const [tempTeam1Name, setTempTeam1Name] = useState<string>("Team 1");
@@ -112,7 +139,7 @@ export default function Draft5v5({ onBackToMenu, multiplayerConfig }: Draft5v5Pr
   // Handle turn timeout - make random selection
   const handleTurnTimeout = useCallback(() => {
     console.log("Turn timeout triggered, current phase:", draftState.phase);
-    
+
     const selection = getRandomTimeoutSelection(draftState);
     if (!selection) {
       console.warn("No valid random selection available for timeout");
@@ -124,7 +151,7 @@ export default function Draft5v5({ onBackToMenu, multiplayerConfig }: Draft5v5Pr
     if (selection.type === "uma") {
       const uma = selection.item as UmaMusume;
       const newState = selectUma(draftState, uma);
-      
+
       if (newState !== draftState) {
         if (isMultiplayer && isHost) {
           syncUpdateDraftState(newState);
@@ -140,7 +167,7 @@ export default function Draft5v5({ onBackToMenu, multiplayerConfig }: Draft5v5Pr
         conditions: map.conditions || generateTrackConditions(),
       };
       const newState = selectMap(draftState, mapWithConditions);
-      
+
       if (newState !== draftState) {
         if (isMultiplayer && isHost) {
           syncUpdateDraftState(newState);
@@ -152,13 +179,25 @@ export default function Draft5v5({ onBackToMenu, multiplayerConfig }: Draft5v5Pr
     }
   }, [draftState, isMultiplayer, isHost, syncUpdateDraftState]);
 
+  // Calculate total picks for turn key - ensures timer resets after each pick in double-pick scenarios
+  const totalPicks =
+    draftState.phase === "uma-pick" || draftState.phase === "uma-ban"
+      ? draftState.team1.pickedUmas.length +
+        draftState.team2.pickedUmas.length +
+        draftState.team1.bannedUmas.length +
+        draftState.team2.bannedUmas.length
+      : draftState.team1.pickedMaps.length +
+        draftState.team2.pickedMaps.length +
+        draftState.team1.bannedMaps.length +
+        draftState.team2.bannedMaps.length;
+
   // Turn timer hook
   const { timeRemaining } = useTurnTimer({
     duration: DEFAULT_TURN_DURATION,
     enabled: true,
     onTimeout: handleTurnTimeout,
     phase: draftState.phase,
-    currentTurnKey: `${draftState.phase}-${draftState.currentTeam}`,
+    currentTurnKey: `${draftState.phase}-${draftState.currentTeam}-${totalPicks}`,
     isTimerAuthority,
   });
 
@@ -201,11 +240,18 @@ export default function Draft5v5({ onBackToMenu, multiplayerConfig }: Draft5v5Pr
         } else if (!multiplayerConfig.isSpectator) {
           // Wait for connection for clients
           if (status !== "connected" || !peerId) return;
-          await joinRoom(multiplayerConfig.roomCode, multiplayerConfig.playerName);
+          await joinRoom(
+            multiplayerConfig.roomCode,
+            multiplayerConfig.playerName,
+          );
         } else {
           // Wait for connection for spectators
           if (status !== "connected" || !peerId) return;
-          await joinRoom(multiplayerConfig.roomCode, multiplayerConfig.playerName, true);
+          await joinRoom(
+            multiplayerConfig.roomCode,
+            multiplayerConfig.playerName,
+            true,
+          );
         }
       } catch (err) {
         console.error("Failed to setup room:", err);
@@ -213,24 +259,51 @@ export default function Draft5v5({ onBackToMenu, multiplayerConfig }: Draft5v5Pr
     };
 
     setupRoom();
-  }, [isMultiplayer, multiplayerConfig, peer, peerId, status, roomState, createRoom, joinRoom, draftState]);
+  }, [
+    isMultiplayer,
+    multiplayerConfig,
+    peer,
+    peerId,
+    status,
+    roomState,
+    createRoom,
+    joinRoom,
+    draftState,
+  ]);
 
   // Sync local draft state with network state in multiplayer mode
   useEffect(() => {
-    if (isMultiplayer && syncedDraftState && syncedDraftState.wildcardMap?.track) {
+    if (
+      isMultiplayer &&
+      syncedDraftState &&
+      syncedDraftState.wildcardMap?.track
+    ) {
       // Preserve local multiplayer settings when syncing
       setDraftState((prevState) => {
-        const localTeam = prevState.multiplayer?.localTeam || (multiplayerConfig?.isHost ? "team1" : "team2");
-        const connectionType = prevState.multiplayer?.connectionType || 
-          (multiplayerConfig?.isHost ? "host" : multiplayerConfig?.isSpectator ? "spectator" : "player");
-        
+        const localTeam =
+          prevState.multiplayer?.localTeam ||
+          (multiplayerConfig?.isHost ? "team1" : "team2");
+        const connectionType =
+          prevState.multiplayer?.connectionType ||
+          (multiplayerConfig?.isHost
+            ? "host"
+            : multiplayerConfig?.isSpectator
+              ? "spectator"
+              : "player");
+
         // If user has acknowledged wildcard, don't let sync revert to wildcard-reveal phase
         // They should stay at map-pick until they receive actual draft updates
         let phase = syncedDraftState.phase;
-        if (wildcardAcknowledged && syncedDraftState.phase === "wildcard-reveal") {
-          phase = prevState.phase === "map-pick" ? "map-pick" : syncedDraftState.phase;
+        if (
+          wildcardAcknowledged &&
+          syncedDraftState.phase === "wildcard-reveal"
+        ) {
+          phase =
+            prevState.phase === "map-pick"
+              ? "map-pick"
+              : syncedDraftState.phase;
         }
-        
+
         return {
           ...syncedDraftState,
           phase,
@@ -238,13 +311,16 @@ export default function Draft5v5({ onBackToMenu, multiplayerConfig }: Draft5v5Pr
             enabled: true,
             connectionType,
             localTeam,
-            roomId: syncedDraftState.multiplayer?.roomId || multiplayerConfig?.roomCode || "",
+            roomId:
+              syncedDraftState.multiplayer?.roomId ||
+              multiplayerConfig?.roomCode ||
+              "",
             team1Name: syncedDraftState.multiplayer?.team1Name || "Team 1",
             team2Name: syncedDraftState.multiplayer?.team2Name || "Team 2",
           },
         };
       });
-      
+
       // Also update local team name state from synced multiplayer state
       if (syncedDraftState.multiplayer?.team1Name) {
         setTeam1Name(syncedDraftState.multiplayer.team1Name);
@@ -252,24 +328,34 @@ export default function Draft5v5({ onBackToMenu, multiplayerConfig }: Draft5v5Pr
       if (syncedDraftState.multiplayer?.team2Name) {
         setTeam2Name(syncedDraftState.multiplayer.team2Name);
       }
-      
+
       // Trigger wildcard reveal modal when phase changes to wildcard-reveal
       // Only open if user hasn't already acknowledged it
-      if (syncedDraftState.phase === "wildcard-reveal" && !showWildcardModal && !wildcardAcknowledged) {
+      if (
+        syncedDraftState.phase === "wildcard-reveal" &&
+        !showWildcardModal &&
+        !wildcardAcknowledged
+      ) {
         setShowWildcardModal(true);
         // Auto-start reveal for non-host players so animation syncs
         if (!multiplayerConfig?.isHost) {
           setRevealStarted(true);
         }
       }
-      
+
       // Close wildcard modal when phase transitions to pre-draft-pause
       if (syncedDraftState.phase === "pre-draft-pause" && showWildcardModal) {
         setShowWildcardModal(false);
         setWildcardAcknowledged(true);
       }
     }
-  }, [isMultiplayer, syncedDraftState, multiplayerConfig, showWildcardModal, wildcardAcknowledged]);
+  }, [
+    isMultiplayer,
+    syncedDraftState,
+    multiplayerConfig,
+    showWildcardModal,
+    wildcardAcknowledged,
+  ]);
 
   // Handle incoming draft actions from clients (host only)
   useEffect(() => {
@@ -277,11 +363,19 @@ export default function Draft5v5({ onBackToMenu, multiplayerConfig }: Draft5v5Pr
 
     const unsubscribe = onDraftAction((action, senderId) => {
       console.log("Host received action from client:", action, senderId);
-      console.log("Current phase:", draftState.phase, "Current team:", draftState.currentTeam);
-      
+      console.log(
+        "Current phase:",
+        draftState.phase,
+        "Current team:",
+        draftState.currentTeam,
+      );
+
       // Handle control actions (phase transitions)
       if (action.itemType === "control") {
-        if (action.phase === "map-pick" && draftState.phase === "pre-draft-pause") {
+        if (
+          action.phase === "map-pick" &&
+          draftState.phase === "pre-draft-pause"
+        ) {
           const newState = {
             ...draftState,
             phase: "map-pick" as const,
@@ -291,7 +385,10 @@ export default function Draft5v5({ onBackToMenu, multiplayerConfig }: Draft5v5Pr
           setDraftState(newState);
           setHistory((prev) => [...prev, newState]);
           return;
-        } else if (action.phase === "uma-pick" && draftState.phase === "post-map-pause") {
+        } else if (
+          action.phase === "uma-pick" &&
+          draftState.phase === "post-map-pause"
+        ) {
           const newState = {
             ...draftState,
             phase: "uma-pick" as const,
@@ -303,20 +400,30 @@ export default function Draft5v5({ onBackToMenu, multiplayerConfig }: Draft5v5Pr
           return;
         }
       }
-      
+
       // Process the action based on type
       if (action.itemType === "map") {
         // Find the map - during ban phase it's in opponent's picked maps, during pick phase it's in available maps
         let map: Map | undefined;
         if (draftState.phase === "map-ban") {
           // During ban phase, look in the opponent's picked maps
-          const opponentTeam = draftState.currentTeam === "team1" ? "team2" : "team1";
-          map = draftState[opponentTeam].pickedMaps.find(m => m.name === action.itemId);
+          const opponentTeam =
+            draftState.currentTeam === "team1" ? "team2" : "team1";
+          map = draftState[opponentTeam].pickedMaps.find(
+            (m) => m.name === action.itemId,
+          );
         } else {
           // During pick phase, look in available maps
-          map = draftState.availableMaps.find(m => m.name === action.itemId);
+          map = draftState.availableMaps.find((m) => m.name === action.itemId);
         }
-        console.log("Looking for map:", action.itemId, "Phase:", draftState.phase, "Found:", !!map);
+        console.log(
+          "Looking for map:",
+          action.itemId,
+          "Phase:",
+          draftState.phase,
+          "Found:",
+          !!map,
+        );
         if (map) {
           // Apply the action
           const mapWithConditions: Map = {
@@ -324,19 +431,36 @@ export default function Draft5v5({ onBackToMenu, multiplayerConfig }: Draft5v5Pr
             conditions: map.conditions || generateTrackConditions(),
           };
           const newState = selectMap(draftState, mapWithConditions);
-          console.log("State changed:", newState !== draftState, "New phase:", newState.phase);
+          console.log(
+            "State changed:",
+            newState !== draftState,
+            "New phase:",
+            newState.phase,
+          );
           if (newState !== draftState) {
             syncUpdateDraftState(newState);
             setDraftState(newState);
             setHistory((prev) => [...prev, newState]);
           }
         } else {
-          console.error("Map not found:", action.itemId, "Phase:", draftState.phase);
+          console.error(
+            "Map not found:",
+            action.itemId,
+            "Phase:",
+            draftState.phase,
+          );
           if (draftState.phase === "map-ban") {
-            const opponentTeam = draftState.currentTeam === "team1" ? "team2" : "team1";
-            console.log("Opponent picked maps:", draftState[opponentTeam].pickedMaps.map(m => m.name));
+            const opponentTeam =
+              draftState.currentTeam === "team1" ? "team2" : "team1";
+            console.log(
+              "Opponent picked maps:",
+              draftState[opponentTeam].pickedMaps.map((m) => m.name),
+            );
           } else {
-            console.log("Available maps:", draftState.availableMaps.map(m => m.name));
+            console.log(
+              "Available maps:",
+              draftState.availableMaps.map((m) => m.name),
+            );
           }
         }
       } else if (action.itemType === "uma") {
@@ -344,28 +468,57 @@ export default function Draft5v5({ onBackToMenu, multiplayerConfig }: Draft5v5Pr
         let uma: UmaMusume | undefined;
         if (draftState.phase === "uma-ban") {
           // During ban phase, look in the opponent's picked umas
-          const opponentTeam = draftState.currentTeam === "team1" ? "team2" : "team1";
-          uma = draftState[opponentTeam].pickedUmas.find(u => u.id.toString() === action.itemId);
+          const opponentTeam =
+            draftState.currentTeam === "team1" ? "team2" : "team1";
+          uma = draftState[opponentTeam].pickedUmas.find(
+            (u) => u.id.toString() === action.itemId,
+          );
         } else {
           // During pick phase, look in available umas
-          uma = draftState.availableUmas.find(u => u.id.toString() === action.itemId);
+          uma = draftState.availableUmas.find(
+            (u) => u.id.toString() === action.itemId,
+          );
         }
-        console.log("Looking for uma:", action.itemId, "Phase:", draftState.phase, "Found:", !!uma);
+        console.log(
+          "Looking for uma:",
+          action.itemId,
+          "Phase:",
+          draftState.phase,
+          "Found:",
+          !!uma,
+        );
         if (uma) {
           const newState = selectUma(draftState, uma);
-          console.log("State changed:", newState !== draftState, "New phase:", newState.phase);
+          console.log(
+            "State changed:",
+            newState !== draftState,
+            "New phase:",
+            newState.phase,
+          );
           if (newState !== draftState) {
             syncUpdateDraftState(newState);
             setDraftState(newState);
             setHistory((prev) => [...prev, newState]);
           }
         } else {
-          console.error("Uma not found:", action.itemId, "Phase:", draftState.phase);
+          console.error(
+            "Uma not found:",
+            action.itemId,
+            "Phase:",
+            draftState.phase,
+          );
           if (draftState.phase === "uma-ban") {
-            const opponentTeam = draftState.currentTeam === "team1" ? "team2" : "team1";
-            console.log("Opponent picked umas:", draftState[opponentTeam].pickedUmas.map(u => u.id));
+            const opponentTeam =
+              draftState.currentTeam === "team1" ? "team2" : "team1";
+            console.log(
+              "Opponent picked umas:",
+              draftState[opponentTeam].pickedUmas.map((u) => u.id),
+            );
           } else {
-            console.log("Available umas count:", draftState.availableUmas.length);
+            console.log(
+              "Available umas count:",
+              draftState.availableUmas.length,
+            );
           }
         }
       }
@@ -381,12 +534,12 @@ export default function Draft5v5({ onBackToMenu, multiplayerConfig }: Draft5v5Pr
     const unsubscribe = onConnectionEvent((event) => {
       if (event.type === "disconnected") {
         console.log("Peer disconnected:", event.peerId);
-        
+
         // Check if host disconnected
         if (roomState && event.peerId === roomState.hostId && !isHost) {
           // Host disconnected - show error and offer to return to menu
           const shouldReturn = window.confirm(
-            "The host has disconnected. The draft session has ended. Return to menu?"
+            "The host has disconnected. The draft session has ended. Return to menu?",
           );
           if (shouldReturn) {
             onBackToMenu();
@@ -413,12 +566,12 @@ export default function Draft5v5({ onBackToMenu, multiplayerConfig }: Draft5v5Pr
 
   const handleUmaSelect = (uma: UmaMusume) => {
     const team = draftState.currentTeam;
-    
+
     // Use multiplayer-aware select function
-    const newState = isMultiplayer 
+    const newState = isMultiplayer
       ? selectUmaMultiplayer(draftState, uma, team)
       : selectUma(draftState, uma);
-    
+
     // Only update if state changed (permission check passed)
     if (newState !== draftState) {
       if (isMultiplayer && isHost) {
@@ -443,18 +596,18 @@ export default function Draft5v5({ onBackToMenu, multiplayerConfig }: Draft5v5Pr
 
   const handleMapSelect = (map: Map) => {
     const team = draftState.currentTeam;
-    
+
     // Generate random track conditions
     const mapWithConditions: Map = {
       ...map,
       conditions: generateTrackConditions(),
     };
-    
+
     // Use multiplayer-aware select function
     const newState = isMultiplayer
       ? selectMapMultiplayer(draftState, mapWithConditions, team)
       : selectMap(draftState, mapWithConditions);
-    
+
     // Only update if state changed (permission check passed)
     if (newState !== draftState) {
       if (isMultiplayer && isHost) {
@@ -520,16 +673,19 @@ export default function Draft5v5({ onBackToMenu, multiplayerConfig }: Draft5v5Pr
   const acknowledgeDraft = () => {
     setShowWildcardModal(false);
     setWildcardAcknowledged(true);
-    
+
     // Everyone transitions to pre-draft-pause locally after acknowledging wildcard
     // This applies for wildcard-reveal phase OR lobby phase (spectator edge case)
-    if (draftState.phase === "wildcard-reveal" || draftState.phase === "lobby") {
+    if (
+      draftState.phase === "wildcard-reveal" ||
+      draftState.phase === "lobby"
+    ) {
       const newState = {
         ...draftState,
         phase: "pre-draft-pause" as const,
       };
       setDraftState(newState);
-      
+
       // Only host syncs the phase change
       if (isMultiplayer && isHost) {
         updateRoomDraftState(newState);
@@ -545,9 +701,9 @@ export default function Draft5v5({ onBackToMenu, multiplayerConfig }: Draft5v5Pr
       phase: "map-pick" as const,
       currentTeam: "team1" as const,
     };
-    
+
     setDraftState(newState);
-    
+
     // Sync to all clients in multiplayer
     if (isMultiplayer && isHost) {
       updateRoomDraftState(newState);
@@ -570,9 +726,9 @@ export default function Draft5v5({ onBackToMenu, multiplayerConfig }: Draft5v5Pr
       phase: "uma-pick" as const,
       currentTeam: "team1" as const,
     };
-    
+
     setDraftState(newState);
-    
+
     // Sync to all clients in multiplayer
     if (isMultiplayer && isHost) {
       updateRoomDraftState(newState);
@@ -610,7 +766,8 @@ export default function Draft5v5({ onBackToMenu, multiplayerConfig }: Draft5v5Pr
         return;
       }
 
-      const randomMap = SAMPLE_MAPS[Math.floor(Math.random() * SAMPLE_MAPS.length)];
+      const randomMap =
+        SAMPLE_MAPS[Math.floor(Math.random() * SAMPLE_MAPS.length)];
       const conditions = generateTrackConditions();
       setCyclingMap({ ...randomMap, conditions });
 
@@ -618,7 +775,7 @@ export default function Draft5v5({ onBackToMenu, multiplayerConfig }: Draft5v5Pr
       let delay = 75;
       if (cycleCount > fastCycles) {
         const slowdownProgress = (cycleCount - fastCycles) / slowCycles;
-        delay = 75 + (slowdownProgress * 175); // Gradually slow from 75ms to 250ms
+        delay = 75 + slowdownProgress * 175; // Gradually slow from 75ms to 250ms
       }
 
       cycleCount++;
@@ -641,7 +798,7 @@ export default function Draft5v5({ onBackToMenu, multiplayerConfig }: Draft5v5Pr
     setTeam1Name(name1);
     setTeam2Name(name2);
     setShowTeamNameModal(false);
-    
+
     // For multiplayer, go to lobby phase and wait for players
     // For local, show wildcard modal immediately
     if (isMultiplayer) {
@@ -671,21 +828,21 @@ export default function Draft5v5({ onBackToMenu, multiplayerConfig }: Draft5v5Pr
   // Handle starting the draft from lobby (host only)
   const handleStartDraft = () => {
     if (!isHost) return;
-    
+
     // Set phase to wildcard-reveal and sync to all clients
     const newState = {
       ...draftState,
       phase: "wildcard-reveal" as const,
     };
-    
+
     setDraftState(newState);
-    
+
     // Broadcast to all clients
     if (isMultiplayer) {
       updateRoomDraftState(newState);
       syncUpdateDraftState(newState);
     }
-    
+
     // Start the reveal animation
     setShowWildcardModal(true);
   };
@@ -698,20 +855,20 @@ export default function Draft5v5({ onBackToMenu, multiplayerConfig }: Draft5v5Pr
   // Check if a map can be picked based on distance and surface constraints
   const canSelectMap = (map: Map): boolean => {
     if (draftState.phase !== "map-pick") return true;
-    
+
     const currentTeam = draftState.currentTeam;
     const currentTeamMaps = draftState[currentTeam].pickedMaps;
-    
+
     // Check distance constraint
     if (!canPickDistance(currentTeamMaps, map.distance)) {
       return false;
     }
-    
+
     // Check dirt surface constraint
     if (map.surface === "Dirt" && !canPickDirt(currentTeamMaps)) {
       return false;
     }
-    
+
     return true;
   };
 
@@ -727,7 +884,7 @@ export default function Draft5v5({ onBackToMenu, multiplayerConfig }: Draft5v5Pr
     const umas = getBannableUmas();
     if (!umaSearch.trim()) return umas;
     return umas.filter((uma) =>
-      uma.name.toLowerCase().includes(umaSearch.toLowerCase())
+      uma.name.toLowerCase().includes(umaSearch.toLowerCase()),
     );
   };
 
@@ -753,9 +910,12 @@ export default function Draft5v5({ onBackToMenu, multiplayerConfig }: Draft5v5Pr
 
   // Waiting room view for multiplayer lobby phase
   if (isMultiplayer && draftState.phase === "lobby") {
-    const playerCount = (roomState?.connections.filter(c => c.type === "player").length || 0) + 1; // +1 for host
-    const spectatorCount = roomState?.connections.filter(c => c.type === "spectator").length || 0;
-    
+    const playerCount =
+      (roomState?.connections.filter((c) => c.type === "player").length || 0) +
+      1; // +1 for host
+    const spectatorCount =
+      roomState?.connections.filter((c) => c.type === "spectator").length || 0;
+
     return (
       <WaitingRoom
         roomCode={localRoomCode || roomState?.roomId || ""}
@@ -771,7 +931,12 @@ export default function Draft5v5({ onBackToMenu, multiplayerConfig }: Draft5v5Pr
   }
 
   // Spectator view for multiplayer spectators (after wildcard reveal is complete)
-  if (isMultiplayer && multiplayerConfig?.isSpectator && draftState.phase !== "wildcard-reveal" && draftState.phase !== "lobby") {
+  if (
+    isMultiplayer &&
+    multiplayerConfig?.isSpectator &&
+    draftState.phase !== "wildcard-reveal" &&
+    draftState.phase !== "lobby"
+  ) {
     return (
       <SpectatorView
         draftState={draftState}
@@ -801,7 +966,12 @@ export default function Draft5v5({ onBackToMenu, multiplayerConfig }: Draft5v5Pr
           }
           distanceCounts={countDistances(draftState.team1.pickedMaps)}
           dirtCount={countDirtTracks(draftState.team1.pickedMaps)}
-          showMapOrder={draftState.phase === "post-map-pause" || draftState.phase === "uma-pick" || draftState.phase === "uma-ban" || draftState.phase === "complete"}
+          showMapOrder={
+            draftState.phase === "post-map-pause" ||
+            draftState.phase === "uma-pick" ||
+            draftState.phase === "uma-ban" ||
+            draftState.phase === "complete"
+          }
         />
       </div>
 
@@ -820,7 +990,10 @@ export default function Draft5v5({ onBackToMenu, multiplayerConfig }: Draft5v5Pr
             isMultiplayer={isMultiplayer}
             connectionStatus={status}
             roomCode={localRoomCode || roomState?.roomId}
-            playerCount={(roomState?.connections.filter(c => c.type === "player").length || 0) + 1}
+            playerCount={
+              (roomState?.connections.filter((c) => c.type === "player")
+                .length || 0) + 1
+            }
             isHost={multiplayerConfig?.isHost || false}
             timeRemaining={timeRemaining}
             timerEnabled={true}
@@ -859,7 +1032,8 @@ export default function Draft5v5({ onBackToMenu, multiplayerConfig }: Draft5v5Pr
                 All maps have been selected. Take time to review and strategize.
               </p>
               <p className="text-sm lg:text-base text-gray-400 mb-6 lg:mb-8">
-                The draft will continue with Uma Musume selection when you're ready.
+                The draft will continue with Uma Musume selection when you're
+                ready.
               </p>
               <button
                 onClick={handleContinueToUma}
@@ -870,101 +1044,103 @@ export default function Draft5v5({ onBackToMenu, multiplayerConfig }: Draft5v5Pr
             </div>
           )}
 
-          {!isComplete && draftState.phase !== "pre-draft-pause" && draftState.phase !== "post-map-pause" && (
-            <div className="bg-gray-800 rounded-lg shadow-lg p-3 lg:p-4 xl:p-6 border border-gray-700">
-              <h2 className="text-lg lg:text-xl xl:text-2xl font-bold mb-2 lg:mb-4 text-gray-100">
-                {draftState.phase === "uma-pick" && "Available Umamusume"}
-                {draftState.phase === "uma-ban" && "Ban Opponent's Umamusume"}
-                {draftState.phase === "map-pick" &&
-                  !selectedTrack &&
-                  "Select a Racecourse"}
-                {draftState.phase === "map-pick" &&
-                  selectedTrack &&
-                  `Select Distance - ${selectedTrack}`}
-                {draftState.phase === "map-ban" && "Ban Opponent's Map"}
-              </h2>
+          {!isComplete &&
+            draftState.phase !== "pre-draft-pause" &&
+            draftState.phase !== "post-map-pause" && (
+              <div className="bg-gray-800 rounded-lg shadow-lg p-3 lg:p-4 xl:p-6 border border-gray-700">
+                <h2 className="text-lg lg:text-xl xl:text-2xl font-bold mb-2 lg:mb-4 text-gray-100">
+                  {draftState.phase === "uma-pick" && "Available Umamusume"}
+                  {draftState.phase === "uma-ban" && "Ban Opponent's Umamusume"}
+                  {draftState.phase === "map-pick" &&
+                    !selectedTrack &&
+                    "Select a Racecourse"}
+                  {draftState.phase === "map-pick" &&
+                    selectedTrack &&
+                    `Select Distance - ${selectedTrack}`}
+                  {draftState.phase === "map-ban" && "Ban Opponent's Map"}
+                </h2>
 
-              {isUmaPhase && (
-                <input
-                  type="text"
-                  placeholder="Search Umamusume..."
-                  value={umaSearch}
-                  onChange={(e) => setUmaSearch(e.target.value)}
-                  className="w-full mb-2 lg:mb-4 px-3 lg:px-4 py-1.5 lg:py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm lg:text-base text-gray-100 placeholder-gray-400 focus:outline-none focus:border-gray-500"
-                />
-              )}
+                {isUmaPhase && (
+                  <input
+                    type="text"
+                    placeholder="Search Umamusume..."
+                    value={umaSearch}
+                    onChange={(e) => setUmaSearch(e.target.value)}
+                    className="w-full mb-2 lg:mb-4 px-3 lg:px-4 py-1.5 lg:py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm lg:text-base text-gray-100 placeholder-gray-400 focus:outline-none focus:border-gray-500"
+                  />
+                )}
 
-              {draftState.phase === "map-pick" && selectedTrack && (
-                <button
-                  onClick={() => setSelectedTrack(null)}
-                  className="mb-2 lg:mb-4 bg-gray-700 hover:bg-gray-600 text-gray-100 font-semibold py-1.5 lg:py-2 px-3 lg:px-4 rounded-lg transition-colors border border-gray-600 text-sm lg:text-base"
-                >
-                  ← Back to Racecourses
-                </button>
-              )}
+                {draftState.phase === "map-pick" && selectedTrack && (
+                  <button
+                    onClick={() => setSelectedTrack(null)}
+                    className="mb-2 lg:mb-4 bg-gray-700 hover:bg-gray-600 text-gray-100 font-semibold py-1.5 lg:py-2 px-3 lg:px-4 rounded-lg transition-colors border border-gray-600 text-sm lg:text-base"
+                  >
+                    ← Back to Racecourses
+                  </button>
+                )}
 
-              <div className="grid grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 lg:gap-3 xl:gap-4">
-                {isUmaPhase &&
-                  getFilteredUmas().map((uma) => (
-                    <UmaCard
-                      key={uma.id}
-                      uma={uma}
-                      onSelect={handleUmaSelect}
-                    />
-                  ))}
+                <div className="grid grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 lg:gap-3 xl:gap-4">
+                  {isUmaPhase &&
+                    getFilteredUmas().map((uma) => (
+                      <UmaCard
+                        key={uma.id}
+                        uma={uma}
+                        onSelect={handleUmaSelect}
+                      />
+                    ))}
 
-                {draftState.phase === "map-pick" &&
-                  !selectedTrack &&
-                  getAvailableTracks().map((track) => (
-                    <button
-                      key={track}
-                      onClick={() => setSelectedTrack(track)}
-                      className="p-2 lg:p-3 xl:p-4 bg-gray-700 border-2 border-gray-600 rounded-lg hover:border-gray-500 hover:shadow-lg transition-all overflow-hidden"
-                    >
-                      <div className="aspect-video bg-gray-600 rounded mb-1 lg:mb-2 flex items-center justify-center overflow-hidden">
-                        <img
-                          src={`./racetrack-portraits/${track.toLowerCase()}.png`}
-                          alt={track}
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            target.style.display = "none";
-                          }}
-                        />
-                      </div>
-                      <div className="text-center">
-                        <p className="text-sm lg:text-base xl:text-lg font-bold text-gray-100">
-                          {track}
-                        </p>
-                        <p className="text-xs text-gray-400 mt-0.5 lg:mt-1">
-                          {getMapsForTrack(track).length} options
-                        </p>
-                      </div>
-                    </button>
-                  ))}
+                  {draftState.phase === "map-pick" &&
+                    !selectedTrack &&
+                    getAvailableTracks().map((track) => (
+                      <button
+                        key={track}
+                        onClick={() => setSelectedTrack(track)}
+                        className="p-2 lg:p-3 xl:p-4 bg-gray-700 border-2 border-gray-600 rounded-lg hover:border-gray-500 hover:shadow-lg transition-all overflow-hidden"
+                      >
+                        <div className="aspect-video bg-gray-600 rounded mb-1 lg:mb-2 flex items-center justify-center overflow-hidden">
+                          <img
+                            src={`./racetrack-portraits/${track.toLowerCase()}.png`}
+                            alt={track}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.style.display = "none";
+                            }}
+                          />
+                        </div>
+                        <div className="text-center">
+                          <p className="text-sm lg:text-base xl:text-lg font-bold text-gray-100">
+                            {track}
+                          </p>
+                          <p className="text-xs text-gray-400 mt-0.5 lg:mt-1">
+                            {getMapsForTrack(track).length} options
+                          </p>
+                        </div>
+                      </button>
+                    ))}
 
-                {draftState.phase === "map-pick" &&
-                  selectedTrack &&
-                  getMapsForTrack(selectedTrack).map((map) => (
-                    <MapCard
-                      key={map.id}
-                      map={map}
-                      onSelect={handleMapSelect}
-                      disabled={!canSelectMap(map)}
-                    />
-                  ))}
+                  {draftState.phase === "map-pick" &&
+                    selectedTrack &&
+                    getMapsForTrack(selectedTrack).map((map) => (
+                      <MapCard
+                        key={map.id}
+                        map={map}
+                        onSelect={handleMapSelect}
+                        disabled={!canSelectMap(map)}
+                      />
+                    ))}
 
-                {draftState.phase === "map-ban" &&
-                  getBannableMaps().map((map) => (
-                    <MapCard
-                      key={map.id}
-                      map={map}
-                      onSelect={handleMapSelect}
-                    />
-                  ))}
+                  {draftState.phase === "map-ban" &&
+                    getBannableMaps().map((map) => (
+                      <MapCard
+                        key={map.id}
+                        map={map}
+                        onSelect={handleMapSelect}
+                      />
+                    ))}
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
           {isComplete && (
             <div className="bg-gray-800 rounded-lg shadow-lg p-4 lg:p-6 xl:p-8 text-center border border-gray-700">
@@ -1031,7 +1207,12 @@ export default function Draft5v5({ onBackToMenu, multiplayerConfig }: Draft5v5Pr
           }
           distanceCounts={countDistances(draftState.team2.pickedMaps)}
           dirtCount={countDirtTracks(draftState.team2.pickedMaps)}
-          showMapOrder={draftState.phase === "post-map-pause" || draftState.phase === "uma-pick" || draftState.phase === "uma-ban" || draftState.phase === "complete"}
+          showMapOrder={
+            draftState.phase === "post-map-pause" ||
+            draftState.phase === "uma-pick" ||
+            draftState.phase === "uma-ban" ||
+            draftState.phase === "complete"
+          }
         />
       </div>
 
@@ -1098,19 +1279,31 @@ export default function Draft5v5({ onBackToMenu, multiplayerConfig }: Draft5v5Pr
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-gray-800 rounded-xl shadow-2xl p-4 lg:p-6 xl:p-8 border-2 border-gray-700 max-w-2xl w-full">
             <h2 className="text-2xl lg:text-3xl xl:text-4xl font-bold text-gray-100 mb-2 lg:mb-4 text-center">
-              {!revealStarted ? "Wildcard Tiebreaker Map" : "Tiebreaker Map Revealed!"}
+              {!revealStarted
+                ? "Wildcard Tiebreaker Map"
+                : "Tiebreaker Map Revealed!"}
             </h2>
-            <div className="flex justify-center mb-4 lg:mb-14 xl:mb-22 relative" style={{ perspective: '1000px', height: '280px' }}>
-              <div 
-                className={`bg-gray-700 border-4 ${revealStarted && !cyclingMap ? 'border-blue-500' : 'border-gray-600'} rounded-xl p-4 lg:p-6 xl:p-8 max-w-md transition-all duration-300`}
-                style={cyclingMap ? {
-                  position: 'absolute',
-                  animation: 'spin3d 0.6s linear infinite',
-                  transformStyle: 'preserve-3d'
-                } : { position: 'absolute' }}
+            <div
+              className="flex justify-center mb-4 lg:mb-14 xl:mb-22 relative"
+              style={{ perspective: "1000px", height: "280px" }}
+            >
+              <div
+                className={`bg-gray-700 border-4 ${revealStarted && !cyclingMap ? "border-blue-500" : "border-gray-600"} rounded-xl p-4 lg:p-6 xl:p-8 max-w-md transition-all duration-300`}
+                style={
+                  cyclingMap
+                    ? {
+                        position: "absolute",
+                        animation: "spin3d 0.6s linear infinite",
+                        transformStyle: "preserve-3d",
+                      }
+                    : { position: "absolute" }
+                }
               >
                 {!revealStarted ? (
-                  <div className="flex flex-col items-center justify-center" style={{ height: '250px', width: '200px' }}>
+                  <div
+                    className="flex flex-col items-center justify-center"
+                    style={{ height: "250px", width: "200px" }}
+                  >
                     <div className="text-6xl lg:text-8xl text-gray-400">?</div>
                   </div>
                 ) : cyclingMap ? (
@@ -1181,7 +1374,8 @@ export default function Draft5v5({ onBackToMenu, multiplayerConfig }: Draft5v5Pr
                     </div>
                     <p className="text-base lg:text-lg xl:text-xl text-gray-200 text-center">
                       {draftState.wildcardMap.distance}m
-                      {draftState.wildcardMap.variant && ` (${draftState.wildcardMap.variant})`}
+                      {draftState.wildcardMap.variant &&
+                        ` (${draftState.wildcardMap.variant})`}
                     </p>
                     {draftState.wildcardMap.conditions && (
                       <p className="text-sm lg:text-base xl:text-lg text-gray-300 mt-1 lg:mt-2 text-center">
@@ -1203,13 +1397,19 @@ export default function Draft5v5({ onBackToMenu, multiplayerConfig }: Draft5v5Pr
                   Reveal Wildcard Map
                 </button>
               ) : cyclingMap ? (
-                <div className="text-gray-400 text-base lg:text-lg">Revealing...</div>
+                <div className="text-gray-400 text-base lg:text-lg">
+                  Revealing...
+                </div>
               ) : (
                 <button
                   onClick={acknowledgeDraft}
                   className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 lg:py-3 px-8 lg:px-12 rounded-lg text-base lg:text-lg xl:text-xl transition-colors shadow-lg"
                 >
-                  {isMultiplayer && isHost ? "Start Draft" : isMultiplayer ? "Continue" : "Start Draft"}
+                  {isMultiplayer && isHost
+                    ? "Start Draft"
+                    : isMultiplayer
+                      ? "Continue"
+                      : "Start Draft"}
                 </button>
               )}
             </div>
