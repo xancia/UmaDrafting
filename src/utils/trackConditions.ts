@@ -19,7 +19,12 @@ export function generateTrackConditions(): TrackConditions {
   ];
 
   const season = seasons[Math.floor(Math.random() * seasons.length)];
-  const weather = weathers[Math.floor(Math.random() * weathers.length)];
+
+  // Snowy weather only possible in Winter
+  const availableWeathers =
+    season === "Winter" ? weathers : weathers.filter((w) => w !== "Snowy");
+  const weather =
+    availableWeathers[Math.floor(Math.random() * availableWeathers.length)];
 
   // Ground condition depends on weather
   let ground: TrackConditions["ground"];
