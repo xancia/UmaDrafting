@@ -4,9 +4,15 @@ interface MapCardProps {
   map: Map;
   onSelect: (map: Map) => void;
   disabled?: boolean;
+  isSelected?: boolean;
 }
 
-export default function MapCard({ map, onSelect, disabled }: MapCardProps) {
+export default function MapCard({
+  map,
+  onSelect,
+  disabled,
+  isSelected,
+}: MapCardProps) {
   const surfaceColor =
     map.surface.toLowerCase() === "turf" ? "bg-green-700" : "bg-amber-800";
 
@@ -14,7 +20,11 @@ export default function MapCard({ map, onSelect, disabled }: MapCardProps) {
     <button
       onClick={() => onSelect(map)}
       disabled={disabled}
-      className="p-2 lg:p-3 bg-gray-700 border-2 border-gray-600 rounded-lg hover:border-gray-500 hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-gray-600"
+      className={`p-2 lg:p-3 bg-gray-700 border-2 rounded-lg hover:border-gray-500 hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-gray-600 ${
+        isSelected
+          ? "border-yellow-400 ring-2 ring-yellow-400/50"
+          : "border-gray-600"
+      }`}
     >
       <div
         className={`${surfaceColor} rounded px-2 py-2 lg:py-3 mb-1.5 lg:mb-2 flex flex-col items-center justify-center`}

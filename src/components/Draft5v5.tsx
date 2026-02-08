@@ -129,16 +129,63 @@ export default function Draft5v5({
   const [tempTeam1Name, setTempTeam1Name] = useState<string>("Team 1");
   const [tempTeam2Name, setTempTeam2Name] = useState<string>("Team 2");
 
+  // Pending selection state for lock-in system
+  const [pendingUma, setPendingUma] = useState<UmaMusume | null>(null);
+  const [pendingMap, setPendingMap] = useState<Map | null>(null);
+
   const isUmaPhase =
     draftState.phase === "uma-pick" || draftState.phase === "uma-ban";
   const isComplete = draftState.phase === "complete";
 
+  // Clear pending selection when phase or turn changes
+  useEffect(() => {
+    setPendingUma(null);
+    setPendingMap(null);
+  }, [draftState.phase, draftState.currentTeam]);
+
   // Timer authority: host controls timer in multiplayer, always in local mode
   const isTimerAuthority = !isMultiplayer || isHost;
 
-  // Handle turn timeout - make random selection
+  // Handle turn timeout - lock in pending selection or make random selection
   const handleTurnTimeout = useCallback(() => {
     console.log("Turn timeout triggered, current phase:", draftState.phase);
+
+    // If user has a pending selection, lock it in
+    if (pendingUma) {
+      console.log("Locking in pending uma:", pendingUma.name);
+      const newState = selectUma(draftState, pendingUma);
+      if (newState !== draftState) {
+        if (isMultiplayer && isHost) {
+          syncUpdateDraftState(newState);
+        }
+        setDraftState(newState);
+        setHistory((prev) => [...prev, newState]);
+      }
+      setPendingUma(null);
+      return;
+    }
+
+    if (pendingMap) {
+      console.log("Locking in pending map:", pendingMap.name);
+      const mapWithConditions: Map = {
+        ...pendingMap,
+        conditions: pendingMap.conditions || generateTrackConditions(),
+      };
+      const newState = selectMap(draftState, mapWithConditions);
+      if (newState !== draftState) {
+        if (isMultiplayer && isHost) {
+          syncUpdateDraftState(newState);
+        }
+        setDraftState(newState);
+        setHistory((prev) => [...prev, newState]);
+        setSelectedTrack(null);
+      }
+      setPendingMap(null);
+      return;
+    }
+
+    // No pending selection - make random selection
+    console.log("No pending selection, making random selection");
 
     const selection = getRandomTimeoutSelection(draftState);
     if (!selection) {
@@ -177,7 +224,14 @@ export default function Draft5v5({
         setSelectedTrack(null);
       }
     }
-  }, [draftState, isMultiplayer, isHost, syncUpdateDraftState]);
+  }, [
+    draftState,
+    isMultiplayer,
+    isHost,
+    syncUpdateDraftState,
+    pendingUma,
+    pendingMap,
+  ]);
 
   // Calculate total picks for turn key - ensures timer resets after each pick in double-pick scenarios
   const totalPicks =
@@ -580,7 +634,30 @@ export default function Draft5v5({
     }
   }, [isMultiplayer, status]);
 
-  const handleUmaSelect = (uma: UmaMusume) => {
+  // Set pending uma selection (click on card)
+  const handleUmaClick = (uma: UmaMusume) => {
+    setPendingUma(uma);
+    setPendingMap(null); // Clear any pending map
+  };
+
+  // Set pending map selection (click on card)
+  const handleMapClick = (map: Map) => {
+    setPendingMap(map);
+    setPendingUma(null); // Clear any pending uma
+  };
+
+  // Confirm and lock in the pending selection
+  const handleLockIn = () => {
+    if (pendingUma) {
+      confirmUmaSelect(pendingUma);
+      setPendingUma(null);
+    } else if (pendingMap) {
+      confirmMapSelect(pendingMap);
+      setPendingMap(null);
+    }
+  };
+
+  const confirmUmaSelect = (uma: UmaMusume) => {
     const team = draftState.currentTeam;
 
     // Use multiplayer-aware select function
@@ -610,7 +687,7 @@ export default function Draft5v5({
     }
   };
 
-  const handleMapSelect = (map: Map) => {
+  const confirmMapSelect = (map: Map) => {
     const team = draftState.currentTeam;
 
     // Generate random track conditions
@@ -1262,7 +1339,10 @@ export default function Draft5v5({
 
                 {draftState.phase === "map-pick" && selectedTrack && (
                   <button
-                    onClick={() => setSelectedTrack(null)}
+                    onClick={() => {
+                      setSelectedTrack(null);
+                      setPendingMap(null);
+                    }}
                     className="mb-2 lg:mb-4 bg-gray-700 hover:bg-gray-600 text-gray-100 font-semibold py-1.5 lg:py-2 px-3 lg:px-4 rounded-lg transition-colors border border-gray-600 text-sm lg:text-base"
                   >
                     ← Back to Racecourses
@@ -1275,7 +1355,8 @@ export default function Draft5v5({
                       <UmaCard
                         key={uma.id}
                         uma={uma}
-                        onSelect={handleUmaSelect}
+                        onSelect={handleUmaClick}
+                        isSelected={pendingUma?.id === uma.id}
                       />
                     ))}
 
@@ -1315,8 +1396,9 @@ export default function Draft5v5({
                       <MapCard
                         key={map.id}
                         map={map}
-                        onSelect={handleMapSelect}
+                        onSelect={handleMapClick}
                         disabled={!canSelectMap(map)}
+                        isSelected={pendingMap?.id === map.id}
                       />
                     ))}
 
@@ -1325,7 +1407,8 @@ export default function Draft5v5({
                       <MapCard
                         key={map.id}
                         map={map}
-                        onSelect={handleMapSelect}
+                        onSelect={handleMapClick}
+                        isSelected={pendingMap?.id === map.id}
                       />
                     ))}
                 </div>
@@ -1381,6 +1464,24 @@ export default function Draft5v5({
             </div>
           )}
         </div>
+
+        {/* Lock In Button - Fixed at bottom */}
+        {(pendingUma || pendingMap) && (
+          <div className="shrink-0 py-3 lg:py-4 bg-gray-900 border-t border-gray-700">
+            <div className="flex justify-center">
+              <button
+                onClick={handleLockIn}
+                className={`${draftState.phase === "uma-ban" || draftState.phase === "map-ban" ? "bg-red-600 hover:bg-red-700" : "bg-green-600 hover:bg-green-700"} text-white font-bold py-3 lg:py-4 px-12 lg:px-16 rounded-lg transition-colors text-lg lg:text-xl shadow-lg animate-pulse`}
+              >
+                {draftState.phase === "uma-ban" ||
+                draftState.phase === "map-ban"
+                  ? "Ban"
+                  : "Lock In"}{" "}
+                {pendingUma ? pendingUma.name : pendingMap?.name}
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="w-56 lg:w-72 xl:w-96 shrink-0 flex flex-col px-1 lg:px-2 min-h-0">

@@ -164,13 +164,13 @@ export default function DraftHeader({
                 <button
                   onClick={onUndo}
                   disabled={!canUndo}
-                  className="bg-gray-700 text-gray-100 font-semibold py-1.5 lg:py-2 px-3 lg:px-4 xl:px-6 rounded-lg hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-gray-700 border border-gray-600 text-xs lg:text-sm xl:text-base"
+                  className={`bg-gray-700 text-gray-100 font-semibold py-1.5 lg:py-2 px-3 lg:px-4 xl:px-6 rounded-lg hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-gray-700 border border-gray-600 text-xs lg:text-sm xl:text-base ${isMultiplayer ? "hidden" : ""}`}
                 >
                   ← Undo
                 </button>
                 <button
                   onClick={onReset}
-                  className="bg-gray-700 text-gray-100 font-semibold py-1.5 lg:py-2 px-3 lg:px-4 xl:px-6 rounded-lg hover:bg-gray-600 transition-colors border border-gray-600 text-xs lg:text-sm xl:text-base"
+                  className={`bg-gray-700 text-gray-100 font-semibold py-1.5 lg:py-2 px-3 lg:px-4 xl:px-6 rounded-lg hover:bg-gray-600 transition-colors border border-gray-600 text-xs lg:text-sm xl:text-base ${isMultiplayer ? "hidden" : ""}`}
                 >
                   Reset
                 </button>
