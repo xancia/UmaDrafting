@@ -1,7 +1,7 @@
 import type { DraftState, DraftPhase, Team, UmaMusume, Map } from "./types";
 import { SAMPLE_UMAS, SAMPLE_MAPS } from "./data";
 import { generateTrackConditions } from "./utils/trackConditions";
-import { findUmaVariations } from "./utils/umaUtils";
+// import { findUmaVariations } from "./utils/umaUtils";
 
 export const getInitialDraftState = (): DraftState => {
   // Generate wildcard map at initialization
@@ -13,7 +13,7 @@ export const getInitialDraftState = (): DraftState => {
 
   // Remove wildcard map from available maps so it can't be selected again
   const availableMapsWithoutWildcard = SAMPLE_MAPS.filter(
-    (map) => map.id !== randomMap.id
+    (map) => map.id !== randomMap.id,
   );
 
   return {
@@ -91,18 +91,21 @@ export const canTeamAct = (state: DraftState): boolean => {
  * @returns Category: 'sprint' | 'mile' | 'medium' | 'long'
  */
 export const getDistanceCategory = (distance: number): string => {
-  if (distance <= 1400) return 'sprint';
-  if (distance <= 1800) return 'mile';
-  if (distance <= 2400) return 'medium';
-  return 'long';
+  if (distance <= 1400) return "sprint";
+  if (distance <= 1800) return "mile";
+  if (distance <= 2400) return "medium";
+  return "long";
 };
 
 export const countDistances = (maps: Map[]): Record<string, number> => {
-  return maps.reduce((acc, map) => {
-    const category = getDistanceCategory(map.distance);
-    acc[category] = (acc[category] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
+  return maps.reduce(
+    (acc, map) => {
+      const category = getDistanceCategory(map.distance);
+      acc[category] = (acc[category] || 0) + 1;
+      return acc;
+    },
+    {} as Record<string, number>,
+  );
 };
 
 /**
@@ -144,25 +147,32 @@ export const selectUma = (state: DraftState, uma: UmaMusume): DraftState => {
       ...newState[currentTeam],
       pickedUmas: [...newState[currentTeam].pickedUmas, uma],
     };
-    
-    // Remove the picked uma and all its variations from available pool
-    const variations = findUmaVariations(uma.name, newState.availableUmas);
+
+    // Remove only the specific picked uma from available pool
     newState.availableUmas = newState.availableUmas.filter(
-      (u) => !variations.some((v) => v.id === u.id)
+      (u) => u.id !== uma.id,
     );
+
+    // OPTIONAL: Remove the picked uma and all its variations from available pool
+    // const variations = findUmaVariations(uma.name, newState.availableUmas);
+    // newState.availableUmas = newState.availableUmas.filter(
+    //   (u) => !variations.some((v) => v.id === u.id)
+    // );
   } else if (phase === "uma-ban") {
     // Remove only the specific banned uma from opponent's picked list
     const opponentTeam = currentTeam === "team1" ? "team2" : "team1";
-    
+
     // Check if opponent has this specific uma
-    const bannedUma = newState[opponentTeam].pickedUmas.find(u => u.id === uma.id);
-    
+    const bannedUma = newState[opponentTeam].pickedUmas.find(
+      (u) => u.id === uma.id,
+    );
+
     if (bannedUma) {
       // Remove only this specific uma from opponent's picked list
       newState[opponentTeam] = {
         ...newState[opponentTeam],
         pickedUmas: newState[opponentTeam].pickedUmas.filter(
-          (u) => u.id !== uma.id
+          (u) => u.id !== uma.id,
         ),
         // Add only this uma to opponent's banned list
         bannedUmas: [...newState[opponentTeam].bannedUmas, bannedUma],
@@ -221,25 +231,25 @@ export const selectMap = (state: DraftState, map: Map): DraftState => {
   if (phase === "map-pick") {
     // Validate constraints before allowing pick
     const currentTeamMaps = newState[currentTeam].pickedMaps;
-    
+
     // Check max 2 per distance constraint
     if (!canPickDistance(currentTeamMaps, map.distance)) {
       console.warn(`Cannot pick ${map.distance}m - already at maximum (2)`);
       return state; // Return unchanged state
     }
-    
+
     // Check max 2 dirt tracks constraint
     if (map.surface === "Dirt" && !canPickDirt(currentTeamMaps)) {
       console.warn("Cannot pick dirt track - already at maximum (2)");
       return state; // Return unchanged state
     }
-    
+
     newState[currentTeam] = {
       ...newState[currentTeam],
       pickedMaps: [...newState[currentTeam].pickedMaps, map],
     };
     newState.availableMaps = newState.availableMaps.filter(
-      (m) => m.id !== map.id
+      (m) => m.id !== map.id,
     );
   } else if (phase === "map-ban") {
     // Remove from the opponent's picked maps and add to opponent team's banned list
@@ -247,7 +257,7 @@ export const selectMap = (state: DraftState, map: Map): DraftState => {
     newState[opponentTeam] = {
       ...newState[opponentTeam],
       pickedMaps: newState[opponentTeam].pickedMaps.filter(
-        (m) => m.id !== map.id
+        (m) => m.id !== map.id,
       ),
       bannedMaps: [...newState[opponentTeam].bannedMaps, map],
     };
@@ -273,14 +283,14 @@ export const selectMap = (state: DraftState, map: Map): DraftState => {
 
 /**
  * Validates if the local team can perform an action in multiplayer mode
- * 
+ *
  * @param state - Current draft state
  * @param actionTeam - Team attempting to perform the action
  * @returns true if action is allowed, false otherwise
  */
 export const validateLocalTeamAction = (
   state: DraftState,
-  actionTeam: Team
+  actionTeam: Team,
 ): boolean => {
   // In local mode, all actions are allowed
   if (!state.multiplayer?.enabled) {
@@ -301,7 +311,7 @@ export const validateLocalTeamAction = (
 
 /**
  * Wrapper for selectUma that validates multiplayer permissions
- * 
+ *
  * @param state - Current draft state
  * @param uma - Uma to select
  * @param team - Team making the selection
@@ -310,7 +320,7 @@ export const validateLocalTeamAction = (
 export const selectUmaMultiplayer = (
   state: DraftState,
   uma: UmaMusume,
-  team: Team
+  team: Team,
 ): DraftState => {
   if (!validateLocalTeamAction(state, team)) {
     console.warn("Action not allowed: not your turn or team");
@@ -322,7 +332,7 @@ export const selectUmaMultiplayer = (
 
 /**
  * Wrapper for selectMap that validates multiplayer permissions
- * 
+ *
  * @param state - Current draft state
  * @param map - Map to select
  * @param team - Team making the selection
@@ -331,7 +341,7 @@ export const selectUmaMultiplayer = (
 export const selectMapMultiplayer = (
   state: DraftState,
   map: Map,
-  team: Team
+  team: Team,
 ): DraftState => {
   if (!validateLocalTeamAction(state, team)) {
     console.warn("Action not allowed: not your turn or team");
@@ -360,7 +370,9 @@ const getRandomElement = <T>(arr: T[]): T | undefined => {
  * @param state - Current draft state
  * @returns Random available uma or undefined if none available
  */
-export const getRandomAvailableUma = (state: DraftState): UmaMusume | undefined => {
+export const getRandomAvailableUma = (
+  state: DraftState,
+): UmaMusume | undefined => {
   return getRandomElement(state.availableUmas);
 };
 
@@ -383,7 +395,7 @@ export const getRandomBanUma = (state: DraftState): UmaMusume | undefined => {
  */
 export const getRandomAvailableMap = (state: DraftState): Map | undefined => {
   const currentTeamMaps = state[state.currentTeam].pickedMaps;
-  
+
   // Filter available maps by constraints
   const validMaps = state.availableMaps.filter((map) => {
     // Check distance constraint (max 2 per category)
@@ -396,7 +408,7 @@ export const getRandomAvailableMap = (state: DraftState): Map | undefined => {
     }
     return true;
   });
-  
+
   return getRandomElement(validMaps);
 };
 
@@ -418,10 +430,10 @@ export const getRandomBanMap = (state: DraftState): Map | undefined => {
  * @returns Object with type and selected item, or undefined if no valid selection
  */
 export const getRandomTimeoutSelection = (
-  state: DraftState
+  state: DraftState,
 ): { type: "uma" | "map"; item: UmaMusume | Map } | undefined => {
   const { phase } = state;
-  
+
   switch (phase) {
     case "uma-pick": {
       const uma = getRandomAvailableUma(state);
@@ -444,6 +456,6 @@ export const getRandomTimeoutSelection = (
       break;
     }
   }
-  
+
   return undefined;
 };

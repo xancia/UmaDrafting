@@ -153,7 +153,7 @@ export default function Draft5v5({
       draftState.phase === "post-map-pause"
     ) {
       // Reset timer when entering a pause phase
-      setReadyUpTime(300);
+      setReadyUpTime(245);
 
       const interval = setInterval(() => {
         setReadyUpTime((prev) => (prev > 0 ? prev - 1 : 0));
