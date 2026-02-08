@@ -133,6 +133,9 @@ export default function Draft5v5({
   const [pendingUma, setPendingUma] = useState<UmaMusume | null>(null);
   const [pendingMap, setPendingMap] = useState<Map | null>(null);
 
+  // Ready-up timer (5 minutes = 300 seconds)
+  const [readyUpTime, setReadyUpTime] = useState<number>(300);
+
   const isUmaPhase =
     draftState.phase === "uma-pick" || draftState.phase === "uma-ban";
   const isComplete = draftState.phase === "complete";
@@ -142,6 +145,23 @@ export default function Draft5v5({
     setPendingUma(null);
     setPendingMap(null);
   }, [draftState.phase, draftState.currentTeam]);
+
+  // Ready-up timer countdown (resets on pause phase entry)
+  useEffect(() => {
+    if (
+      draftState.phase === "pre-draft-pause" ||
+      draftState.phase === "post-map-pause"
+    ) {
+      // Reset timer when entering a pause phase
+      setReadyUpTime(300);
+
+      const interval = setInterval(() => {
+        setReadyUpTime((prev) => (prev > 0 ? prev - 1 : 0));
+      }, 1000);
+
+      return () => clearInterval(interval);
+    }
+  }, [draftState.phase]);
 
   // Timer authority: host controls timer in multiplayer, always in local mode
   const isTimerAuthority = !isMultiplayer || isHost;
@@ -1135,9 +1155,17 @@ export default function Draft5v5({
               <p className="text-base lg:text-lg xl:text-xl text-gray-300 mb-6 lg:mb-8">
                 Take your time to discuss strategy with your team.
               </p>
-              <p className="text-sm lg:text-base text-gray-400 mb-6 lg:mb-8">
+              <p className="text-sm lg:text-base text-gray-400 mb-4">
                 The draft will begin with map selection when you're ready.
               </p>
+
+              {/* Timer display */}
+              <div className="mb-6 lg:mb-8">
+                <span className="text-3xl lg:text-4xl font-mono font-bold text-yellow-400">
+                  {Math.floor(readyUpTime / 60)}:
+                  {(readyUpTime % 60).toString().padStart(2, "0")}
+                </span>
+              </div>
 
               {/* Multiplayer ready-up system */}
               {isMultiplayer && (
@@ -1227,10 +1255,18 @@ export default function Draft5v5({
               <p className="text-base lg:text-lg xl:text-xl text-gray-300 mb-6 lg:mb-8">
                 All maps have been selected. Take time to review and strategize.
               </p>
-              <p className="text-sm lg:text-base text-gray-400 mb-6 lg:mb-8">
+              <p className="text-sm lg:text-base text-gray-400 mb-4">
                 The draft will continue with Uma Musume selection when you're
                 ready.
               </p>
+
+              {/* Timer display */}
+              <div className="mb-6 lg:mb-8">
+                <span className="text-3xl lg:text-4xl font-mono font-bold text-yellow-400">
+                  {Math.floor(readyUpTime / 60)}:
+                  {(readyUpTime % 60).toString().padStart(2, "0")}
+                </span>
+              </div>
 
               {/* Multiplayer ready-up system */}
               {isMultiplayer && (
