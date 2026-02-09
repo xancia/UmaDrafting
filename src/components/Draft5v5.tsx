@@ -1962,7 +1962,13 @@ export default function Draft5v5({
                 />
               </div>
             </div>
-            <div className="flex justify-end">
+            <div className="flex justify-between">
+              <button
+                onClick={onBackToMenu}
+                className="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-1.5 lg:py-2 px-6 lg:px-8 rounded-lg transition-colors text-sm lg:text-base"
+              >
+                Cancel
+              </button>
               <button
                 onClick={confirmTeamNames}
                 className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-1.5 lg:py-2 px-6 lg:px-8 rounded-lg transition-colors text-sm lg:text-base"
