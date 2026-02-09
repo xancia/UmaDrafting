@@ -97,7 +97,7 @@ export interface JoinRejectedPayload {
  * Message payload for draft actions
  */
 export interface DraftActionPayload {
-  action: "pick" | "ban" | "ready";
+  action: "pick" | "ban" | "ready" | "team-name";
   itemType: "uma" | "map" | "control";
   itemId: string;
   phase?: string; // Optional phase parameter for control actions

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import type { DraftState, UmaMusume, Map } from "../types";
 import {
   getInitialDraftState,
@@ -14,18 +14,17 @@ import {
 } from "../draftLogic";
 import { SAMPLE_MAPS } from "../data";
 import { generateTrackConditions } from "../utils/trackConditions";
+import { saveDraftSession, clearDraftSession } from "../utils/sessionStorage";
+import { roomExists } from "../services/firebaseRoom";
 import DraftHeader from "./DraftHeader";
 import TeamPanel from "./TeamPanel";
 import UmaCard from "./UmaCard";
 import MapCard from "./MapCard";
 import SpectatorView from "./SpectatorView";
 import WaitingRoom from "./WaitingRoom";
-import { usePeer } from "../hooks/usePeer";
-import { useRoom } from "../hooks/useRoom";
-import { useMultiplayerConnections } from "../hooks/useMultiplayerConnections";
-import { useDraftSync } from "../hooks/useDraftSync";
+import { useFirebaseRoom } from "../hooks/useFirebaseRoom";
 import { useTurnTimer, DEFAULT_TURN_DURATION } from "../hooks/useTurnTimer";
-import { generateRoomCode } from "../utils/roomCode";
+import type { FirebasePendingAction } from "../types/firebase";
 
 interface MultiplayerConfig {
   roomCode: string;
@@ -45,49 +44,36 @@ export default function Draft5v5({
 }: Draft5v5Props) {
   // Multiplayer setup
   const isMultiplayer = !!multiplayerConfig;
-  const { peer, peerId, status, initialize } = usePeer();
-  const {
-    roomState,
-    isHost,
-    createRoom,
-    joinRoom,
-    onRoomMessage,
-    sendToHost,
-    updateRoomDraftState,
-    getAllConnections,
-  } = useRoom(peer, peerId);
-  const { onConnectionEvent } = useMultiplayerConnections();
-  const {
-    draftState: syncedDraftState,
-    updateDraftState: syncUpdateDraftState,
-    sendDraftAction,
-    onDraftAction,
-  } = useDraftSync(
-    roomState,
-    isHost,
-    getAllConnections,
-    peerId,
-    onRoomMessage,
-    sendToHost,
-  );
 
-  // Generate room code immediately for host
-  const [localRoomCode] = useState<string>(() => {
-    if (isMultiplayer && multiplayerConfig?.isHost) {
-      return generateRoomCode();
-    }
-    return multiplayerConfig?.roomCode || "";
-  });
+  // Firebase multiplayer hook
+  const {
+    room: firebaseRoom,
+    draftState: syncedDraftState,
+    isHost,
+    isConnected,
+    players: firebasePlayers,
+    spectators: firebaseSpectators,
+    roomCode: firebaseRoomCode,
+    createRoom: firebaseCreateRoom,
+    joinRoom: firebaseJoinRoom,
+    updateDraftState: syncUpdateDraftState,
+    sendAction: sendDraftAction,
+    setPendingActionHandler,
+  } = useFirebaseRoom();
+
+  // Use Firebase room code, or fallback to config for joiners
+  const roomCode = firebaseRoomCode || multiplayerConfig?.roomCode || "";
+
+  // Guard against double room creation (React 18 StrictMode)
+  const roomSetupAttempted = useRef(false);
 
   const [draftState, setDraftState] = useState<DraftState>(() => {
     const initialState = getInitialDraftState();
 
     // Add multiplayer state if in multiplayer mode
     if (isMultiplayer && multiplayerConfig) {
-      // Non-host players start in lobby phase waiting for sync
-      if (!multiplayerConfig.isHost) {
-        initialState.phase = "lobby";
-      }
+      // All multiplayer players start in lobby phase (waiting room)
+      initialState.phase = "lobby";
       initialState.multiplayer = {
         enabled: true,
         connectionType: multiplayerConfig.isHost
@@ -116,10 +102,10 @@ export default function Draft5v5({
   const [showResetConfirm, setShowResetConfirm] = useState<boolean>(false);
   const [showMenuConfirm, setShowMenuConfirm] = useState<boolean>(false);
   const [showWildcardModal, setShowWildcardModal] = useState<boolean>(false);
-  // For multiplayer guests/spectators, skip the team name modal (host controls names)
-  const [showTeamNameModal, setShowTeamNameModal] = useState<boolean>(
-    !multiplayerConfig || multiplayerConfig.isHost,
-  );
+  // For multiplayer, skip team name modal - names are set in waiting room
+  // Only show for local/solo drafts
+  const [showTeamNameModal, setShowTeamNameModal] =
+    useState<boolean>(!isMultiplayer);
   const [cyclingMap, setCyclingMap] = useState<Map | null>(null);
   const [revealStarted, setRevealStarted] = useState<boolean>(false);
   const [wildcardAcknowledged, setWildcardAcknowledged] =
@@ -139,6 +125,13 @@ export default function Draft5v5({
   const isUmaPhase =
     draftState.phase === "uma-pick" || draftState.phase === "uma-ban";
   const isComplete = draftState.phase === "complete";
+
+  // Clear session when draft completes
+  useEffect(() => {
+    if (isComplete && isMultiplayer) {
+      clearDraftSession();
+    }
+  }, [isComplete, isMultiplayer]);
 
   // Clear pending selection when phase or turn changes
   useEffect(() => {
@@ -163,42 +156,94 @@ export default function Draft5v5({
     }
   }, [draftState.phase]);
 
-  // Timer authority: host controls timer in multiplayer, always in local mode
-  const isTimerAuthority = !isMultiplayer || isHost;
+  // Determine local team for multiplayer
+  const localTeam =
+    draftState.multiplayer?.localTeam ||
+    (multiplayerConfig?.isHost ? "team1" : "team2");
+
+  // Timer authority: you control timer when it's your turn (or always in local mode)
+  const isTimerAuthority =
+    !isMultiplayer || draftState.currentTeam === localTeam;
 
   // Handle turn timeout - lock in pending selection or make random selection
   const handleTurnTimeout = useCallback(() => {
     console.log("Turn timeout triggered, current phase:", draftState.phase);
 
-    // If user has a pending selection, lock it in
-    if (pendingUma) {
-      console.log("Locking in pending uma:", pendingUma.name);
-      const newState = selectUma(draftState, pendingUma);
+    // Determine if we're in a uma or map phase
+    const isUmaPhaseNow =
+      draftState.phase === "uma-pick" || draftState.phase === "uma-ban";
+    const isMapPhaseNow =
+      draftState.phase === "map-pick" || draftState.phase === "map-ban";
+
+    // Helper to handle local state update (for host or non-multiplayer)
+    const updateLocalState = (
+      newState: DraftState,
+      clearTrack: boolean = false,
+    ) => {
       if (newState !== draftState) {
         if (isMultiplayer && isHost) {
           syncUpdateDraftState(newState);
         }
         setDraftState(newState);
         setHistory((prev) => [...prev, newState]);
+        if (clearTrack) {
+          setSelectedTrack(null);
+        }
+      }
+    };
+
+    // Helper to send action for non-host multiplayer
+    const sendAction = (
+      itemId: string,
+      itemType: "uma" | "map",
+      action: "pick" | "ban",
+    ) => {
+      sendDraftAction({
+        action,
+        itemId,
+        itemType,
+      });
+      // Non-host: don't update local state - wait for Firebase sync
+      // Just reset track selection for map picks
+      if (itemType === "map") {
+        setSelectedTrack(null);
+      }
+    };
+
+    // If user has a pending selection, lock it in
+    if (pendingUma && isUmaPhaseNow) {
+      console.log("Locking in pending uma:", pendingUma.name);
+      if (isMultiplayer && !isHost) {
+        // Non-host sends action to Firebase
+        sendAction(
+          pendingUma.id.toString(),
+          "uma",
+          draftState.phase === "uma-pick" ? "pick" : "ban",
+        );
+      } else {
+        const newState = selectUma(draftState, pendingUma);
+        updateLocalState(newState);
       }
       setPendingUma(null);
       return;
     }
 
-    if (pendingMap) {
+    if (pendingMap && isMapPhaseNow) {
       console.log("Locking in pending map:", pendingMap.name);
-      const mapWithConditions: Map = {
-        ...pendingMap,
-        conditions: pendingMap.conditions || generateTrackConditions(),
-      };
-      const newState = selectMap(draftState, mapWithConditions);
-      if (newState !== draftState) {
-        if (isMultiplayer && isHost) {
-          syncUpdateDraftState(newState);
-        }
-        setDraftState(newState);
-        setHistory((prev) => [...prev, newState]);
-        setSelectedTrack(null);
+      if (isMultiplayer && !isHost) {
+        // Non-host sends action to Firebase
+        sendAction(
+          pendingMap.name,
+          "map",
+          draftState.phase === "map-pick" ? "pick" : "ban",
+        );
+      } else {
+        const mapWithConditions: Map = {
+          ...pendingMap,
+          conditions: pendingMap.conditions || generateTrackConditions(),
+        };
+        const newState = selectMap(draftState, mapWithConditions);
+        updateLocalState(newState, true);
       }
       setPendingMap(null);
       return;
@@ -217,31 +262,34 @@ export default function Draft5v5({
 
     if (selection.type === "uma") {
       const uma = selection.item as UmaMusume;
-      const newState = selectUma(draftState, uma);
-
-      if (newState !== draftState) {
-        if (isMultiplayer && isHost) {
-          syncUpdateDraftState(newState);
-        }
-        setDraftState(newState);
-        setHistory((prev) => [...prev, newState]);
+      if (isMultiplayer && !isHost) {
+        // Non-host sends action to Firebase
+        sendAction(
+          uma.id.toString(),
+          "uma",
+          draftState.phase === "uma-pick" ? "pick" : "ban",
+        );
+      } else {
+        const newState = selectUma(draftState, uma);
+        updateLocalState(newState);
       }
     } else {
       const map = selection.item as Map;
-      // Add conditions for picked maps
-      const mapWithConditions: Map = {
-        ...map,
-        conditions: map.conditions || generateTrackConditions(),
-      };
-      const newState = selectMap(draftState, mapWithConditions);
-
-      if (newState !== draftState) {
-        if (isMultiplayer && isHost) {
-          syncUpdateDraftState(newState);
-        }
-        setDraftState(newState);
-        setHistory((prev) => [...prev, newState]);
-        setSelectedTrack(null);
+      if (isMultiplayer && !isHost) {
+        // Non-host sends action to Firebase
+        sendAction(
+          map.name,
+          "map",
+          draftState.phase === "map-pick" ? "pick" : "ban",
+        );
+      } else {
+        // Add conditions for picked maps
+        const mapWithConditions: Map = {
+          ...map,
+          conditions: map.conditions || generateTrackConditions(),
+        };
+        const newState = selectMap(draftState, mapWithConditions);
+        updateLocalState(newState, true);
       }
     }
   }, [
@@ -249,21 +297,23 @@ export default function Draft5v5({
     isMultiplayer,
     isHost,
     syncUpdateDraftState,
+    sendDraftAction,
     pendingUma,
     pendingMap,
   ]);
 
   // Calculate total picks for turn key - ensures timer resets after each pick in double-pick scenarios
+  // Guard against undefined arrays (Firebase doesn't store empty arrays)
   const totalPicks =
     draftState.phase === "uma-pick" || draftState.phase === "uma-ban"
-      ? draftState.team1.pickedUmas.length +
-        draftState.team2.pickedUmas.length +
-        draftState.team1.bannedUmas.length +
-        draftState.team2.bannedUmas.length
-      : draftState.team1.pickedMaps.length +
-        draftState.team2.pickedMaps.length +
-        draftState.team1.bannedMaps.length +
-        draftState.team2.bannedMaps.length;
+      ? (draftState.team1?.pickedUmas?.length || 0) +
+        (draftState.team2?.pickedUmas?.length || 0) +
+        (draftState.team1?.bannedUmas?.length || 0) +
+        (draftState.team2?.bannedUmas?.length || 0)
+      : (draftState.team1?.pickedMaps?.length || 0) +
+        (draftState.team2?.pickedMaps?.length || 0) +
+        (draftState.team1?.bannedMaps?.length || 0) +
+        (draftState.team2?.bannedMaps?.length || 0);
 
   // Turn timer hook
   const { timeRemaining } = useTurnTimer({
@@ -275,57 +325,70 @@ export default function Draft5v5({
     isTimerAuthority,
   });
 
-  // Initialize multiplayer connection
+  // Initialize Firebase room (create or join)
   useEffect(() => {
     if (!isMultiplayer || !multiplayerConfig) return;
-
-    let mounted = true;
-    const initMultiplayer = async () => {
-      try {
-        if (mounted && multiplayerConfig.isHost) {
-          // For host, use the pre-generated room code as peer ID
-          await initialize(localRoomCode);
-        } else if (mounted) {
-          // For client/spectator, use random peer ID
-          await initialize();
-        }
-      } catch (err) {
-        console.error("Failed to initialize peer:", err);
-      }
-    };
-
-    initMultiplayer();
-
-    return () => {
-      mounted = false;
-    };
-  }, [isMultiplayer, multiplayerConfig, initialize, localRoomCode]);
-
-  // Create or join room once peer is ready
-  useEffect(() => {
-    if (!isMultiplayer || !multiplayerConfig || !peer) return;
-    if (roomState) return; // Already in a room
+    if (firebaseRoom) return; // Already in a room
+    if (roomSetupAttempted.current) return; // Prevent double creation in StrictMode
+    roomSetupAttempted.current = true;
 
     const setupRoom = async () => {
       try {
         if (multiplayerConfig.isHost) {
-          // Pass the current draftState so the wildcard is shared with joining players
-          await createRoom("5v5", draftState);
+          // Check if this is a reconnection (has existing room code)
+          if (multiplayerConfig.roomCode) {
+            const exists = await roomExists(multiplayerConfig.roomCode);
+            if (exists) {
+              // Reconnect to existing room as host
+              const result = await firebaseJoinRoom({
+                roomCode: multiplayerConfig.roomCode,
+                playerName: multiplayerConfig.playerName,
+                connectionType: "host",
+                team: "team1",
+              });
+              if (result.success) {
+                return; // Successfully reconnected
+              }
+              // Failed to reconnect (e.g., UID changed) - clear session and create new room
+              console.warn(
+                "Failed to rejoin room as host, creating new room:",
+                result.error,
+              );
+              clearDraftSession();
+            }
+          }
+          // Host creates a new room (fresh start or room no longer exists)
+          const result = await firebaseCreateRoom({
+            format: "5v5",
+            hostName: multiplayerConfig.playerName,
+            team1Name: multiplayerConfig.playerName,
+            team2Name: "Team 2",
+            initialDraftState: draftState,
+          });
+          if (!result.success) {
+            console.error("Failed to create room:", result.error);
+          }
         } else if (!multiplayerConfig.isSpectator) {
-          // Wait for connection for clients
-          if (status !== "connected" || !peerId) return;
-          await joinRoom(
-            multiplayerConfig.roomCode,
-            multiplayerConfig.playerName,
-          );
+          // Player joins existing room
+          const result = await firebaseJoinRoom({
+            roomCode: multiplayerConfig.roomCode,
+            playerName: multiplayerConfig.playerName,
+            connectionType: "player",
+            team: "team2",
+          });
+          if (!result.success) {
+            console.error("Failed to join room:", result.error);
+          }
         } else {
-          // Wait for connection for spectators
-          if (status !== "connected" || !peerId) return;
-          await joinRoom(
-            multiplayerConfig.roomCode,
-            multiplayerConfig.playerName,
-            true,
-          );
+          // Spectator joins existing room
+          const result = await firebaseJoinRoom({
+            roomCode: multiplayerConfig.roomCode,
+            playerName: multiplayerConfig.playerName,
+            connectionType: "spectator",
+          });
+          if (!result.success) {
+            console.error("Failed to join as spectator:", result.error);
+          }
         }
       } catch (err) {
         console.error("Failed to setup room:", err);
@@ -333,25 +396,39 @@ export default function Draft5v5({
     };
 
     setupRoom();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     isMultiplayer,
     multiplayerConfig,
-    peer,
-    peerId,
-    status,
-    roomState,
-    createRoom,
-    joinRoom,
-    draftState,
+    firebaseRoom,
+    firebaseCreateRoom,
+    firebaseJoinRoom,
+    // Note: draftState intentionally excluded to prevent duplicate join calls
   ]);
+
+  // Save session to localStorage for reconnection after page refresh
+  useEffect(() => {
+    if (!isMultiplayer || !multiplayerConfig || !firebaseRoomCode) return;
+
+    saveDraftSession({
+      roomCode: firebaseRoomCode,
+      playerName: multiplayerConfig.playerName,
+      isHost: multiplayerConfig.isHost,
+      isSpectator: multiplayerConfig.isSpectator,
+      format: "5v5",
+      joinedAt: Date.now(),
+    });
+  }, [isMultiplayer, multiplayerConfig, firebaseRoomCode]);
 
   // Sync local draft state with network state in multiplayer mode
   useEffect(() => {
-    if (
-      isMultiplayer &&
-      syncedDraftState &&
-      syncedDraftState.wildcardMap?.track
-    ) {
+    if (isMultiplayer && syncedDraftState) {
+      console.log("[SYNC EFFECT] Starting sync", {
+        syncedDraftState_phase: syncedDraftState.phase,
+        syncedDraftState_currentTeam: syncedDraftState.currentTeam,
+        syncedDraftState_multiplayer: syncedDraftState.multiplayer,
+        isHost: multiplayerConfig?.isHost,
+      });
       // Preserve local multiplayer settings when syncing
       setDraftState((prevState) => {
         const localTeam =
@@ -377,6 +454,14 @@ export default function Draft5v5({
               ? "map-pick"
               : syncedDraftState.phase;
         }
+
+        console.log("[SYNC EFFECT] Returning state", {
+          prevState_localTeam: prevState.multiplayer?.localTeam,
+          computed_localTeam: localTeam,
+          computed_connectionType: connectionType,
+          phase,
+          syncedCurrentTeam: syncedDraftState.currentTeam,
+        });
 
         return {
           ...syncedDraftState,
@@ -435,7 +520,11 @@ export default function Draft5v5({
   useEffect(() => {
     if (!isMultiplayer || !isHost) return;
 
-    const unsubscribe = onDraftAction((action, senderId) => {
+    // Set up handler for pending actions from Firebase
+    const handlePendingAction = (pendingAction: FirebasePendingAction) => {
+      const action = pendingAction.action;
+      const senderId = pendingAction.senderId;
+
       console.log("Host received action from client:", action, senderId);
       console.log(
         "Current phase:",
@@ -446,6 +535,40 @@ export default function Draft5v5({
 
       // Handle control actions (phase transitions and ready state)
       if (action.itemType === "control") {
+        // Handle team name change
+        if (action.action === "team-name") {
+          const team = action.itemId as "team1" | "team2";
+          const name = action.phase || (team === "team1" ? "Team 1" : "Team 2");
+
+          if (team === "team1") {
+            setTeam1Name(name);
+          } else {
+            setTeam2Name(name);
+          }
+
+          const newState = {
+            ...draftState,
+            multiplayer: {
+              ...draftState.multiplayer,
+              enabled: true,
+              connectionType: draftState.multiplayer?.connectionType || "host",
+              localTeam: draftState.multiplayer?.localTeam || "team1",
+              roomId: draftState.multiplayer?.roomId || "",
+              team1Name:
+                team === "team1"
+                  ? name
+                  : draftState.multiplayer?.team1Name || team1Name,
+              team2Name:
+                team === "team2"
+                  ? name
+                  : draftState.multiplayer?.team2Name || team2Name,
+            },
+          };
+          syncUpdateDraftState(newState);
+          setDraftState(newState);
+          return;
+        }
+
         // Handle ready action
         if (action.action === "ready") {
           const team = action.itemId as "team1" | "team2";
@@ -612,47 +735,34 @@ export default function Draft5v5({
           }
         }
       }
-    });
+    };
 
-    return unsubscribe;
-  }, [isMultiplayer, isHost, onDraftAction, draftState, syncUpdateDraftState]);
+    setPendingActionHandler(handlePendingAction);
 
-  // Handle connection events (disconnections, errors)
+    return () => {
+      setPendingActionHandler(null);
+    };
+  }, [
+    isMultiplayer,
+    isHost,
+    setPendingActionHandler,
+    draftState,
+    syncUpdateDraftState,
+  ]);
+
+  // Handle connection events (disconnections)
   useEffect(() => {
-    if (!isMultiplayer) return;
+    if (!isMultiplayer || isHost) return;
 
-    const unsubscribe = onConnectionEvent((event) => {
-      if (event.type === "disconnected") {
-        console.log("Peer disconnected:", event.peerId);
-
-        // Check if host disconnected
-        if (roomState && event.peerId === roomState.hostId && !isHost) {
-          // Host disconnected - show error and offer to return to menu
-          const shouldReturn = window.confirm(
-            "The host has disconnected. The draft session has ended. Return to menu?",
-          );
-          if (shouldReturn) {
-            onBackToMenu();
-          }
-        }
-      } else if (event.type === "error") {
-        console.error("Connection error with peer:", event.peerId, event.error);
-        // Could show a toast notification here
+    // For clients: check if we got disconnected or host left
+    if (!isConnected && firebaseRoom) {
+      // We lost connection
+      const shouldReturn = window.confirm("Connection lost. Return to menu?");
+      if (shouldReturn) {
+        onBackToMenu();
       }
-    });
-
-    return unsubscribe;
-  }, [isMultiplayer, onConnectionEvent, roomState, isHost, onBackToMenu]);
-
-  // Handle peer status changes
-  useEffect(() => {
-    if (!isMultiplayer) return;
-
-    // Only log errors, not initial disconnected state
-    if (status === "error") {
-      console.error("Peer status error:", status);
     }
-  }, [isMultiplayer, status]);
+  }, [isMultiplayer, isHost, isConnected, firebaseRoom, onBackToMenu]);
 
   // Set pending uma selection (click on card)
   const handleUmaClick = (uma: UmaMusume) => {
@@ -680,6 +790,16 @@ export default function Draft5v5({
   const confirmUmaSelect = (uma: UmaMusume) => {
     const team = draftState.currentTeam;
 
+    // Debug logging for selection issues
+    console.log("confirmUmaSelect called:", {
+      currentTeam: team,
+      localTeam: draftState.multiplayer?.localTeam,
+      connectionType: draftState.multiplayer?.connectionType,
+      phase: draftState.phase,
+      isMultiplayer,
+      isHost,
+    });
+
     // Use multiplayer-aware select function
     const newState = isMultiplayer
       ? selectUmaMultiplayer(draftState, uma, team)
@@ -687,28 +807,42 @@ export default function Draft5v5({
 
     // Only update if state changed (permission check passed)
     if (newState !== draftState) {
+      console.log("Selection allowed, updating state");
       if (isMultiplayer && isHost) {
         // Host broadcasts state to all peers and updates local state
         syncUpdateDraftState(newState);
         setDraftState(newState);
+        setHistory([...history, newState]);
       } else if (isMultiplayer) {
-        // Non-host sends action request to host (but update local optimistically)
+        // Non-host sends action request to host - wait for Firebase sync (no optimistic update)
         sendDraftAction({
           action: draftState.phase === "uma-pick" ? "pick" : "ban",
           itemId: uma.id.toString(),
           itemType: "uma",
         });
-        setDraftState(newState);
+        // Don't update local state - wait for confirmed state from Firebase
       } else {
         // Local mode - just update state
         setDraftState(newState);
+        setHistory([...history, newState]);
       }
-      setHistory([...history, newState]);
+    } else {
+      console.log("[confirmUmaSelect] Selection DENIED - state unchanged");
     }
   };
 
   const confirmMapSelect = (map: Map) => {
     const team = draftState.currentTeam;
+
+    console.log("[confirmMapSelect] Called", {
+      team,
+      currentTeam: draftState.currentTeam,
+      localTeam: draftState.multiplayer?.localTeam,
+      connectionType: draftState.multiplayer?.connectionType,
+      phase: draftState.phase,
+      isMultiplayer,
+      isHost,
+    });
 
     // Generate random track conditions
     const mapWithConditions: Map = {
@@ -723,24 +857,31 @@ export default function Draft5v5({
 
     // Only update if state changed (permission check passed)
     if (newState !== draftState) {
+      console.log("[confirmMapSelect] Selection allowed, updating state");
       if (isMultiplayer && isHost) {
         // Host broadcasts state to all peers and updates local state
         syncUpdateDraftState(newState);
         setDraftState(newState);
+        setHistory([...history, newState]);
+        setSelectedTrack(null); // Reset track selection after picking
       } else if (isMultiplayer) {
-        // Non-host sends action request to host (but update local optimistically)
+        // Non-host sends action request to host - wait for Firebase sync (no optimistic update)
         sendDraftAction({
           action: draftState.phase === "map-pick" ? "pick" : "ban",
           itemId: map.name,
           itemType: "map",
         });
-        setDraftState(newState);
+        // Don't update local state - wait for confirmed state from Firebase
+        // But do reset track selection so UI is ready for next pick
+        setSelectedTrack(null);
       } else {
         // Local mode - just update state
         setDraftState(newState);
+        setHistory([...history, newState]);
+        setSelectedTrack(null); // Reset track selection after picking
       }
-      setHistory([...history, newState]);
-      setSelectedTrack(null); // Reset track selection after picking
+    } else {
+      console.log("[confirmMapSelect] Selection DENIED - state unchanged");
     }
   };
 
@@ -766,7 +907,10 @@ export default function Draft5v5({
     setUmaSearch("");
     setShowResetConfirm(false);
     setShowWildcardModal(false);
-    setShowTeamNameModal(true);
+    // Only show team name modal for local mode
+    if (!isMultiplayer) {
+      setShowTeamNameModal(true);
+    }
     setRevealStarted(false);
     setCyclingMap(null);
   };
@@ -776,6 +920,8 @@ export default function Draft5v5({
   };
 
   const confirmBackToMenu = () => {
+    // Clear session so user doesn't get prompted to rejoin
+    clearDraftSession();
     onBackToMenu();
   };
 
@@ -801,7 +947,6 @@ export default function Draft5v5({
 
       // Only host syncs the phase change
       if (isMultiplayer && isHost) {
-        updateRoomDraftState(newState);
         syncUpdateDraftState(newState);
       }
     }
@@ -849,7 +994,6 @@ export default function Draft5v5({
 
     // Sync to all clients in multiplayer
     if (isMultiplayer && isHost) {
-      updateRoomDraftState(newState);
       syncUpdateDraftState(newState);
     } else if (isMultiplayer && !isHost) {
       // Non-host players send action to host
@@ -876,7 +1020,6 @@ export default function Draft5v5({
 
     // Sync to all clients in multiplayer
     if (isMultiplayer && isHost) {
-      updateRoomDraftState(newState);
       syncUpdateDraftState(newState);
     } else if (isMultiplayer && !isHost) {
       // Non-host players send action to host
@@ -944,29 +1087,47 @@ export default function Draft5v5({
     setTeam2Name(name2);
     setShowTeamNameModal(false);
 
-    // For multiplayer, go to lobby phase and wait for players
-    // For local, show wildcard modal immediately
-    if (isMultiplayer) {
-      const newState: DraftState = {
-        ...draftState,
-        phase: "lobby" as const,
-        multiplayer: {
-          ...draftState.multiplayer,
-          enabled: true,
-          connectionType: draftState.multiplayer?.connectionType || "host",
-          localTeam: draftState.multiplayer?.localTeam || "team1",
-          roomId: draftState.multiplayer?.roomId || "",
-          team1Name: name1,
-          team2Name: name2,
-        },
-      };
-      setDraftState(newState);
-      // Update room state so new joiners get correct phase
-      updateRoomDraftState(newState);
-      // Sync to any players already in room
-      syncUpdateDraftState(newState);
+    // For local mode, show wildcard modal immediately
+    // (Multiplayer now uses waiting room for team names, this modal is skipped)
+    setShowWildcardModal(true);
+  };
+
+  // Handle team name change from waiting room
+  const handleTeamNameChange = (team: "team1" | "team2", name: string) => {
+    if (team === "team1") {
+      setTeam1Name(name);
     } else {
-      setShowWildcardModal(true);
+      setTeam2Name(name);
+    }
+
+    // Update draft state and sync to other players
+    const newState: DraftState = {
+      ...draftState,
+      multiplayer: {
+        ...draftState.multiplayer,
+        enabled: true,
+        connectionType: draftState.multiplayer?.connectionType || "host",
+        localTeam: draftState.multiplayer?.localTeam || "team1",
+        roomId: draftState.multiplayer?.roomId || "",
+        team1Name: team === "team1" ? name : team1Name,
+        team2Name: team === "team2" ? name : team2Name,
+      },
+    };
+    setDraftState(newState);
+
+    if (isMultiplayer) {
+      if (isHost) {
+        // Host directly updates Firebase
+        syncUpdateDraftState(newState);
+      } else {
+        // Non-host sends action to host
+        sendDraftAction({
+          action: "team-name",
+          itemType: "control",
+          itemId: team,
+          phase: name, // Reuse phase field to carry the name
+        });
+      }
     }
   };
 
@@ -984,7 +1145,6 @@ export default function Draft5v5({
 
     // Broadcast to all clients
     if (isMultiplayer) {
-      updateRoomDraftState(newState);
       syncUpdateDraftState(newState);
     }
 
@@ -1053,24 +1213,32 @@ export default function Draft5v5({
     return getBannableMaps().filter((m) => m.track === track);
   };
 
+  // Handle leaving from waiting room (clears session)
+  const handleWaitingRoomLeave = () => {
+    clearDraftSession();
+    onBackToMenu();
+  };
+
   // Waiting room view for multiplayer lobby phase
   if (isMultiplayer && draftState.phase === "lobby") {
-    const playerCount =
-      (roomState?.connections.filter((c) => c.type === "player").length || 0) +
-      1; // +1 for host
-    const spectatorCount =
-      roomState?.connections.filter((c) => c.type === "spectator").length || 0;
+    // Host is already counted in firebasePlayers
+    const playerCount = firebasePlayers.length || 1;
+    const spectatorCount = firebaseSpectators.length;
 
     return (
       <WaitingRoom
-        roomCode={localRoomCode || roomState?.roomId || ""}
+        roomCode={roomCode}
         team1Name={team1Name}
         team2Name={team2Name}
         isHost={multiplayerConfig?.isHost || false}
+        localTeam={
+          draftState.multiplayer?.localTeam || (isHost ? "team1" : "team2")
+        }
         playerCount={playerCount}
         spectatorCount={spectatorCount}
         onStartDraft={handleStartDraft}
-        onLeave={onBackToMenu}
+        onLeave={handleWaitingRoomLeave}
+        onTeamNameChange={handleTeamNameChange}
       />
     );
   }
@@ -1088,7 +1256,7 @@ export default function Draft5v5({
         roomCode={multiplayerConfig.roomCode}
         team1Name={team1Name}
         team2Name={team2Name}
-        connectionStatus={status}
+        connectionStatus={isConnected ? "connected" : "disconnected"}
         onBackToMenu={onBackToMenu}
         timeRemaining={timeRemaining}
       />
@@ -1133,12 +1301,9 @@ export default function Draft5v5({
             canUndo={history.length > 1}
             wildcardMap={draftState.wildcardMap}
             isMultiplayer={isMultiplayer}
-            connectionStatus={status}
-            roomCode={localRoomCode || roomState?.roomId}
-            playerCount={
-              (roomState?.connections.filter((c) => c.type === "player")
-                .length || 0) + 1
-            }
+            connectionStatus={isConnected ? "connected" : "disconnected"}
+            roomCode={roomCode}
+            playerCount={firebasePlayers.length || 1}
             isHost={multiplayerConfig?.isHost || false}
             timeRemaining={timeRemaining}
             timerEnabled={true}
@@ -1502,22 +1667,35 @@ export default function Draft5v5({
         </div>
 
         {/* Lock In Button - Fixed at bottom */}
-        {(pendingUma || pendingMap) && (
-          <div className="shrink-0 py-3 lg:py-4 bg-gray-900 border-t border-gray-700">
-            <div className="flex justify-center">
-              <button
-                onClick={handleLockIn}
-                className={`${draftState.phase === "uma-ban" || draftState.phase === "map-ban" ? "bg-red-600 hover:bg-red-700" : "bg-green-600 hover:bg-green-700"} text-white font-bold py-3 lg:py-4 px-12 lg:px-16 rounded-lg transition-colors text-lg lg:text-xl shadow-lg animate-pulse`}
-              >
-                {draftState.phase === "uma-ban" ||
-                draftState.phase === "map-ban"
-                  ? "Ban"
-                  : "Lock In"}{" "}
-                {pendingUma ? pendingUma.name : pendingMap?.name}
-              </button>
-            </div>
-          </div>
-        )}
+        {(pendingUma || pendingMap) &&
+          (() => {
+            const isMyTurn =
+              !isMultiplayer || draftState.currentTeam === localTeam;
+            const isBanPhase =
+              draftState.phase === "uma-ban" || draftState.phase === "map-ban";
+
+            return (
+              <div className="shrink-0 py-3 lg:py-4 bg-gray-900 border-t border-gray-700">
+                <div className="flex justify-center">
+                  <button
+                    onClick={isMyTurn ? handleLockIn : undefined}
+                    disabled={!isMyTurn}
+                    className={`${
+                      !isMyTurn
+                        ? "bg-gray-600 cursor-not-allowed opacity-50"
+                        : isBanPhase
+                          ? "bg-red-600 hover:bg-red-700"
+                          : "bg-green-600 hover:bg-green-700"
+                    } text-white font-bold py-3 lg:py-4 px-12 lg:px-16 rounded-lg transition-colors text-lg lg:text-xl shadow-lg ${isMyTurn ? "animate-pulse" : ""}`}
+                  >
+                    {isBanPhase ? "Ban" : "Lock In"}{" "}
+                    {pendingUma ? pendingUma.name : pendingMap?.name}
+                    {!isMyTurn && " (waiting for turn)"}
+                  </button>
+                </div>
+              </div>
+            );
+          })()}
       </div>
 
       <div className="w-56 lg:w-72 xl:w-96 shrink-0 flex flex-col px-1 lg:px-2 min-h-0">

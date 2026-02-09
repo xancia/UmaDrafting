@@ -292,19 +292,35 @@ export const validateLocalTeamAction = (
   state: DraftState,
   actionTeam: Team,
 ): boolean => {
+  console.log("[validateLocalTeamAction] Checking", {
+    multiplayerEnabled: state.multiplayer?.enabled,
+    connectionType: state.multiplayer?.connectionType,
+    localTeam: state.multiplayer?.localTeam,
+    currentTeam: state.currentTeam,
+    actionTeam,
+  });
+
   // In local mode, all actions are allowed
   if (!state.multiplayer?.enabled) {
+    console.log("[validateLocalTeamAction] Local mode - allowed");
     return true;
   }
 
   // Spectators cannot perform actions
   if (state.multiplayer.connectionType === "spectator") {
+    console.log("[validateLocalTeamAction] Spectator - denied");
     return false;
   }
 
   // Check if it's the local team's turn
   const isLocalTeamTurn = state.multiplayer.localTeam === actionTeam;
   const isCurrentTeamTurn = state.currentTeam === actionTeam;
+
+  console.log("[validateLocalTeamAction] Permission check", {
+    isLocalTeamTurn,
+    isCurrentTeamTurn,
+    allowed: isLocalTeamTurn && isCurrentTeamTurn,
+  });
 
   return isLocalTeamTurn && isCurrentTeamTurn;
 };

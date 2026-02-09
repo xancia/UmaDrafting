@@ -115,7 +115,10 @@ export function isDraftActionPayload(
   const p = payload as Partial<DraftActionPayload>;
 
   return (
-    (p.action === "pick" || p.action === "ban" || p.action === "ready") &&
+    (p.action === "pick" ||
+      p.action === "ban" ||
+      p.action === "ready" ||
+      p.action === "team-name") &&
     (p.itemType === "uma" ||
       p.itemType === "map" ||
       p.itemType === "control") &&
