@@ -1,5 +1,29 @@
 @import "tailwindcss";
 
+/* Custom scrollbar styling */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #4b5563 #1f2937;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #1f2937;
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #4b5563;
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #6b7280;
+}
+
 /* Hide scrollbar but keep scroll functionality */
 .hide-scrollbar {
   -ms-overflow-style: none;
@@ -40,36 +64,45 @@
     box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
   }
   50% {
-    box-shadow: 0 0 40px rgba(59, 130, 246, 0.8),
+    box-shadow:
+      0 0 40px rgba(59, 130, 246, 0.8),
       0 0 60px rgba(59, 130, 246, 0.6);
   }
 }
 
 .wildcard-reveal {
-  animation: flipIn 3s ease-out, glow 2s ease-in-out infinite;
+  animation:
+    flipIn 3s ease-out,
+    glow 2s ease-in-out infinite;
   animation-delay: 0s, 3s;
 }
 
 /* Pulsing border animations for spectator mode */
 @keyframes pulse-blue {
-  0%, 100% {
+  0%,
+  100% {
     border-color: rgb(59, 130, 246);
     box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
   }
   50% {
     border-color: rgb(96, 165, 250);
-    box-shadow: 0 0 25px rgba(59, 130, 246, 0.8), 0 0 40px rgba(59, 130, 246, 0.4);
+    box-shadow:
+      0 0 25px rgba(59, 130, 246, 0.8),
+      0 0 40px rgba(59, 130, 246, 0.4);
   }
 }
 
 @keyframes pulse-red {
-  0%, 100% {
+  0%,
+  100% {
     border-color: rgb(239, 68, 68);
     box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
   }
   50% {
     border-color: rgb(248, 113, 113);
-    box-shadow: 0 0 25px rgba(239, 68, 68, 0.8), 0 0 40px rgba(239, 68, 68, 0.4);
+    box-shadow:
+      0 0 25px rgba(239, 68, 68, 0.8),
+      0 0 40px rgba(239, 68, 68, 0.4);
   }
 }
 
