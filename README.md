@@ -9,7 +9,7 @@ A League of Legends-style draft interface for Uma Musume Pretty Derby competitiv
 - **Team-based drafting** - Side-by-side team displays with clear visual hierarchy
 - **Two-phase system** - Uma Musume selection followed by track/distance selection
 - **Ban mechanics** - Ban opponent picks after draft phase completes
-- **Turn timer** - 45-second countdown per pick with auto-selection on timeout
+- **Turn timer** - 60-second countdown per pick with auto-selection on timeout
 - **Broadcast-ready UI** - Clean, professional interface designed for viewers
 - **Multiplayer Support** - Real-time drafting with room codes via Firebase
 - **Spectator Mode** - Watch live drafts without participating
