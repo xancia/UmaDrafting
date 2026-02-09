@@ -4,16 +4,19 @@ import { generateTrackConditions } from "./utils/trackConditions";
 // import { findUmaVariations } from "./utils/umaUtils";
 
 export const getInitialDraftState = (): DraftState => {
-  // Generate wildcard map at initialization
-  const randomMap = SAMPLE_MAPS[Math.floor(Math.random() * SAMPLE_MAPS.length)];
-  const wildcardMapWithConditions: Map = {
-    ...randomMap,
+  // Pre-generate conditions for all maps at initialization
+  const mapsWithConditions: Map[] = SAMPLE_MAPS.map((map) => ({
+    ...map,
     conditions: generateTrackConditions(),
-  };
+  }));
+
+  // Generate wildcard map from pre-conditioned maps
+  const wildcardIndex = Math.floor(Math.random() * mapsWithConditions.length);
+  const wildcardMap = mapsWithConditions[wildcardIndex];
 
   // Remove wildcard map from available maps so it can't be selected again
-  const availableMapsWithoutWildcard = SAMPLE_MAPS.filter(
-    (map) => map.id !== randomMap.id,
+  const availableMapsWithoutWildcard = mapsWithConditions.filter(
+    (_, index) => index !== wildcardIndex,
   );
 
   return {
@@ -33,7 +36,7 @@ export const getInitialDraftState = (): DraftState => {
     },
     availableUmas: [...SAMPLE_UMAS],
     availableMaps: availableMapsWithoutWildcard,
-    wildcardMap: wildcardMapWithConditions,
+    wildcardMap: wildcardMap,
   };
 };
 
@@ -52,11 +55,21 @@ export const getNextPhase = (state: DraftState): DraftPhase => {
     if (totalBans >= 2) return "post-map-pause"; // Pause after map bans
   } else if (phase === "uma-pick") {
     const totalPicks = team1.pickedUmas.length + team2.pickedUmas.length;
-    if (totalPicks >= 12) return "uma-ban";
+    // Transition to ban phase after 10 picks (5 each)
+    if (
+      totalPicks >= 10 &&
+      team1.bannedUmas.length === 0 &&
+      team2.bannedUmas.length === 0
+    ) {
+      return "uma-ban";
+    }
+    // Complete after 12 picks (6 each, post-ban)
+    if (totalPicks >= 12) return "complete";
   } else if (phase === "uma-ban") {
     const totalBans = team1.bannedUmas.length + team2.bannedUmas.length;
+    // After both teams ban, return to uma-pick for final 2 picks each
     if (totalBans >= 2) {
-      return "complete";
+      return "uma-pick";
     }
   }
 
@@ -68,7 +81,7 @@ export const canTeamAct = (state: DraftState): boolean => {
   const team = currentTeam === "team1" ? team1 : team2;
 
   if (phase === "uma-pick") {
-    return team.pickedUmas.length < 6;
+    return team.pickedUmas.length < 6; // Max 6 picks per team (5 pre-ban + 2 post-ban - 1 banned)
   } else if (phase === "uma-ban") {
     return team.bannedUmas.length < 1;
   } else if (phase === "map-pick") {
@@ -182,12 +195,15 @@ export const selectUma = (state: DraftState, uma: UmaMusume): DraftState => {
 
   const nextPhase = getNextPhase(newState);
 
-  // Handle uma-pick phase with snake draft pattern: T1(1), T2(2), T1(2), T2(2), T1(2), T2(2), T1(1)
+  // Handle uma-pick phase with snake draft pattern
+  // Pre-ban (picks 1-5 each): T1(1), T2(2), T1(2), T2(2), T1(2), T2(1) → ban phase
+  // Post-ban (picks 6-7 each): T2(1), T1(2), T2(1) → complete
   if (phase === "uma-pick" && nextPhase === "uma-pick") {
     const team1Picks = newState.team1.pickedUmas.length;
     const team2Picks = newState.team2.pickedUmas.length;
 
     // Determine next team based on snake draft pattern
+    // Pre-ban phase picks (1-5 each)
     if (team1Picks === 1 && team2Picks === 0) {
       newState.currentTeam = "team2"; // After T1's 1st pick
     } else if (team1Picks === 1 && team2Picks === 1) {
@@ -206,13 +222,21 @@ export const selectUma = (state: DraftState, uma: UmaMusume): DraftState => {
       newState.currentTeam = "team1"; // After T1's 4th pick (T1 picks again)
     } else if (team1Picks === 5 && team2Picks === 4) {
       newState.currentTeam = "team2"; // After T1's 5th pick
+    }
+    // Post-ban phase picks (each team has 4 after bans, need to get to 6)
+    // T2(1), T1(2), T2(1)
+    else if (team1Picks === 4 && team2Picks === 5) {
+      newState.currentTeam = "team1"; // After T2's 5th pick (post-ban)
     } else if (team1Picks === 5 && team2Picks === 5) {
-      newState.currentTeam = "team2"; // After T2's 5th pick (T2 picks again)
-    } else if (team1Picks === 5 && team2Picks === 6) {
-      newState.currentTeam = "team1"; // After T2's 6th pick
+      newState.currentTeam = "team1"; // After T1's 5th pick (T1 picks again)
+    } else if (team1Picks === 6 && team2Picks === 5) {
+      newState.currentTeam = "team2"; // After T1's 6th pick
     }
   } else if (phase === "uma-pick" && nextPhase === "uma-ban") {
     // When transitioning to uma-ban phase, team2 bans first
+    newState.currentTeam = "team2";
+  } else if (phase === "uma-ban" && nextPhase === "uma-pick") {
+    // After ban phase, team2 picks first for remaining picks
     newState.currentTeam = "team2";
   } else {
     // For all other phases, alternate teams normally

@@ -844,10 +844,10 @@ export default function Draft5v5({
       isHost,
     });
 
-    // Generate random track conditions
+    // Use the map's pre-generated conditions (fallback just in case)
     const mapWithConditions: Map = {
       ...map,
-      conditions: generateTrackConditions(),
+      conditions: map.conditions || generateTrackConditions(),
     };
 
     // Use multiplayer-aware select function

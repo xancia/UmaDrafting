@@ -36,11 +36,12 @@ export default function TeamPanel({
       : "border-red-500 shadow-red-500/50"
     : "border-gray-700";
 
-  const pulseClass = pulsingBorder && isCurrentTurn
-    ? isTeam1
-      ? "animate-pulse-blue"
-      : "animate-pulse-red"
-    : "";
+  const pulseClass =
+    pulsingBorder && isCurrentTurn
+      ? isTeam1
+        ? "animate-pulse-blue"
+        : "animate-pulse-red"
+      : "";
 
   const defaultTeamName = isTeam1 ? "Team 1" : "Team 2";
   const displayName = teamName || defaultTeamName;
@@ -55,7 +56,9 @@ export default function TeamPanel({
       }`}
     >
       <div className="text-center mb-3 lg:mb-4 xl:mb-6 pb-2 lg:pb-3 xl:pb-4 border-b-2 border-gray-700 shrink-0">
-        <h2 className={`text-xl lg:text-2xl xl:text-3xl font-bold tracking-wide ${teamColor}`}>
+        <h2
+          className={`text-xl lg:text-2xl xl:text-3xl font-bold tracking-wide ${teamColor}`}
+        >
           {displayName}
         </h2>
       </div>
@@ -64,13 +67,15 @@ export default function TeamPanel({
         <h3 className="text-sm lg:text-base xl:text-lg font-bold mb-1 lg:mb-2 text-gray-300 uppercase tracking-wider">
           Maps <span className="text-sm">({allMaps.length}/4)</span>
         </h3>
-        
+
         {/* Constraint Indicators */}
         {(Object.keys(distanceCounts).length > 0 || dirtCount > 0) && (
           <div className="mb-3 p-2 bg-gray-800/50 rounded-lg border border-gray-700">
-            <div className="text-xs font-semibold text-gray-400 mb-1">CONSTRAINTS:</div>
+            <div className="text-xs font-semibold text-gray-400 mb-1">
+              CONSTRAINTS:
+            </div>
             <div className="flex flex-wrap gap-2">
-              {['sprint', 'mile', 'medium', 'long'].map(category => {
+              {["sprint", "mile", "medium", "long"].map((category) => {
                 const count = distanceCounts[category] || 0;
                 if (count === 0) return null;
                 return (
@@ -100,17 +105,22 @@ export default function TeamPanel({
             </div>
           </div>
         )}
-        
+
         <div className="space-y-1.5">
           {[...Array(4)].map((_, index) => {
             const map = allMaps[index];
             const isBanned = map && bannedMaps.some((b) => b.id === map.id);
             // Calculate play order: Team1 picks odd positions (1,3,5,7), Team2 picks even (2,4,6,8)
             // Only picked (non-banned) maps get numbers
-            const pickIndex = pickedMaps.findIndex((m) => map && m.id === map.id);
-            const playOrder = pickIndex !== -1 
-              ? (isTeam1 ? pickIndex * 2 + 1 : pickIndex * 2 + 2)
-              : null;
+            const pickIndex = pickedMaps.findIndex(
+              (m) => map && m.id === map.id,
+            );
+            const playOrder =
+              pickIndex !== -1
+                ? isTeam1
+                  ? pickIndex * 2 + 1
+                  : pickIndex * 2 + 2
+                : null;
             const surfaceColor = map
               ? map.surface.toLowerCase() === "turf"
                 ? "bg-green-700"
@@ -128,7 +138,9 @@ export default function TeamPanel({
                 {/* Play order number badge */}
                 {showMapOrder && !isBanned && (
                   <div className="w-7 h-7 shrink-0 bg-black/30 rounded-md flex items-center justify-center border border-white/20">
-                    <span className="text-sm font-bold text-white">{playOrder}</span>
+                    <span className="text-sm font-bold text-white">
+                      {playOrder}
+                    </span>
                   </div>
                 )}
                 <div className="flex-1 min-w-0">
@@ -150,7 +162,9 @@ export default function TeamPanel({
                   {map.conditions && (
                     <div
                       className={`text-xs truncate ${
-                        isBanned ? "text-gray-500 line-through" : "text-gray-300"
+                        isBanned
+                          ? "text-gray-500 line-through"
+                          : "text-gray-300"
                       }`}
                     >
                       {map.conditions.season} • {map.conditions.ground} •{" "}
@@ -178,12 +192,11 @@ export default function TeamPanel({
 
       <div className="mt-2 lg:mt-3 shrink-0">
         <h3 className="text-sm lg:text-base xl:text-lg font-bold mb-1 lg:mb-2 text-gray-300 uppercase tracking-wider">
-          Umamusume <span className="text-sm">({allUmas.length}/6)</span>
+          Umamusume <span className="text-sm">({pickedUmas.length}/6)</span>
         </h3>
         <div className="grid grid-cols-3 gap-1.5 lg:gap-2 xl:gap-3">
           {[...Array(6)].map((_, index) => {
-            const uma = allUmas[index];
-            const isBanned = uma && bannedUmas.some((b) => b.id === uma.id);
+            const uma = pickedUmas[index];
             return (
               <div
                 key={index}
@@ -198,9 +211,7 @@ export default function TeamPanel({
                     <img
                       src={uma.imageUrl}
                       alt={uma.name}
-                      className={`w-full h-full object-cover ${
-                        isBanned ? "grayscale opacity-30" : ""
-                      }`}
+                      className="w-full h-full object-cover"
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
                         target.style.display = "none";
@@ -210,11 +221,6 @@ export default function TeamPanel({
                     <div className="hidden text-xl text-gray-400 w-full h-full items-center justify-center">
                       ?
                     </div>
-                    {isBanned && (
-                      <div className="absolute inset-0 flex items-center justify-center text-red-500 text-4xl font-bold">
-                        ✕
-                      </div>
-                    )}
                     <div className="absolute inset-0 bg-black/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center p-2">
                       <span className="text-sm font-semibold text-center whitespace-pre-line leading-tight break-words text-white">
                         {uma.name}
@@ -230,6 +236,32 @@ export default function TeamPanel({
             );
           })}
         </div>
+
+        {/* Banned Uma Section */}
+        {bannedUmas.length > 0 && (
+          <div className="mt-2 lg:mt-3">
+            <h4 className="text-xs lg:text-sm font-semibold mb-1 text-red-400 uppercase tracking-wider">
+              Banned
+            </h4>
+            <div className="flex gap-1.5 lg:gap-2">
+              {bannedUmas.map((uma) => (
+                <div
+                  key={uma.id}
+                  className="w-12 h-12 lg:w-14 lg:h-14 rounded-lg border-2 border-red-500/50 overflow-hidden relative"
+                >
+                  <img
+                    src={uma.imageUrl}
+                    alt={uma.name}
+                    className="w-full h-full object-cover grayscale opacity-50"
+                  />
+                  <div className="absolute inset-0 flex items-center justify-center text-red-500 text-2xl font-bold">
+                    ✕
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -59,11 +59,13 @@ https://drafter.uma.guide/
    - Each team bans 1 track from opponent's picks
 
 4. **Uma Musume Picking** (Team 1 starts)
-   - Each team picks 6 characters
-   - Alternating picks between teams
+   - Each team makes 7 total picks (ends with 6 after ban)
+   - Snake draft pattern with mid-draft banning
+   - After 5 picks each, pause for ban phase
 
 5. **Uma Musume Banning** (Team 2 starts)
-   - Each team bans 1 character from opponent's picks
+   - Each team bans 1 character from opponent's 5 picks
+   - Then resume picking for final 2 characters each (ending with 6 total)
 
 ## Getting Started
 
