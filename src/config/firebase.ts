@@ -40,20 +40,21 @@ const app = initializeApp(firebaseConfig);
 /**
  * Initialize App Check for bot protection
  * Only enabled in production with a valid reCAPTCHA site key
+ * Skipped in development to avoid localhost domain issues
  */
 let appCheck: AppCheck | null = null;
 const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY as
   | string
   | undefined;
 
-if (RECAPTCHA_SITE_KEY) {
+if (RECAPTCHA_SITE_KEY && !import.meta.env.DEV) {
   appCheck = initializeAppCheck(app, {
     provider: new ReCaptchaV3Provider(RECAPTCHA_SITE_KEY),
     isTokenAutoRefreshEnabled: true,
   });
   console.log("[Firebase] App Check initialized with reCAPTCHA v3");
 } else if (import.meta.env.DEV) {
-  console.log("[Firebase] App Check disabled - no VITE_RECAPTCHA_SITE_KEY set");
+  console.log("[Firebase] App Check disabled in development mode");
 }
 
 export { appCheck };
