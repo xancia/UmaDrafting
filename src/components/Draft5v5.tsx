@@ -1116,7 +1116,9 @@ export default function Draft5v5({
     setDraftState(newState);
 
     if (isMultiplayer) {
-      if (isHost) {
+      // Use multiplayerConfig?.isHost for reliability during lobby phase
+      // (isHost from useFirebaseRoom may not be set yet before room subscription fires)
+      if (multiplayerConfig?.isHost) {
         // Host directly updates Firebase
         syncUpdateDraftState(newState);
       } else {

@@ -281,6 +281,7 @@ export function useFirebaseRoom(): UseFirebaseRoomReturn {
 
   /**
    * Updates the draft state (host only)
+   * Note: isHost check is relaxed to allow updates during room creation before subscription fires
    */
   const updateDraftState = useCallback(
     async (newState: DraftState): Promise<void> => {
@@ -289,10 +290,9 @@ export function useFirebaseRoom(): UseFirebaseRoomReturn {
         return;
       }
 
-      if (!isHost) {
-        console.error("Cannot update draft state: not the host");
-        return;
-      }
+      // Note: We don't check isHost here because during room creation,
+      // the room subscription may not have fired yet so isHost would be false.
+      // The caller is responsible for ensuring they're the host.
 
       try {
         await firebaseRoom.updateDraftState(roomCode, newState);
@@ -303,7 +303,7 @@ export function useFirebaseRoom(): UseFirebaseRoomReturn {
         );
       }
     },
-    [roomCode, isHost],
+    [roomCode],
   );
 
   /**
