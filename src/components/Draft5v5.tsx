@@ -1312,7 +1312,7 @@ export default function Draft5v5({
           />
         </div>
 
-        <div className="flex-1 overflow-y-auto hide-scrollbar">
+        <div className="flex-1 flex flex-col min-h-0">
           {/* Pre-draft pause phase (before starting map draft) */}
           {draftState.phase === "pre-draft-pause" && (
             <div className="bg-gray-800 rounded-lg shadow-lg p-6 lg:p-8 xl:p-10 text-center border border-gray-700">
@@ -1517,103 +1517,108 @@ export default function Draft5v5({
           {!isComplete &&
             draftState.phase !== "pre-draft-pause" &&
             draftState.phase !== "post-map-pause" && (
-              <div className="bg-gray-800 rounded-lg shadow-lg p-3 lg:p-4 xl:p-6 border border-gray-700">
-                <h2 className="text-lg lg:text-xl xl:text-2xl font-bold mb-2 lg:mb-4 text-gray-100">
-                  {draftState.phase === "uma-pick" && "Available Umamusume"}
-                  {draftState.phase === "uma-ban" && "Ban Opponent's Umamusume"}
-                  {draftState.phase === "map-pick" &&
-                    !selectedTrack &&
-                    "Select a Racecourse"}
-                  {draftState.phase === "map-pick" &&
-                    selectedTrack &&
-                    `Select Distance - ${selectedTrack}`}
-                  {draftState.phase === "map-ban" && "Ban Opponent's Map"}
-                </h2>
+              <div className="bg-gray-800 rounded-lg shadow-lg p-3 lg:p-4 xl:p-6 border border-gray-700 flex flex-col h-full">
+                <div className="shrink-0">
+                  <h2 className="text-lg lg:text-xl xl:text-2xl font-bold mb-2 lg:mb-4 text-gray-100">
+                    {draftState.phase === "uma-pick" && "Available Umamusume"}
+                    {draftState.phase === "uma-ban" &&
+                      "Ban Opponent's Umamusume"}
+                    {draftState.phase === "map-pick" &&
+                      !selectedTrack &&
+                      "Select a Racecourse"}
+                    {draftState.phase === "map-pick" &&
+                      selectedTrack &&
+                      `Select Distance - ${selectedTrack}`}
+                    {draftState.phase === "map-ban" && "Ban Opponent's Map"}
+                  </h2>
 
-                {isUmaPhase && (
-                  <input
-                    type="text"
-                    placeholder="Search Umamusume..."
-                    value={umaSearch}
-                    onChange={(e) => setUmaSearch(e.target.value)}
-                    className="w-full mb-2 lg:mb-4 px-3 lg:px-4 py-1.5 lg:py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm lg:text-base text-gray-100 placeholder-gray-400 focus:outline-none focus:border-gray-500"
-                  />
-                )}
+                  {isUmaPhase && (
+                    <input
+                      type="text"
+                      placeholder="Search Umamusume..."
+                      value={umaSearch}
+                      onChange={(e) => setUmaSearch(e.target.value)}
+                      className="w-full mb-2 lg:mb-4 px-3 lg:px-4 py-1.5 lg:py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm lg:text-base text-gray-100 placeholder-gray-400 focus:outline-none focus:border-gray-500"
+                    />
+                  )}
 
-                {draftState.phase === "map-pick" && selectedTrack && (
-                  <button
-                    onClick={() => {
-                      setSelectedTrack(null);
-                      setPendingMap(null);
-                    }}
-                    className="mb-2 lg:mb-4 bg-gray-700 hover:bg-gray-600 text-gray-100 font-semibold py-1.5 lg:py-2 px-3 lg:px-4 rounded-lg transition-colors border border-gray-600 text-sm lg:text-base"
-                  >
-                    ← Back to Racecourses
-                  </button>
-                )}
+                  {draftState.phase === "map-pick" && selectedTrack && (
+                    <button
+                      onClick={() => {
+                        setSelectedTrack(null);
+                        setPendingMap(null);
+                      }}
+                      className="mb-2 lg:mb-4 bg-gray-700 hover:bg-gray-600 text-gray-100 font-semibold py-1.5 lg:py-2 px-3 lg:px-4 rounded-lg transition-colors border border-gray-600 text-sm lg:text-base"
+                    >
+                      ← Back to Racecourses
+                    </button>
+                  )}
+                </div>
 
-                <div className="grid grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 lg:gap-3 xl:gap-4">
-                  {isUmaPhase &&
-                    getFilteredUmas().map((uma) => (
-                      <UmaCard
-                        key={uma.id}
-                        uma={uma}
-                        onSelect={handleUmaClick}
-                        isSelected={pendingUma?.id === uma.id}
-                      />
-                    ))}
+                <div className="flex-1 overflow-y-auto custom-scrollbar">
+                  <div className="grid grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 lg:gap-3 xl:gap-4">
+                    {isUmaPhase &&
+                      getFilteredUmas().map((uma) => (
+                        <UmaCard
+                          key={uma.id}
+                          uma={uma}
+                          onSelect={handleUmaClick}
+                          isSelected={pendingUma?.id === uma.id}
+                        />
+                      ))}
 
-                  {draftState.phase === "map-pick" &&
-                    !selectedTrack &&
-                    getAvailableTracks().map((track) => (
-                      <button
-                        key={track}
-                        onClick={() => setSelectedTrack(track)}
-                        className="p-2 lg:p-3 xl:p-4 bg-gray-700 border-2 border-gray-600 rounded-lg hover:border-gray-500 hover:shadow-lg transition-all overflow-hidden"
-                      >
-                        <div className="aspect-video bg-gray-600 rounded mb-1 lg:mb-2 flex items-center justify-center overflow-hidden">
-                          <img
-                            src={`./racetrack-portraits/${track.toLowerCase()}.png`}
-                            alt={track}
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement;
-                              target.style.display = "none";
-                            }}
-                          />
-                        </div>
-                        <div className="text-center">
-                          <p className="text-sm lg:text-base xl:text-lg font-bold text-gray-100">
-                            {track}
-                          </p>
-                          <p className="text-xs text-gray-400 mt-0.5 lg:mt-1">
-                            {getMapsForTrack(track).length} options
-                          </p>
-                        </div>
-                      </button>
-                    ))}
+                    {draftState.phase === "map-pick" &&
+                      !selectedTrack &&
+                      getAvailableTracks().map((track) => (
+                        <button
+                          key={track}
+                          onClick={() => setSelectedTrack(track)}
+                          className="p-2 lg:p-3 xl:p-4 bg-gray-700 border-2 border-gray-600 rounded-lg hover:border-gray-500 hover:shadow-lg transition-all overflow-hidden"
+                        >
+                          <div className="aspect-video bg-gray-600 rounded mb-1 lg:mb-2 flex items-center justify-center overflow-hidden">
+                            <img
+                              src={`./racetrack-portraits/${track.toLowerCase()}.png`}
+                              alt={track}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.style.display = "none";
+                              }}
+                            />
+                          </div>
+                          <div className="text-center">
+                            <p className="text-sm lg:text-base xl:text-lg font-bold text-gray-100">
+                              {track}
+                            </p>
+                            <p className="text-xs text-gray-400 mt-0.5 lg:mt-1">
+                              {getMapsForTrack(track).length} options
+                            </p>
+                          </div>
+                        </button>
+                      ))}
 
-                  {draftState.phase === "map-pick" &&
-                    selectedTrack &&
-                    getMapsForTrack(selectedTrack).map((map) => (
-                      <MapCard
-                        key={map.id}
-                        map={map}
-                        onSelect={handleMapClick}
-                        disabled={!canSelectMap(map)}
-                        isSelected={pendingMap?.id === map.id}
-                      />
-                    ))}
+                    {draftState.phase === "map-pick" &&
+                      selectedTrack &&
+                      getMapsForTrack(selectedTrack).map((map) => (
+                        <MapCard
+                          key={map.id}
+                          map={map}
+                          onSelect={handleMapClick}
+                          disabled={!canSelectMap(map)}
+                          isSelected={pendingMap?.id === map.id}
+                        />
+                      ))}
 
-                  {draftState.phase === "map-ban" &&
-                    getBannableMaps().map((map) => (
-                      <MapCard
-                        key={map.id}
-                        map={map}
-                        onSelect={handleMapClick}
-                        isSelected={pendingMap?.id === map.id}
-                      />
-                    ))}
+                    {draftState.phase === "map-ban" &&
+                      getBannableMaps().map((map) => (
+                        <MapCard
+                          key={map.id}
+                          map={map}
+                          onSelect={handleMapClick}
+                          isSelected={pendingMap?.id === map.id}
+                        />
+                      ))}
+                  </div>
                 </div>
               </div>
             )}
