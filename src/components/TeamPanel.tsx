@@ -46,35 +46,34 @@ export default function TeamPanel({
   const defaultTeamName = isTeam1 ? "Team 1" : "Team 2";
   const displayName = teamName || defaultTeamName;
 
-  const allUmas = [...pickedUmas, ...bannedUmas];
   const allMaps = [...pickedMaps, ...bannedMaps];
 
   return (
     <div
-      className={`bg-linear-to-br from-gray-900 to-gray-800 rounded-xl p-3 lg:p-4 xl:p-6 text-gray-100 h-full flex flex-col border-2 transition-all overflow-y-auto hide-scrollbar ${borderColor} ${pulseClass} ${
+      className={`bg-linear-to-br from-gray-900 to-gray-800 rounded-xl p-2 lg:p-3 xl:p-4 text-gray-100 h-full flex flex-col border-2 transition-all overflow-y-auto hide-scrollbar ${borderColor} ${pulseClass} ${
         isCurrentTurn ? "shadow-lg" : "shadow-2xl"
       }`}
     >
-      <div className="text-center mb-3 lg:mb-4 xl:mb-6 pb-2 lg:pb-3 xl:pb-4 border-b-2 border-gray-700 shrink-0">
+      <div className="text-center mb-2 lg:mb-3 xl:mb-4 pb-1.5 lg:pb-2 xl:pb-3 border-b-2 border-gray-700 shrink-0">
         <h2
-          className={`text-xl lg:text-2xl xl:text-3xl font-bold tracking-wide ${teamColor}`}
+          className={`text-lg lg:text-xl xl:text-2xl font-bold tracking-wide ${teamColor}`}
         >
           {displayName}
         </h2>
       </div>
 
-      <div className="mb-3 lg:mb-4 xl:mb-6 shrink-0 min-w-0">
-        <h3 className="text-sm lg:text-base xl:text-lg font-bold mb-1 lg:mb-2 text-gray-300 uppercase tracking-wider">
-          Maps <span className="text-sm">({allMaps.length}/4)</span>
+      <div className="mb-2 lg:mb-3 xl:mb-4 shrink-0 min-w-0">
+        <h3 className="text-xs lg:text-sm xl:text-base font-bold mb-1 text-gray-300 uppercase tracking-wider">
+          Maps <span className="text-xs">({allMaps.length}/4)</span>
         </h3>
 
         {/* Constraint Indicators */}
         {(Object.keys(distanceCounts).length > 0 || dirtCount > 0) && (
-          <div className="mb-3 p-2 bg-gray-800/50 rounded-lg border border-gray-700">
-            <div className="text-xs font-semibold text-gray-400 mb-1">
+          <div className="mb-2 p-1.5 bg-gray-800/50 rounded-lg border border-gray-700">
+            <div className="text-xs font-semibold text-gray-400 mb-0.5">
               CONSTRAINTS:
             </div>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-1.5">
               {["sprint", "mile", "medium", "long"].map((category) => {
                 const count = distanceCounts[category] || 0;
                 if (count === 0) return null;
