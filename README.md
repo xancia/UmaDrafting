@@ -2,35 +2,36 @@
 
 A League of Legends-style draft interface for Uma Musume Pretty Derby competitive play. Built for streaming and tournament use.
 
-![Draft System](https://img.shields.io/badge/React-19-blue) ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue) ![Tailwind](https://img.shields.io/badge/Tailwind-4-blue) ![PeerJS](https://img.shields.io/badge/PeerJS-P2P-green)
+![Draft System](https://img.shields.io/badge/React-19-blue) ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue) ![Tailwind](https://img.shields.io/badge/Tailwind-4-blue) ![Firebase](https://img.shields.io/badge/Firebase-Realtime-orange)
 
 ## Features
 
 - **Team-based drafting** - Side-by-side team displays with clear visual hierarchy
 - **Two-phase system** - Uma Musume selection followed by track/distance selection
 - **Ban mechanics** - Ban opponent picks after draft phase completes
-- **Undo/Reset controls** - Full history tracking with ability to step backwards
+- **Turn timer** - 45-second countdown per pick with auto-selection on timeout
 - **Broadcast-ready UI** - Clean, professional interface designed for viewers
-- **🆕 Multiplayer Support** - Real-time P2P drafting with room codes
-- **🆕 Spectator Mode** - Watch live drafts without participating
-- **🆕 Dynamic Track Conditions** - Random weather and ground conditions for each race
+- **Multiplayer Support** - Real-time drafting with room codes via Firebase
+- **Spectator Mode** - Watch live drafts without participating
+- **Reconnection Support** - Rejoin your draft if disconnected
+- **Dynamic Track Conditions** - Random weather and ground conditions for each race
 
 ## Multiplayer
 
-The drafting system supports real-time multiplayer using peer-to-peer WebRTC connections:
+The drafting system supports real-time multiplayer using Firebase Realtime Database:
 
 ### How to Play Online
 
-1. **Host a Room** - Click "Multiplayer" → "Host Room" → Enter team names → Share the 6-character room code
+1. **Host a Room** - Click "Multiplayer" → "Host Room" → Share the 6-character room code
 2. **Join a Room** - Click "Multiplayer" → "Join Room" → Enter the room code
 3. **Spectate** - Click "Multiplayer" → "Spectate" → Enter the room code to watch live
 
 ### How It Works
 
-- Uses **PeerJS** for WebRTC-based peer-to-peer connections
-- The host's browser acts as the source of truth for game state
-- All draft data flows directly between players (no game server required)
-- Signaling server only helps peers discover each other initially
+- Uses **Firebase Realtime Database** for synchronized game state
+- The host processes all actions to maintain consistency
+- Players can reconnect if they disconnect mid-draft
+- No peer-to-peer setup required - works through firewalls
 
 ### Features
 
@@ -38,7 +39,8 @@ The drafting system supports real-time multiplayer using peer-to-peer WebRTC con
 - Automatic team assignment (Host = Team 1, Player 2 = Team 2)
 - Spectators can watch the draft live with pulsing turn indicators
 - Wildcard tiebreaker map reveal before draft begins
-- Waiting room with player count before starting
+- Waiting room with editable team names
+- Turn timer with visual countdown
 
 ## Usage
 
@@ -90,10 +92,13 @@ The app will be available at `http://localhost:5173`
 ```
 src/
 ├── components/      # React components
-├── types.ts        # TypeScript interfaces
-├── data.ts         # Character and track data
-├── draftLogic.ts   # Core draft state management
-└── App.tsx         # Main application
+├── hooks/           # Custom React hooks (Firebase, timer, etc.)
+├── services/        # Firebase service layer
+├── utils/           # Utility functions
+├── types.ts         # TypeScript interfaces
+├── data.ts          # Character and track data
+├── draftLogic.ts    # Core draft state management
+└── App.tsx          # Main application
 ```
 
 ## Character Images
@@ -138,7 +143,7 @@ Edit `src/data.ts` and add entries to `SAMPLE_MAPS`:
 - **TypeScript 5** - Type safety
 - **Vite** - Build tool and dev server
 - **Tailwind CSS v4** - Styling
-- **PeerJS** - WebRTC peer-to-peer connections for multiplayer
+- **Firebase** - Realtime Database for multiplayer sync
 
 ## License
 
