@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import type { DraftState } from "../types";
+import type { DraftState, Map } from "../types";
 import type { ConnectionStatus } from "../types/multiplayer";
 import DraftHeader from "./DraftHeader";
 import TeamPanel from "./TeamPanel";
@@ -125,7 +125,6 @@ export default function SpectatorView({
           dirtCount={countDirtTracks(team1.pickedMaps)}
           isCurrentTurn={phase !== "complete" && currentTeam === "team1"}
           activeSection={activeSection}
-          pulsingBorder={true}
           showMapOrder={
             phase === "post-map-pause" ||
             phase === "uma-pick" ||
@@ -337,23 +336,224 @@ export default function SpectatorView({
 
           {/* Draft complete */}
           {isComplete && (
-            <div className="flex-1 flex items-center justify-center">
-              <div className="bg-gray-800/90 rounded-lg shadow-lg p-6 lg:p-8 border border-gray-700/60 text-center max-w-lg">
-                <h2 className="text-2xl lg:text-3xl font-bold text-gray-100 mb-4">
+            <div className="flex-1 overflow-y-auto custom-scrollbar">
+              <div className="bg-gray-800/90 rounded-lg shadow-lg p-4 lg:p-6 xl:p-8 border border-gray-700/60">
+                <h2 className="text-2xl lg:text-3xl font-bold text-gray-100 mb-4 lg:mb-6 text-center">
                   Draft Complete
                 </h2>
-                <p className="text-gray-400 text-sm">
-                  The draft has finished. Review the final rosters on each team
-                  panel.
-                </p>
-                {wildcardMap && (
-                  <p className="text-gray-500 text-xs mt-3">
-                    Tiebreaker: {wildcardMap.track} {wildcardMap.distance}m (
-                    {wildcardMap.surface})
-                    {wildcardMap.conditions &&
-                      ` -- ${wildcardMap.conditions.season} / ${wildcardMap.conditions.ground} / ${wildcardMap.conditions.weather}`}
-                  </p>
-                )}
+
+                {/* Team Rosters Side by Side */}
+                <div className="grid grid-cols-2 gap-4 lg:gap-6 mb-6">
+                  {/* Team 1 Roster */}
+                  <div className="bg-gray-900/60 rounded-lg p-3 lg:p-4 border border-blue-500/20">
+                    <h3 className="text-blue-400 font-bold text-sm lg:text-base mb-2 text-center uppercase tracking-wider">
+                      {team1Name}
+                    </h3>
+                    <div className="grid grid-cols-3 gap-1.5 lg:gap-2 mb-2">
+                      {team1.pickedUmas.map((uma, i) => (
+                        <div
+                          key={i}
+                          className="flex flex-col items-center gap-0.5"
+                        >
+                          <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-lg overflow-hidden border border-blue-500/30 bg-gray-700">
+                            {uma.imageUrl && (
+                              <img
+                                src={uma.imageUrl}
+                                alt={uma.name}
+                                className="w-full h-full object-cover"
+                              />
+                            )}
+                          </div>
+                          <span className="text-[9px] lg:text-[10px] text-gray-300 text-center leading-tight">
+                            {uma.name}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                    {team1.bannedUmas.length > 0 && (
+                      <div className="mt-1 pt-1 border-t border-gray-700/50">
+                        <span className="text-[9px] text-red-400/70 uppercase">
+                          Banned:{" "}
+                        </span>
+                        <span className="text-[9px] text-gray-500">
+                          {team1.bannedUmas.map((u) => u.name).join(", ")}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Team 2 Roster */}
+                  <div className="bg-gray-900/60 rounded-lg p-3 lg:p-4 border border-red-500/20">
+                    <h3 className="text-red-400 font-bold text-sm lg:text-base mb-2 text-center uppercase tracking-wider">
+                      {team2Name}
+                    </h3>
+                    <div className="grid grid-cols-3 gap-1.5 lg:gap-2 mb-2">
+                      {team2.pickedUmas.map((uma, i) => (
+                        <div
+                          key={i}
+                          className="flex flex-col items-center gap-0.5"
+                        >
+                          <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-lg overflow-hidden border border-red-500/30 bg-gray-700">
+                            {uma.imageUrl && (
+                              <img
+                                src={uma.imageUrl}
+                                alt={uma.name}
+                                className="w-full h-full object-cover"
+                              />
+                            )}
+                          </div>
+                          <span className="text-[9px] lg:text-[10px] text-gray-300 text-center leading-tight">
+                            {uma.name}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                    {team2.bannedUmas.length > 0 && (
+                      <div className="mt-1 pt-1 border-t border-gray-700/50">
+                        <span className="text-[9px] text-red-400/70 uppercase">
+                          Banned:{" "}
+                        </span>
+                        <span className="text-[9px] text-gray-500">
+                          {team2.bannedUmas.map((u) => u.name).join(", ")}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Map Schedule */}
+                <div className="mb-4 lg:mb-6">
+                  <h3 className="text-gray-300 font-bold text-sm lg:text-base mb-2 uppercase tracking-wider text-center">
+                    Map Schedule
+                  </h3>
+                  <div className="space-y-1">
+                    {(() => {
+                      const t1Maps = team1.pickedMaps;
+                      const t2Maps = team2.pickedMaps;
+                      const schedule: {
+                        map: Map;
+                        team: string;
+                        index: number;
+                      }[] = [];
+                      const maxLen = Math.max(t1Maps.length, t2Maps.length);
+                      for (let i = 0; i < maxLen; i++) {
+                        if (i < t1Maps.length)
+                          schedule.push({
+                            map: t1Maps[i],
+                            team: team1Name,
+                            index: schedule.length + 1,
+                          });
+                        if (i < t2Maps.length)
+                          schedule.push({
+                            map: t2Maps[i],
+                            team: team2Name,
+                            index: schedule.length + 1,
+                          });
+                      }
+                      return schedule.map((s) => (
+                        <div
+                          key={s.index}
+                          className="flex items-center gap-2 px-3 py-1.5 bg-gray-900/40 rounded-lg text-sm"
+                        >
+                          <span className="text-gray-500 font-mono text-xs w-5">
+                            {s.index}.
+                          </span>
+                          <span
+                            className={`inline-block w-1.5 h-1.5 rounded-full ${s.team === team1Name ? "bg-blue-500" : "bg-red-500"}`}
+                          />
+                          <span className="text-gray-200 font-medium">
+                            {s.map.track}
+                          </span>
+                          <span className="text-gray-500">
+                            {s.map.distance}m
+                          </span>
+                          <span
+                            className={`text-xs px-1.5 py-0.5 rounded ${s.map.surface?.toLowerCase() === "turf" ? "bg-green-900/40 text-green-400" : "bg-amber-900/40 text-amber-400"}`}
+                          >
+                            {s.map.surface}
+                          </span>
+                          {s.map.conditions && (
+                            <span className="text-gray-500 text-xs ml-auto">
+                              {s.map.conditions.season} /{" "}
+                              {s.map.conditions.ground} /{" "}
+                              {s.map.conditions.weather}
+                            </span>
+                          )}
+                        </div>
+                      ));
+                    })()}
+                  </div>
+                </div>
+
+                {/* Tiebreaker */}
+                <div className="bg-gray-900/40 rounded-lg p-3 lg:p-4 border border-gray-700/40 text-center mb-4">
+                  <h3 className="text-gray-400 font-bold text-xs uppercase tracking-wider mb-2">
+                    Tiebreaker Map
+                  </h3>
+                  <div className="flex items-center justify-center gap-3">
+                    <div className="w-16 h-10 rounded overflow-hidden bg-gray-700">
+                      <img
+                        src={`./racetrack-portraits/${wildcardMap.track?.toLowerCase()}.png`}
+                        alt={wildcardMap.track}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = "none";
+                        }}
+                      />
+                    </div>
+                    <div className="text-left">
+                      <span className="text-white font-bold text-sm">
+                        {wildcardMap.track}
+                      </span>
+                      <span className="text-gray-400 text-xs ml-2">
+                        {wildcardMap.distance}m
+                      </span>
+                      <span
+                        className={`text-xs ml-2 ${wildcardMap.surface?.toLowerCase() === "turf" ? "text-green-400" : "text-amber-400"}`}
+                      >
+                        {wildcardMap.surface}
+                      </span>
+                      {wildcardMap.conditions && (
+                        <span className="text-gray-500 text-xs ml-2">
+                          {wildcardMap.conditions.season} /{" "}
+                          {wildcardMap.conditions.ground} /{" "}
+                          {wildcardMap.conditions.weather}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Copy Results */}
+                <div className="flex justify-center">
+                  <button
+                    onClick={() => {
+                      const t1Umas = team1.pickedUmas
+                        .map((u) => u.name)
+                        .join(", ");
+                      const t2Umas = team2.pickedUmas
+                        .map((u) => u.name)
+                        .join(", ");
+                      const t1Bans = team1.bannedUmas
+                        .map((u) => u.name)
+                        .join(", ");
+                      const t2Bans = team2.bannedUmas
+                        .map((u) => u.name)
+                        .join(", ");
+                      const maps = [...team1.pickedMaps, ...team2.pickedMaps]
+                        .map(
+                          (m, i) =>
+                            `${i + 1}. ${m.track} ${m.distance}m (${m.surface})`,
+                        )
+                        .join("\n");
+                      const text = `=== DRAFT RESULTS ===\n\n${team1Name}: ${t1Umas}\nBanned: ${t1Bans || "None"}\n\n${team2Name}: ${t2Umas}\nBanned: ${t2Bans || "None"}\n\nMap Schedule:\n${maps}\n\nTiebreaker: ${wildcardMap.track} ${wildcardMap.distance}m (${wildcardMap.surface})`;
+                      navigator.clipboard.writeText(text);
+                    }}
+                    className="bg-gray-700/80 hover:bg-gray-600 text-gray-200 font-semibold py-2 px-6 rounded-lg transition-colors border border-gray-600/50 text-sm"
+                  >
+                    Copy Draft Results
+                  </button>
+                </div>
               </div>
             </div>
           )}
@@ -373,7 +573,6 @@ export default function SpectatorView({
           dirtCount={countDirtTracks(team2.pickedMaps)}
           isCurrentTurn={phase !== "complete" && currentTeam === "team2"}
           activeSection={activeSection}
-          pulsingBorder={true}
           showMapOrder={
             phase === "post-map-pause" ||
             phase === "uma-pick" ||

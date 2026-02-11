@@ -1882,6 +1882,13 @@ export default function Draft5v5({
                     >
                       {draftState.wildcardMap.surface}
                     </span>
+                    {draftState.wildcardMap.conditions && (
+                      <span className="text-gray-500 text-xs ml-2">
+                        {draftState.wildcardMap.conditions.season} /{" "}
+                        {draftState.wildcardMap.conditions.ground} /{" "}
+                        {draftState.wildcardMap.conditions.weather}
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>

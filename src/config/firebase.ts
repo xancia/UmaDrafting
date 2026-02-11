@@ -39,22 +39,28 @@ const app = initializeApp(firebaseConfig);
 
 /**
  * Initialize App Check for bot protection
- * Only enabled in production with a valid reCAPTCHA site key
- * Skipped in development to avoid localhost domain issues
+ * Uses debug token in development, reCAPTCHA v3 in production
  */
 let appCheck: AppCheck | null = null;
 const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY as
   | string
   | undefined;
 
-if (RECAPTCHA_SITE_KEY && !import.meta.env.DEV) {
+if (import.meta.env.DEV) {
+  // Debug mode: generates a debug token printed to the browser console.
+  // Register that token in Firebase Console > App Check > Apps > Manage debug tokens.
+  (self as any).FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+  appCheck = initializeAppCheck(app, {
+    provider: new ReCaptchaV3Provider(RECAPTCHA_SITE_KEY || "fake-key"),
+    isTokenAutoRefreshEnabled: true,
+  });
+  console.log("[Firebase] App Check initialized in DEBUG mode");
+} else if (RECAPTCHA_SITE_KEY) {
   appCheck = initializeAppCheck(app, {
     provider: new ReCaptchaV3Provider(RECAPTCHA_SITE_KEY),
     isTokenAutoRefreshEnabled: true,
   });
   console.log("[Firebase] App Check initialized with reCAPTCHA v3");
-} else if (import.meta.env.DEV) {
-  console.log("[Firebase] App Check disabled in development mode");
 }
 
 export { appCheck };

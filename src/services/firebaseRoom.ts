@@ -203,15 +203,12 @@ export async function joinRoom(
       return { success: true };
     }
 
-    // Create player entry
+    // Create player entry (omit team for spectators — Firebase rejects undefined)
     const player: FirebasePlayer = {
       id: user.uid,
       name: data.playerName,
       type: data.connectionType,
-      team:
-        data.connectionType === "player" || data.connectionType === "host"
-          ? data.team
-          : undefined,
+      ...(data.team ? { team: data.team } : {}),
       joinedAt: Date.now(),
       connected: true,
       lastSeen: Date.now(),
