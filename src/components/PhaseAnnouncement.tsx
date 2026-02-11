@@ -49,12 +49,20 @@ export default function PhaseAnnouncement({ phase }: PhaseAnnouncementProps) {
   useEffect(() => {
     // Only trigger when phase actually changes
     if (phase === prevPhaseRef.current) return;
+    const prevPhase = prevPhaseRef.current;
     prevPhaseRef.current = phase;
 
     const phaseConfig = PHASE_CONFIG[phase];
     if (!phaseConfig) return;
 
-    setConfig(phaseConfig);
+    // After uma-ban, the resumed uma-pick is the final pick phase
+    const isResumedUmaPick = phase === "uma-pick" && prevPhase === "uma-ban";
+
+    setConfig(
+      isResumedUmaPick
+        ? { text: "FINAL UMA PICK", color: "text-green-400" }
+        : phaseConfig,
+    );
     setVisible(true);
 
     // Auto-dismiss after animation duration (2.2s)
