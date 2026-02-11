@@ -15,6 +15,7 @@ import {
 import { SAMPLE_MAPS } from "../data";
 import { generateTrackConditions } from "../utils/trackConditions";
 import { saveDraftSession, clearDraftSession } from "../utils/sessionStorage";
+import { formatRoomCode } from "../utils/roomCode";
 import { roomExists } from "../services/firebaseRoom";
 import DraftHeader from "./DraftHeader";
 import TeamPanel from "./TeamPanel";
@@ -1339,6 +1340,65 @@ export default function Draft5v5({
     // Host is already counted in firebasePlayers
     const playerCount = firebasePlayers.length || 1;
     const spectatorCount = firebaseSpectators.length;
+
+    // Spectators see a minimal waiting view — they can't edit names or start
+    if (multiplayerConfig?.isSpectator) {
+      return (
+        <div className="h-screen bg-linear-to-br from-gray-950 to-gray-900 flex items-center justify-center px-4 lg:px-6">
+          <div className="bg-gray-800 rounded-xl shadow-2xl p-6 lg:p-8 xl:p-10 border-2 border-gray-700 max-w-lg w-full text-center">
+            <h1 className="text-2xl lg:text-3xl font-bold mb-1 lg:mb-2 text-gray-100">
+              Spectating
+            </h1>
+            <p className="text-sm lg:text-base text-gray-400 mb-4 lg:mb-6">
+              Waiting for the host to start the draft...
+            </p>
+
+            {/* Room Code */}
+            <div className="bg-gray-900 rounded-xl p-4 lg:p-6 mb-4 lg:mb-6 border border-gray-700">
+              <p className="text-xs lg:text-sm text-gray-400 mb-1">Room Code</p>
+              <p className="text-3xl lg:text-4xl font-mono font-bold text-purple-400 tracking-wider">
+                {formatRoomCode(roomCode)}
+              </p>
+            </div>
+
+            {/* Connection Status */}
+            <div className="bg-gray-900/50 rounded-lg p-3 lg:p-4 mb-4 lg:mb-6 border border-gray-700">
+              <div className="flex items-center justify-center gap-4 lg:gap-6">
+                <div className="flex items-center gap-1.5 lg:gap-2">
+                  <span
+                    className={`w-2.5 lg:w-3 h-2.5 lg:h-3 rounded-full ${playerCount >= 2 ? "bg-green-400" : "bg-yellow-400 animate-pulse"}`}
+                  />
+                  <span className="text-sm lg:text-base text-gray-300">
+                    {playerCount}/2 Players
+                  </span>
+                </div>
+                {spectatorCount > 0 && (
+                  <div className="flex items-center gap-1.5 lg:gap-2">
+                    <span className="w-2.5 lg:w-3 h-2.5 lg:h-3 rounded-full bg-purple-400" />
+                    <span className="text-sm lg:text-base text-gray-300">
+                      {spectatorCount} Spectator
+                      {spectatorCount !== 1 ? "s" : ""}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {onBackToMenu && (
+              <button
+                onClick={() => {
+                  clearDraftSession();
+                  onBackToMenu();
+                }}
+                className="w-full py-2 lg:py-3 px-3 lg:px-4 text-gray-400 hover:text-gray-200 transition-colors text-xs lg:text-sm"
+              >
+                Leave Room
+              </button>
+            )}
+          </div>
+        </div>
+      );
+    }
 
     return (
       <WaitingRoom
