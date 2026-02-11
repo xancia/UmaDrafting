@@ -1,4 +1,5 @@
 import type { Team, UmaMusume, Map } from "../types";
+import type { FirebasePendingSelection } from "../types/firebase";
 
 interface TeamPanelProps {
   team: Team;
@@ -13,6 +14,7 @@ interface TeamPanelProps {
   dirtCount?: number;
   pulsingBorder?: boolean;
   showMapOrder?: boolean;
+  ghostSelection?: FirebasePendingSelection | null;
 }
 
 export default function TeamPanel({
@@ -28,6 +30,7 @@ export default function TeamPanel({
   dirtCount = 0,
   pulsingBorder = false,
   showMapOrder = false,
+  ghostSelection = null,
 }: TeamPanelProps) {
   const isTeam1 = team === "team1";
   const teamColor = isTeam1 ? "text-blue-500" : "text-red-500";
@@ -198,7 +201,22 @@ export default function TeamPanel({
                     : "bg-gray-800/50 border-gray-700"
                 }`}
               >
-                <div className="text-xs text-gray-600">Empty slot</div>
+                {/* Ghost map preview */}
+                {ghostSelection?.type === "map" &&
+                activeSection === "maps" &&
+                index === allMaps.length &&
+                isCurrentTurn ? (
+                  <div className="opacity-35 animate-pulse">
+                    <div className="text-sm font-semibold text-white truncate">
+                      {ghostSelection.track || ghostSelection.name}
+                    </div>
+                    <div className="text-xs text-gray-200 truncate">
+                      {ghostSelection.distance} • {ghostSelection.surface}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-xs text-gray-600">Empty slot</div>
+                )}
               </div>
             );
           })}
@@ -248,6 +266,26 @@ export default function TeamPanel({
                     <div className="absolute inset-0 bg-black/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center p-2">
                       <span className="text-sm font-semibold text-center whitespace-pre-line leading-tight break-words text-white">
                         {uma.name}
+                      </span>
+                    </div>
+                  </div>
+                ) : ghostSelection?.type === "uma" &&
+                  activeSection === "umas" &&
+                  isNextEmptySlot ? (
+                  <div className="relative w-full h-full opacity-35 animate-pulse">
+                    {ghostSelection.imageUrl && (
+                      <img
+                        src={ghostSelection.imageUrl}
+                        alt={ghostSelection.name}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = "none";
+                        }}
+                      />
+                    )}
+                    <div className="absolute bottom-0 inset-x-0 bg-black/60 px-1 py-0.5">
+                      <span className="text-[8px] text-gray-200 text-center block truncate">
+                        {ghostSelection.name}
                       </span>
                     </div>
                   </div>

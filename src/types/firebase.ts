@@ -78,6 +78,38 @@ export interface FirebasePendingAction {
 /**
  * Data for creating a new room
  */
+/**
+ * Pending selection data written to Firebase
+ * Represents what a player is hovering before locking in
+ */
+export interface FirebasePendingSelection {
+  /** Type of selection */
+  type: "uma" | "map";
+  /** Uma ID or map name */
+  id: string;
+  /** Display name for ghost preview */
+  name: string;
+  /** Image URL (for uma) */
+  imageUrl?: string;
+  /** Map details (for map ghost) */
+  track?: string;
+  distance?: number;
+  surface?: string;
+  /** Timestamp */
+  updatedAt: number;
+}
+
+/**
+ * Both teams' pending selections
+ */
+export type PendingSelections = {
+  team1?: FirebasePendingSelection | null;
+  team2?: FirebasePendingSelection | null;
+};
+
+/**
+ * Data for creating a new room
+ */
 export interface CreateRoomData {
   /** Draft format */
   format: "5v5" | "3v3v3";
@@ -166,4 +198,11 @@ export interface UseFirebaseRoomReturn {
   setPendingActionHandler: (
     handler: ((action: FirebasePendingAction) => void) | null,
   ) => void;
+  /** Update the ghost hover selection for a team */
+  updatePendingSelection: (
+    team: "team1" | "team2",
+    selection: FirebasePendingSelection | null,
+  ) => Promise<void>;
+  /** Current pending (ghost) selections from both teams */
+  pendingSelections: PendingSelections;
 }

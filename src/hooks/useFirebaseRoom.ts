@@ -24,6 +24,8 @@ import type {
   FirebaseRoom,
   FirebasePlayer,
   FirebasePendingAction,
+  FirebasePendingSelection,
+  PendingSelections,
   CreateRoomData,
   JoinRoomData,
   FirebaseConnectionState,
@@ -72,6 +74,12 @@ export function useFirebaseRoom(): UseFirebaseRoomReturn {
   const unsubscribeRoomRef = useRef<Unsubscribe | null>(null);
   const unsubscribeActionsRef = useRef<Unsubscribe | null>(null);
   const unsubscribeAuthRef = useRef<Unsubscribe | null>(null);
+  const unsubscribeSelectionsRef = useRef<Unsubscribe | null>(null);
+
+  // Pending selections (ghost hover)
+  const [pendingSelections, setPendingSelections] = useState<PendingSelections>(
+    {},
+  );
 
   // Derived state
   const userId = user?.uid ?? null;
@@ -121,6 +129,7 @@ export function useFirebaseRoom(): UseFirebaseRoomReturn {
     return () => {
       unsubscribeRoomRef.current?.();
       unsubscribeActionsRef.current?.();
+      unsubscribeSelectionsRef.current?.();
     };
   }, []);
 
@@ -197,6 +206,13 @@ export function useFirebaseRoom(): UseFirebaseRoomReturn {
           result.data,
           handlePendingAction,
         );
+
+        // Subscribe to pending selections (ghost hovers)
+        unsubscribeSelectionsRef.current =
+          firebaseRoom.subscribeToPendingSelections(
+            result.data,
+            setPendingSelections,
+          );
       } else {
         setError(new Error(result.error ?? "Failed to create room"));
       }
@@ -238,6 +254,13 @@ export function useFirebaseRoom(): UseFirebaseRoomReturn {
           },
         );
 
+        // Subscribe to pending selections (ghost hovers)
+        unsubscribeSelectionsRef.current =
+          firebaseRoom.subscribeToPendingSelections(
+            data.roomCode,
+            setPendingSelections,
+          );
+
         // Host also subscribes to pending actions (important for reconnection)
         if (data.connectionType === "host") {
           console.log(
@@ -270,13 +293,16 @@ export function useFirebaseRoom(): UseFirebaseRoomReturn {
     // Cleanup subscriptions
     unsubscribeRoomRef.current?.();
     unsubscribeActionsRef.current?.();
+    unsubscribeSelectionsRef.current?.();
     unsubscribeRoomRef.current = null;
     unsubscribeActionsRef.current = null;
+    unsubscribeSelectionsRef.current = null;
 
     // Reset state
     setRoom(null);
     setRoomCode(null);
     setError(null);
+    setPendingSelections({});
   }, [roomCode]);
 
   /**
@@ -328,6 +354,24 @@ export function useFirebaseRoom(): UseFirebaseRoomReturn {
     [roomCode],
   );
 
+  /**
+   * Updates the pending (ghost) selection for a team
+   */
+  const updatePendingSelection = useCallback(
+    async (
+      team: "team1" | "team2",
+      selection: FirebasePendingSelection | null,
+    ): Promise<void> => {
+      if (!roomCode) return;
+      try {
+        await firebaseRoom.updatePendingSelection(roomCode, team, selection);
+      } catch (err) {
+        console.error("Error updating pending selection:", err);
+      }
+    },
+    [roomCode],
+  );
+
   return {
     // Room management
     createRoom,
@@ -352,6 +396,8 @@ export function useFirebaseRoom(): UseFirebaseRoomReturn {
     updateDraftState,
     sendAction,
     setPendingActionHandler,
+    updatePendingSelection,
+    pendingSelections,
   };
 }
 

@@ -29,6 +29,8 @@ import type {
   FirebaseRoom,
   FirebasePlayer,
   FirebasePendingAction,
+  FirebasePendingSelection,
+  PendingSelections,
   CreateRoomData,
   JoinRoomData,
   RoomOperationResult,
@@ -533,4 +535,40 @@ export async function roomExists(roomCode: string): Promise<boolean> {
  */
 export async function deleteRoom(roomCode: string): Promise<void> {
   await remove(ref(db, buildPath.room(roomCode)));
+}
+
+// ---------------------------------------------------------------------------
+// Pending Selections (ghost hover data)
+// ---------------------------------------------------------------------------
+
+/**
+ * Write the current player's pending (hovered) selection to Firebase.
+ * Pass null to clear.
+ */
+export async function updatePendingSelection(
+  roomCode: string,
+  team: "team1" | "team2",
+  selection: FirebasePendingSelection | null,
+): Promise<void> {
+  const path = `${buildPath.pendingSelections(roomCode)}/${team}`;
+  if (selection) {
+    await set(ref(db, path), selection);
+  } else {
+    await remove(ref(db, path));
+  }
+}
+
+/**
+ * Subscribe to both teams' pending selections.
+ * Fires every time either team's hover changes.
+ */
+export function subscribeToPendingSelections(
+  roomCode: string,
+  callback: (selections: PendingSelections) => void,
+): Unsubscribe {
+  const selectionsRef = ref(db, buildPath.pendingSelections(roomCode));
+  return onValue(selectionsRef, (snapshot) => {
+    const val = snapshot.val() as PendingSelections | null;
+    callback(val ?? {});
+  });
 }

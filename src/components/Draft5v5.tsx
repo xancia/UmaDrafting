@@ -25,7 +25,10 @@ import WaitingRoom from "./WaitingRoom";
 import PhaseAnnouncement from "./PhaseAnnouncement";
 import { useFirebaseRoom } from "../hooks/useFirebaseRoom";
 import { useTurnTimer, DEFAULT_TURN_DURATION } from "../hooks/useTurnTimer";
-import type { FirebasePendingAction } from "../types/firebase";
+import type {
+  FirebasePendingAction,
+  FirebasePendingSelection,
+} from "../types/firebase";
 
 interface MultiplayerConfig {
   roomCode: string;
@@ -60,6 +63,8 @@ export default function Draft5v5({
     updateDraftState: syncUpdateDraftState,
     sendAction: sendDraftAction,
     setPendingActionHandler,
+    updatePendingSelection,
+    pendingSelections,
   } = useFirebaseRoom();
 
   // Use Firebase room code, or fallback to config for joiners
@@ -138,6 +143,11 @@ export default function Draft5v5({
   useEffect(() => {
     setPendingUma(null);
     setPendingMap(null);
+    // Clear ghost from Firebase too
+    if (isMultiplayer) {
+      updatePendingSelection("team1", null);
+      updatePendingSelection("team2", null);
+    }
   }, [draftState.phase, draftState.currentTeam]);
 
   // Keyboard navigation: Enter to lock in, Escape to deselect
@@ -809,7 +819,58 @@ export default function Draft5v5({
       confirmMapSelect(pendingMap);
       setPendingMap(null);
     }
+    // Clear ghost from Firebase on lock-in
+    if (isMultiplayer) {
+      const team = draftState.currentTeam;
+      updatePendingSelection(team, null);
+    }
   };
+
+  // Sync pending selection to Firebase (debounced) so others see ghost
+  const pendingSelectionTimer = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+  useEffect(() => {
+    if (!isMultiplayer) return;
+    const team = draftState.currentTeam;
+    const myTeam =
+      draftState.multiplayer?.localTeam ||
+      (multiplayerConfig?.isHost ? "team1" : "team2");
+    // Only send if it's our turn
+    if (team !== myTeam) return;
+
+    if (pendingSelectionTimer.current)
+      clearTimeout(pendingSelectionTimer.current);
+
+    pendingSelectionTimer.current = setTimeout(() => {
+      let selection: FirebasePendingSelection | null = null;
+      if (pendingUma) {
+        selection = {
+          type: "uma",
+          id: pendingUma.id.toString(),
+          name: pendingUma.name,
+          imageUrl: pendingUma.imageUrl,
+          updatedAt: Date.now(),
+        };
+      } else if (pendingMap) {
+        selection = {
+          type: "map",
+          id: pendingMap.name,
+          name: pendingMap.name,
+          track: pendingMap.track,
+          distance: pendingMap.distance,
+          surface: pendingMap.surface,
+          updatedAt: Date.now(),
+        };
+      }
+      updatePendingSelection(team, selection);
+    }, 200);
+
+    return () => {
+      if (pendingSelectionTimer.current)
+        clearTimeout(pendingSelectionTimer.current);
+    };
+  }, [pendingUma, pendingMap, isMultiplayer, draftState.currentTeam]);
 
   const confirmUmaSelect = (uma: UmaMusume) => {
     const team = draftState.currentTeam;
@@ -1313,6 +1374,7 @@ export default function Draft5v5({
         connectionStatus={isConnected ? "connected" : "disconnected"}
         onBackToMenu={onBackToMenu}
         timeRemaining={timeRemaining}
+        pendingSelections={pendingSelections}
       />
     );
   }
@@ -1349,6 +1411,9 @@ export default function Draft5v5({
             draftState.phase === "uma-pick" ||
             draftState.phase === "uma-ban" ||
             draftState.phase === "complete"
+          }
+          ghostSelection={
+            isMultiplayer ? (pendingSelections.team1 ?? null) : null
           }
         />
       </div>
@@ -2005,6 +2070,9 @@ export default function Draft5v5({
             draftState.phase === "uma-pick" ||
             draftState.phase === "uma-ban" ||
             draftState.phase === "complete"
+          }
+          ghostSelection={
+            isMultiplayer ? (pendingSelections.team2 ?? null) : null
           }
         />
       </div>

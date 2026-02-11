@@ -91,6 +91,8 @@ export const DB_PATHS = {
   SPECTATORS: "spectators",
   /** Path to pending actions queue (relative to room) */
   PENDING_ACTIONS: "pendingActions",
+  /** Path to pending selections (what players are hovering) */
+  PENDING_SELECTIONS: "pendingSelections",
 } as const;
 
 /**
@@ -114,4 +116,7 @@ export const buildPath = {
   /** Get path to pending actions */
   pendingActions: (roomId: string) =>
     `${DB_PATHS.ROOMS}/${roomId}/${DB_PATHS.PENDING_ACTIONS}`,
+  /** Get path to pending selections */
+  pendingSelections: (roomId: string) =>
+    `${DB_PATHS.ROOMS}/${roomId}/${DB_PATHS.PENDING_SELECTIONS}`,
 } as const;

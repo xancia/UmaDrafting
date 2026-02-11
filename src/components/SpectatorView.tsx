@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import type { DraftState, Map } from "../types";
 import type { ConnectionStatus } from "../types/multiplayer";
+import type { PendingSelections } from "../types/firebase";
 import DraftHeader from "./DraftHeader";
 import TeamPanel from "./TeamPanel";
 import PhaseAnnouncement from "./PhaseAnnouncement";
@@ -20,6 +21,8 @@ interface SpectatorViewProps {
   onBackToMenu?: () => void;
   /** Timer remaining seconds */
   timeRemaining?: number;
+  /** Ghost pending selections from both teams */
+  pendingSelections?: PendingSelections;
 }
 
 /**
@@ -36,6 +39,7 @@ export default function SpectatorView({
   connectionStatus = "connected",
   onBackToMenu,
   timeRemaining,
+  pendingSelections = {},
 }: SpectatorViewProps) {
   const {
     phase,
@@ -131,6 +135,7 @@ export default function SpectatorView({
             phase === "uma-ban" ||
             phase === "complete"
           }
+          ghostSelection={pendingSelections.team1 ?? null}
         />
       </div>
 
@@ -579,6 +584,7 @@ export default function SpectatorView({
             phase === "uma-ban" ||
             phase === "complete"
           }
+          ghostSelection={pendingSelections.team2 ?? null}
         />
       </div>
     </div>
