@@ -22,6 +22,7 @@ import UmaCard from "./UmaCard";
 import MapCard from "./MapCard";
 import SpectatorView from "./SpectatorView";
 import WaitingRoom from "./WaitingRoom";
+import PhaseAnnouncement from "./PhaseAnnouncement";
 import { useFirebaseRoom } from "../hooks/useFirebaseRoom";
 import { useTurnTimer, DEFAULT_TURN_DURATION } from "../hooks/useTurnTimer";
 import type { FirebasePendingAction } from "../types/firebase";
@@ -138,6 +139,29 @@ export default function Draft5v5({
     setPendingUma(null);
     setPendingMap(null);
   }, [draftState.phase, draftState.currentTeam]);
+
+  // Keyboard navigation: Enter to lock in, Escape to deselect
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't handle if user is typing in an input
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA") return;
+
+      if (e.key === "Enter" && (pendingUma || pendingMap)) {
+        e.preventDefault();
+        const isMyTurn = !isMultiplayer || draftState.currentTeam === localTeam;
+        if (isMyTurn) {
+          handleLockIn();
+        }
+      } else if (e.key === "Escape") {
+        setPendingUma(null);
+        setPendingMap(null);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [pendingUma, pendingMap, isMultiplayer, draftState.currentTeam]);
 
   // Ready-up timer countdown (resets on pause phase entry)
   useEffect(() => {
@@ -1221,6 +1245,34 @@ export default function Draft5v5({
     onBackToMenu();
   };
 
+  // Compute completed actions count for the draft timeline
+  const completedActions = (() => {
+    const { phase } = draftState;
+    const t1 = draftState.team1;
+    const t2 = draftState.team2;
+
+    if (phase === "map-pick") {
+      return (t1.pickedMaps?.length || 0) + (t2.pickedMaps?.length || 0);
+    }
+    if (phase === "map-ban") {
+      return (t1.bannedMaps?.length || 0) + (t2.bannedMaps?.length || 0);
+    }
+    if (phase === "uma-pick") {
+      const totalPicked =
+        (t1.pickedUmas?.length || 0) + (t2.pickedUmas?.length || 0);
+      const totalBanned =
+        (t1.bannedUmas?.length || 0) + (t2.bannedUmas?.length || 0);
+      if (totalBanned > 0) {
+        return totalPicked - totalBanned;
+      }
+      return totalPicked;
+    }
+    if (phase === "uma-ban") {
+      return (t1.bannedUmas?.length || 0) + (t2.bannedUmas?.length || 0);
+    }
+    return 0;
+  })();
+
   // Waiting room view for multiplayer lobby phase
   if (isMultiplayer && draftState.phase === "lobby") {
     // Host is already counted in firebasePlayers
@@ -1267,6 +1319,9 @@ export default function Draft5v5({
 
   return (
     <div className="h-screen bg-linear-to-br from-gray-950 to-gray-900 flex gap-2 lg:gap-4 px-2 lg:px-4 xl:px-6 py-2 lg:py-4 xl:py-6 overflow-hidden">
+      {/* Phase Transition Announcement Overlay */}
+      <PhaseAnnouncement phase={draftState.phase} />
+
       <div className="w-56 lg:w-72 xl:w-96 shrink-0 flex flex-col px-1 lg:px-2 min-h-0">
         <TeamPanel
           team="team1"
@@ -1278,6 +1333,14 @@ export default function Draft5v5({
           isCurrentTurn={
             draftState.phase !== "complete" &&
             draftState.currentTeam === "team1"
+          }
+          activeSection={
+            draftState.phase === "map-pick" || draftState.phase === "map-ban"
+              ? "maps"
+              : draftState.phase === "uma-pick" ||
+                  draftState.phase === "uma-ban"
+                ? "umas"
+                : null
           }
           distanceCounts={countDistances(draftState.team1.pickedMaps)}
           dirtCount={countDirtTracks(draftState.team1.pickedMaps)}
@@ -1309,6 +1372,7 @@ export default function Draft5v5({
             isHost={multiplayerConfig?.isHost || false}
             timeRemaining={timeRemaining}
             timerEnabled={true}
+            completedActions={completedActions}
           />
         </div>
 
@@ -1345,7 +1409,7 @@ export default function Draft5v5({
                       <p
                         className={`font-bold ${draftState.team1Ready ? "text-green-400" : "text-gray-500"}`}
                       >
-                        {draftState.team1Ready ? "✓ Ready" : "Not Ready"}
+                        {draftState.team1Ready ? "READY" : "Not Ready"}
                       </p>
                     </div>
                     <div
@@ -1355,7 +1419,7 @@ export default function Draft5v5({
                       <p
                         className={`font-bold ${draftState.team2Ready ? "text-green-400" : "text-gray-500"}`}
                       >
-                        {draftState.team2Ready ? "✓ Ready" : "Not Ready"}
+                        {draftState.team2Ready ? "READY" : "Not Ready"}
                       </p>
                     </div>
                   </div>
@@ -1446,7 +1510,7 @@ export default function Draft5v5({
                       <p
                         className={`font-bold ${draftState.team1Ready ? "text-green-400" : "text-gray-500"}`}
                       >
-                        {draftState.team1Ready ? "✓ Ready" : "Not Ready"}
+                        {draftState.team1Ready ? "READY" : "Not Ready"}
                       </p>
                     </div>
                     <div
@@ -1456,7 +1520,7 @@ export default function Draft5v5({
                       <p
                         className={`font-bold ${draftState.team2Ready ? "text-green-400" : "text-gray-500"}`}
                       >
-                        {draftState.team2Ready ? "✓ Ready" : "Not Ready"}
+                        {draftState.team2Ready ? "READY" : "Not Ready"}
                       </p>
                     </div>
                   </div>
@@ -1533,13 +1597,27 @@ export default function Draft5v5({
                   </h2>
 
                   {isUmaPhase && (
-                    <input
-                      type="text"
-                      placeholder="Search Umamusume..."
-                      value={umaSearch}
-                      onChange={(e) => setUmaSearch(e.target.value)}
-                      className="w-full mb-2 lg:mb-4 px-3 lg:px-4 py-1.5 lg:py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm lg:text-base text-gray-100 placeholder-gray-400 focus:outline-none focus:border-gray-500"
-                    />
+                    <div className="relative mb-2 lg:mb-4">
+                      <input
+                        type="text"
+                        placeholder="Search Umamusume..."
+                        value={umaSearch}
+                        onChange={(e) => setUmaSearch(e.target.value)}
+                        className="w-full px-3 lg:px-4 py-1.5 lg:py-2 bg-gray-700/80 border border-gray-600/60 rounded-lg text-sm lg:text-base text-gray-100 placeholder-gray-500 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20 pr-20"
+                      />
+                      {umaSearch && (
+                        <button
+                          onClick={() => setUmaSearch("")}
+                          className="absolute right-14 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-200 text-sm px-1"
+                          title="Clear search"
+                        >
+                          x
+                        </button>
+                      )}
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500">
+                        {getFilteredUmas().length} avail.
+                      </span>
+                    </div>
                   )}
 
                   {draftState.phase === "map-pick" && selectedTrack && (
@@ -1624,13 +1702,164 @@ export default function Draft5v5({
             )}
 
           {isComplete && (
-            <div className="bg-gray-800 rounded-lg shadow-lg p-4 lg:p-6 xl:p-8 text-center border border-gray-700">
-              <h2 className="text-2xl lg:text-3xl xl:text-4xl font-bold text-gray-100 mb-4 lg:mb-6 xl:mb-8">
-                Tiebreaker Map
+            <div className="bg-gray-800/90 rounded-lg shadow-lg p-4 lg:p-6 xl:p-8 border border-gray-700/60 overflow-y-auto custom-scrollbar">
+              <h2 className="text-2xl lg:text-3xl font-bold text-gray-100 mb-4 lg:mb-6 text-center">
+                Draft Complete
               </h2>
-              <div className="flex justify-center mb-4 lg:mb-6 xl:mb-8">
-                <div className="bg-gray-700 border-4 border-blue-500 rounded-xl p-4 lg:p-6 xl:p-8 max-w-md">
-                  <div className="aspect-video bg-gray-600 rounded-lg mb-2 lg:mb-4 overflow-hidden">
+
+              {/* Team Rosters Side by Side */}
+              <div className="grid grid-cols-2 gap-4 lg:gap-6 mb-6">
+                {/* Team 1 Roster */}
+                <div className="bg-gray-900/60 rounded-lg p-3 lg:p-4 border border-blue-500/20">
+                  <h3 className="text-blue-400 font-bold text-sm lg:text-base mb-2 text-center uppercase tracking-wider">
+                    {team1Name}
+                  </h3>
+                  <div className="grid grid-cols-3 gap-1.5 lg:gap-2 mb-2">
+                    {draftState.team1.pickedUmas.map((uma, i) => (
+                      <div
+                        key={i}
+                        className="flex flex-col items-center gap-0.5"
+                      >
+                        <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-lg overflow-hidden border border-blue-500/30 bg-gray-700">
+                          {uma.imageUrl && (
+                            <img
+                              src={uma.imageUrl}
+                              alt={uma.name}
+                              className="w-full h-full object-cover"
+                            />
+                          )}
+                        </div>
+                        <span className="text-[9px] lg:text-[10px] text-gray-300 text-center leading-tight">
+                          {uma.name}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  {draftState.team1.bannedUmas.length > 0 && (
+                    <div className="mt-1 pt-1 border-t border-gray-700/50">
+                      <span className="text-[9px] text-red-400/70 uppercase">
+                        Banned:{" "}
+                      </span>
+                      <span className="text-[9px] text-gray-500">
+                        {draftState.team1.bannedUmas
+                          .map((u) => u.name)
+                          .join(", ")}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Team 2 Roster */}
+                <div className="bg-gray-900/60 rounded-lg p-3 lg:p-4 border border-red-500/20">
+                  <h3 className="text-red-400 font-bold text-sm lg:text-base mb-2 text-center uppercase tracking-wider">
+                    {team2Name}
+                  </h3>
+                  <div className="grid grid-cols-3 gap-1.5 lg:gap-2 mb-2">
+                    {draftState.team2.pickedUmas.map((uma, i) => (
+                      <div
+                        key={i}
+                        className="flex flex-col items-center gap-0.5"
+                      >
+                        <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-lg overflow-hidden border border-red-500/30 bg-gray-700">
+                          {uma.imageUrl && (
+                            <img
+                              src={uma.imageUrl}
+                              alt={uma.name}
+                              className="w-full h-full object-cover"
+                            />
+                          )}
+                        </div>
+                        <span className="text-[9px] lg:text-[10px] text-gray-300 text-center leading-tight">
+                          {uma.name}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  {draftState.team2.bannedUmas.length > 0 && (
+                    <div className="mt-1 pt-1 border-t border-gray-700/50">
+                      <span className="text-[9px] text-red-400/70 uppercase">
+                        Banned:{" "}
+                      </span>
+                      <span className="text-[9px] text-gray-500">
+                        {draftState.team2.bannedUmas
+                          .map((u) => u.name)
+                          .join(", ")}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Map Schedule */}
+              <div className="mb-4 lg:mb-6">
+                <h3 className="text-gray-300 font-bold text-sm lg:text-base mb-2 uppercase tracking-wider text-center">
+                  Map Schedule
+                </h3>
+                <div className="space-y-1">
+                  {(() => {
+                    const t1Maps = draftState.team1.pickedMaps;
+                    const t2Maps = draftState.team2.pickedMaps;
+                    // Interleave: T1 pick 1, T2 pick 1, T1 pick 2, T2 pick 2, etc.
+                    const schedule: {
+                      map: Map;
+                      team: string;
+                      index: number;
+                    }[] = [];
+                    const maxLen = Math.max(t1Maps.length, t2Maps.length);
+                    for (let i = 0; i < maxLen; i++) {
+                      if (i < t1Maps.length)
+                        schedule.push({
+                          map: t1Maps[i],
+                          team: team1Name,
+                          index: schedule.length + 1,
+                        });
+                      if (i < t2Maps.length)
+                        schedule.push({
+                          map: t2Maps[i],
+                          team: team2Name,
+                          index: schedule.length + 1,
+                        });
+                    }
+                    return schedule.map((s) => (
+                      <div
+                        key={s.index}
+                        className="flex items-center gap-2 px-3 py-1.5 bg-gray-900/40 rounded-lg text-sm"
+                      >
+                        <span className="text-gray-500 font-mono text-xs w-5">
+                          {s.index}.
+                        </span>
+                        <span
+                          className={`inline-block w-1.5 h-1.5 rounded-full ${s.team === team1Name ? "bg-blue-500" : "bg-red-500"}`}
+                        />
+                        <span className="text-gray-200 font-medium">
+                          {s.map.track}
+                        </span>
+                        <span className="text-gray-500">{s.map.distance}m</span>
+                        <span
+                          className={`text-xs px-1.5 py-0.5 rounded ${s.map.surface?.toLowerCase() === "turf" ? "bg-green-900/40 text-green-400" : "bg-amber-900/40 text-amber-400"}`}
+                        >
+                          {s.map.surface}
+                        </span>
+                        {s.map.conditions && (
+                          <span className="text-gray-500 text-xs ml-auto">
+                            {s.map.conditions.season} /{" "}
+                            {s.map.conditions.ground} /{" "}
+                            {s.map.conditions.weather}
+                          </span>
+                        )}
+                      </div>
+                    ));
+                  })()}
+                </div>
+              </div>
+
+              {/* Tiebreaker */}
+              <div className="bg-gray-900/40 rounded-lg p-3 lg:p-4 border border-gray-700/40 text-center">
+                <h3 className="text-gray-400 font-bold text-xs uppercase tracking-wider mb-2">
+                  Tiebreaker Map
+                </h3>
+                <div className="flex items-center justify-center gap-3">
+                  <div className="w-16 h-10 rounded overflow-hidden bg-gray-700">
                     <img
                       src={`./racetrack-portraits/${draftState.wildcardMap.track?.toLowerCase()}.png`}
                       alt={draftState.wildcardMap.track}
@@ -1641,33 +1870,54 @@ export default function Draft5v5({
                       }}
                     />
                   </div>
-                  <h3 className="text-xl lg:text-2xl xl:text-3xl font-bold text-white mb-1 lg:mb-2">
-                    {draftState.wildcardMap.track}
-                  </h3>
-                  <div
-                    className={`inline-block px-3 lg:px-4 py-1.5 lg:py-2 rounded-lg mb-1 lg:mb-2 ${
-                      draftState.wildcardMap.surface?.toLowerCase() === "turf"
-                        ? "bg-green-700"
-                        : "bg-amber-800"
-                    }`}
-                  >
-                    <span className="text-sm lg:text-base xl:text-lg font-semibold text-white">
+                  <div className="text-left">
+                    <span className="text-white font-bold text-sm">
+                      {draftState.wildcardMap.track}
+                    </span>
+                    <span className="text-gray-400 text-xs ml-2">
+                      {draftState.wildcardMap.distance}m
+                    </span>
+                    <span
+                      className={`text-xs ml-2 ${draftState.wildcardMap.surface?.toLowerCase() === "turf" ? "text-green-400" : "text-amber-400"}`}
+                    >
                       {draftState.wildcardMap.surface}
                     </span>
                   </div>
-                  <p className="text-base lg:text-lg xl:text-xl text-gray-200">
-                    {draftState.wildcardMap.distance}m
-                    {draftState.wildcardMap.variant &&
-                      ` (${draftState.wildcardMap.variant})`}
-                  </p>
-                  {draftState.wildcardMap.conditions && (
-                    <p className="text-sm lg:text-base xl:text-lg text-gray-300 mt-1 lg:mt-2">
-                      {draftState.wildcardMap.conditions.season} •{" "}
-                      {draftState.wildcardMap.conditions.ground} •{" "}
-                      {draftState.wildcardMap.conditions.weather}
-                    </p>
-                  )}
                 </div>
+              </div>
+
+              {/* Copy Results Button */}
+              <div className="mt-4 flex justify-center">
+                <button
+                  onClick={() => {
+                    const t1Umas = draftState.team1.pickedUmas
+                      .map((u) => u.name)
+                      .join(", ");
+                    const t2Umas = draftState.team2.pickedUmas
+                      .map((u) => u.name)
+                      .join(", ");
+                    const t1Bans = draftState.team1.bannedUmas
+                      .map((u) => u.name)
+                      .join(", ");
+                    const t2Bans = draftState.team2.bannedUmas
+                      .map((u) => u.name)
+                      .join(", ");
+                    const maps = [
+                      ...draftState.team1.pickedMaps,
+                      ...draftState.team2.pickedMaps,
+                    ]
+                      .map(
+                        (m, i) =>
+                          `${i + 1}. ${m.track} ${m.distance}m (${m.surface})`,
+                      )
+                      .join("\n");
+                    const text = `=== DRAFT RESULTS ===\n\n${team1Name}: ${t1Umas}\nBanned: ${t1Bans || "None"}\n\n${team2Name}: ${t2Umas}\nBanned: ${t2Bans || "None"}\n\nMap Schedule:\n${maps}\n\nTiebreaker: ${draftState.wildcardMap.track} ${draftState.wildcardMap.distance}m (${draftState.wildcardMap.surface})`;
+                    navigator.clipboard.writeText(text);
+                  }}
+                  className="bg-gray-700/80 hover:bg-gray-600 text-gray-200 font-semibold py-2 px-6 rounded-lg transition-colors border border-gray-600/50 text-sm"
+                >
+                  Copy Draft Results
+                </button>
               </div>
             </div>
           )}
@@ -1682,23 +1932,39 @@ export default function Draft5v5({
               draftState.phase === "uma-ban" || draftState.phase === "map-ban";
 
             return (
-              <div className="shrink-0 py-3 lg:py-4 bg-gray-900 border-t border-gray-700">
-                <div className="flex justify-center">
-                  <button
-                    onClick={isMyTurn ? handleLockIn : undefined}
-                    disabled={!isMyTurn}
-                    className={`${
-                      !isMyTurn
-                        ? "bg-gray-600 cursor-not-allowed opacity-50"
-                        : isBanPhase
-                          ? "bg-red-600 hover:bg-red-700"
-                          : "bg-green-600 hover:bg-green-700"
-                    } text-white font-bold py-3 lg:py-4 px-12 lg:px-16 rounded-lg transition-colors text-lg lg:text-xl shadow-lg ${isMyTurn ? "animate-pulse" : ""}`}
-                  >
-                    {isBanPhase ? "Ban" : "Lock In"}{" "}
-                    {pendingUma ? pendingUma.name : pendingMap?.name}
-                    {!isMyTurn && " (waiting for turn)"}
-                  </button>
+              <div className="shrink-0 py-3 lg:py-4 bg-gray-900/80 backdrop-blur-sm border-t border-gray-700/50">
+                <div className="flex flex-col items-center gap-1">
+                  {(() => {
+                    const label = isBanPhase ? "BAN" : "LOCK IN";
+                    const glowClass = isBanPhase
+                      ? "ban-btn-glow"
+                      : "lockin-btn-glow";
+                    const bgClass = isBanPhase
+                      ? "bg-red-600 hover:bg-red-700"
+                      : "bg-green-600 hover:bg-green-700";
+                    return (
+                      <>
+                        <button
+                          onClick={isMyTurn ? handleLockIn : undefined}
+                          disabled={!isMyTurn}
+                          className={`${
+                            !isMyTurn
+                              ? "bg-gray-600 cursor-not-allowed opacity-40"
+                              : `${bgClass} ${glowClass}`
+                          } text-white font-bold py-3 lg:py-4 px-12 lg:px-16 rounded-lg transition-all text-lg lg:text-xl`}
+                        >
+                          {label}{" "}
+                          {pendingUma ? pendingUma.name : pendingMap?.name}
+                          {!isMyTurn && " (waiting for turn)"}
+                        </button>
+                        {isMyTurn && (
+                          <span className="text-[10px] text-gray-500 tracking-wider">
+                            Press ENTER to confirm
+                          </span>
+                        )}
+                      </>
+                    );
+                  })()}
                 </div>
               </div>
             );
@@ -1716,6 +1982,14 @@ export default function Draft5v5({
           isCurrentTurn={
             draftState.phase !== "complete" &&
             draftState.currentTeam === "team2"
+          }
+          activeSection={
+            draftState.phase === "map-pick" || draftState.phase === "map-ban"
+              ? "maps"
+              : draftState.phase === "uma-pick" ||
+                  draftState.phase === "uma-ban"
+                ? "umas"
+                : null
           }
           distanceCounts={countDistances(draftState.team2.pickedMaps)}
           dirtCount={countDirtTracks(draftState.team2.pickedMaps)}

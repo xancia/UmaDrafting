@@ -8,6 +8,7 @@ interface TeamPanelProps {
   pickedMaps: Map[];
   bannedMaps: Map[];
   isCurrentTurn?: boolean;
+  activeSection?: "maps" | "umas" | null;
   distanceCounts?: Record<string, number>;
   dirtCount?: number;
   pulsingBorder?: boolean;
@@ -22,6 +23,7 @@ export default function TeamPanel({
   pickedMaps,
   bannedMaps,
   isCurrentTurn = false,
+  activeSection = null,
   distanceCounts = {},
   dirtCount = 0,
   pulsingBorder = false,
@@ -48,13 +50,19 @@ export default function TeamPanel({
 
   const allMaps = [...pickedMaps, ...bannedMaps];
 
+  /** Opacity class: dim the panel when it's NOT the active team's turn (if any turn is active) */
+  const inactiveOpacity =
+    !isCurrentTurn && !pulsingBorder ? "" : !isCurrentTurn ? "opacity-60" : "";
+
   return (
     <div
-      className={`bg-linear-to-br from-gray-900 to-gray-800 rounded-xl p-2 lg:p-3 xl:p-4 text-gray-100 h-full flex flex-col border-2 transition-all overflow-y-auto hide-scrollbar ${borderColor} ${pulseClass} ${
+      className={`bg-linear-to-br from-gray-900 to-gray-800 rounded-xl p-2 lg:p-3 xl:p-4 text-gray-100 h-full flex flex-col border-2 transition-all duration-300 overflow-y-auto hide-scrollbar ${borderColor} ${pulseClass} ${inactiveOpacity} ${
         isCurrentTurn ? "shadow-lg" : "shadow-2xl"
       }`}
     >
-      <div className="text-center mb-2 lg:mb-3 xl:mb-4 pb-1.5 lg:pb-2 xl:pb-3 border-b-2 border-gray-700 shrink-0">
+      <div
+        className={`text-center mb-2 lg:mb-3 xl:mb-4 pb-1.5 lg:pb-2 xl:pb-3 border-b-2 shrink-0 ${isCurrentTurn ? (isTeam1 ? "border-blue-500/40" : "border-red-500/40") : "border-gray-700"}`}
+      >
         <h2
           className={`text-lg lg:text-xl xl:text-2xl font-bold tracking-wide ${teamColor}`}
         >
@@ -173,14 +181,22 @@ export default function TeamPanel({
                 </div>
                 {isBanned && (
                   <div className="absolute right-3 top-1/2 -translate-y-1/2 text-red-500 text-xl font-bold">
-                    ✕
+                    X
                   </div>
                 )}
               </div>
             ) : (
               <div
                 key={`empty-${index}`}
-                className="bg-gray-800/50 px-3 py-2 rounded-lg border border-gray-700"
+                className={`px-3 py-2 rounded-lg border transition-all duration-300 ${
+                  activeSection === "maps" &&
+                  index === allMaps.length &&
+                  isCurrentTurn
+                    ? isTeam1
+                      ? "bg-gray-800/80 border-blue-500/40 border-dashed"
+                      : "bg-gray-800/80 border-red-500/40 border-dashed"
+                    : "bg-gray-800/50 border-gray-700"
+                }`}
               >
                 <div className="text-xs text-gray-600">Empty slot</div>
               </div>
@@ -196,13 +212,22 @@ export default function TeamPanel({
         <div className="grid grid-cols-3 gap-1.5 lg:gap-2 xl:gap-3">
           {[...Array(6)].map((_, index) => {
             const uma = pickedUmas[index];
+            const isNextEmptySlot =
+              !uma &&
+              index === pickedUmas.length &&
+              isCurrentTurn &&
+              activeSection === "umas";
             return (
               <div
                 key={index}
-                className={`aspect-square rounded-lg border-3 overflow-hidden ${
+                className={`aspect-square rounded-lg border-3 overflow-hidden transition-all duration-300 ${
                   uma
                     ? "border-gray-600 bg-gray-600 shadow-lg"
-                    : "bg-gray-800 border-gray-700"
+                    : isNextEmptySlot
+                      ? isTeam1
+                        ? "bg-gray-800/80 border-blue-500/40 border-dashed"
+                        : "bg-gray-800/80 border-red-500/40 border-dashed"
+                      : "bg-gray-800 border-gray-700"
                 }`}
               >
                 {uma ? (
@@ -254,7 +279,7 @@ export default function TeamPanel({
                     className="w-full h-full object-cover grayscale opacity-50"
                   />
                   <div className="absolute inset-0 flex items-center justify-center text-red-500 text-2xl font-bold">
-                    ✕
+                    X
                   </div>
                 </div>
               ))}

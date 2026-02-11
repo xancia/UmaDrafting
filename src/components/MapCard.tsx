@@ -20,10 +20,10 @@ export default function MapCard({
     <button
       onClick={() => onSelect(map)}
       disabled={disabled}
-      className={`p-2 lg:p-3 bg-gray-700 border-2 rounded-lg hover:border-gray-500 hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-gray-600 ${
+      className={`p-2 lg:p-3 bg-gray-700/80 border-2 rounded-lg hover:border-gray-500 hover:shadow-lg transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-gray-600 ${
         isSelected
-          ? "border-yellow-400 ring-2 ring-yellow-400/50"
-          : "border-gray-600"
+          ? "border-yellow-400 ring-2 ring-yellow-400/50 selected-glow"
+          : "border-gray-600/60"
       }`}
     >
       <div

@@ -19,15 +19,15 @@ export default function TeamPanel3v3v3({
     team === "team1"
       ? "text-blue-500"
       : team === "team2"
-      ? "text-red-500"
-      : "text-green-500";
+        ? "text-red-500"
+        : "text-green-500";
 
   const borderColor = isCurrentTurn
     ? team === "team1"
       ? "border-blue-500 shadow-blue-500/50"
       : team === "team2"
-      ? "border-red-500 shadow-red-500/50"
-      : "border-green-500 shadow-green-500/50"
+        ? "border-red-500 shadow-red-500/50"
+        : "border-green-500 shadow-green-500/50"
     : "border-gray-700";
 
   const showCards = phase === "card-pick";
@@ -39,7 +39,11 @@ export default function TeamPanel3v3v3({
       }`}
     >
       <div className="text-center mb-0.5 lg:mb-1 pb-0.5 lg:pb-1 border-b border-gray-700">
-        <h3 className={`text-[10px] lg:text-xs xl:text-sm font-bold ${teamColor}`}>{teamName}</h3>
+        <h3
+          className={`text-[10px] lg:text-xs xl:text-sm font-bold ${teamColor}`}
+        >
+          {teamName}
+        </h3>
       </div>
 
       {showCards ? (
@@ -73,7 +77,7 @@ export default function TeamPanel3v3v3({
                       />
                       {card.type && (
                         <img
-                          src={`./type/${card.type === 'friend' ? 'pal' : card.type}.svg`}
+                          src={`./type/${card.type === "friend" ? "pal" : card.type}.svg`}
                           alt={card.type}
                           className="absolute top-0.5 right-0.5 w-4 h-4 object-contain"
                         />
@@ -117,7 +121,7 @@ export default function TeamPanel3v3v3({
                           }}
                         />
                         <div className="absolute inset-0 flex items-center justify-center text-red-500 text-xl font-bold">
-                          ✕
+                          X
                         </div>
                       </div>
                     ) : null}

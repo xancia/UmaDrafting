@@ -111,7 +111,7 @@ export default function WaitingRoom({
           <p
             className={`text-xs mt-1 lg:mt-2 transition-colors ${copied ? "text-green-400" : "text-gray-500"}`}
           >
-            {copied ? "✓ Copied!" : "Click to copy"}
+            {copied ? "Copied!" : "Click to copy"}
           </p>
         </div>
 
@@ -145,7 +145,7 @@ export default function WaitingRoom({
               >
                 {team1Name}
                 {canEditTeam1 && (
-                  <span className="text-blue-500 ml-1 text-xs">✎</span>
+                  <span className="text-blue-500 ml-1 text-xs">[edit]</span>
                 )}
               </p>
             )}
@@ -178,7 +178,7 @@ export default function WaitingRoom({
               >
                 {team2Name}
                 {canEditTeam2 && (
-                  <span className="text-red-500 ml-1 text-xs">✎</span>
+                  <span className="text-red-500 ml-1 text-xs">[edit]</span>
                 )}
               </p>
             )}

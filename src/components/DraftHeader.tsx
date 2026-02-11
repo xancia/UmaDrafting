@@ -1,6 +1,7 @@
 import type { DraftPhase, Team, Map } from "../types";
 import type { ConnectionStatus } from "../types/multiplayer";
 import { formatRoomCode } from "../utils/roomCode";
+import DraftTimeline from "./DraftTimeline";
 
 interface DraftHeaderProps {
   phase: DraftPhase;
@@ -22,6 +23,8 @@ interface DraftHeaderProps {
   // Timer props
   timeRemaining?: number;
   timerEnabled?: boolean;
+  // Timeline props
+  completedActions?: number;
 }
 
 export default function DraftHeader({
@@ -42,6 +45,7 @@ export default function DraftHeader({
   isSpectator = false,
   timeRemaining,
   timerEnabled = true,
+  completedActions = 0,
 }: DraftHeaderProps) {
   // Timer display helpers
   const isTimerActive =
@@ -119,114 +123,140 @@ export default function DraftHeader({
   };
 
   return (
-    <div className="bg-gray-800 text-gray-100 p-3 lg:p-4 xl:p-6 rounded-lg shadow-lg border border-gray-700">
-      <div className="flex justify-between items-start gap-2">
+    <div className="bg-gray-800/80 backdrop-blur-sm text-gray-100 p-3 lg:p-4 rounded-lg shadow-lg border border-gray-700/60">
+      {/* Top row: title / timer / buttons */}
+      <div className="flex justify-between items-center gap-2 mb-1">
+        {/* Left: title + phase */}
         <div className="flex-1 min-w-0">
-          <h1 className="text-xl lg:text-2xl xl:text-3xl font-bold mb-1 lg:mb-2">
-            Uma Drafting
-          </h1>
-          <p className="text-base lg:text-lg xl:text-xl mb-0.5 lg:mb-1 text-gray-300">
-            {getPhaseText()}
-          </p>
+          <div className="flex items-center gap-2 lg:gap-3">
+            <h1 className="text-lg lg:text-xl xl:text-2xl font-bold whitespace-nowrap">
+              Uma Drafting
+            </h1>
+            <span className="text-xs lg:text-sm text-gray-400 font-medium">
+              {getPhaseText()}
+            </span>
+          </div>
+        </div>
+
+        {/* Center: Prominent Timer */}
+        {isTimerActive && timeRemaining !== undefined && (
+          <div className="flex flex-col items-center">
+            <div
+              className={`
+                px-5 py-1.5 rounded-full font-mono text-2xl lg:text-3xl font-black tracking-tight
+                transition-all duration-300
+                ${
+                  isCritical
+                    ? "bg-red-900/60 text-red-400 timer-critical border border-red-500/40"
+                    : isWarning
+                      ? "bg-yellow-900/40 text-yellow-400 border border-yellow-600/30"
+                      : "bg-gray-700/60 text-gray-200 border border-gray-600/30"
+                }
+              `}
+            >
+              {formatTime(timeRemaining)}
+            </div>
+          </div>
+        )}
+
+        {/* Right: buttons + multiplayer info */}
+        <div className="flex-1 flex justify-end items-center gap-2 lg:gap-3">
+          {!isSpectator && (
+            <>
+              <button
+                onClick={onUndo}
+                disabled={!canUndo}
+                className={`bg-gray-700/80 text-gray-100 font-semibold py-1.5 px-3 lg:px-4 rounded-lg hover:bg-gray-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed border border-gray-600/50 text-xs lg:text-sm ${isMultiplayer ? "hidden" : ""}`}
+              >
+                Undo
+              </button>
+              <button
+                onClick={onReset}
+                className={`bg-gray-700/80 text-gray-100 font-semibold py-1.5 px-3 lg:px-4 rounded-lg hover:bg-gray-600 transition-colors border border-gray-600/50 text-xs lg:text-sm ${isMultiplayer ? "hidden" : ""}`}
+              >
+                Reset
+              </button>
+            </>
+          )}
+          <button
+            onClick={onBackToMenu}
+            className="bg-gray-700/80 text-gray-100 font-semibold py-1.5 px-3 lg:px-4 rounded-lg hover:bg-gray-600 transition-colors border border-gray-600/50 text-xs lg:text-sm"
+          >
+            {isSpectator ? "Leave" : "Menu"}
+          </button>
+        </div>
+      </div>
+
+      {/* Second row: current turn + multiplayer info + tiebreaker */}
+      <div className="flex items-center justify-between gap-2 text-sm">
+        <div className="flex items-center gap-3 flex-1 min-w-0">
           {phase !== "complete" &&
             phase !== "pre-draft-pause" &&
             phase !== "post-map-pause" && (
-              <p className="text-sm lg:text-base xl:text-lg text-gray-300">
-                Current Turn:{" "}
+              <span className="text-gray-400">
+                Turn:{" "}
                 <span className={`font-bold ${getTeamColor(currentTeam)}`}>
                   {currentTeam === "team1" ? team1Name : team2Name}
                 </span>
-              </p>
+              </span>
             )}
           {wildcardMap && (
-            <p className="text-sm text-gray-400 mt-1">
+            <span className="text-gray-500 text-xs truncate">
               Tiebreaker:{" "}
               <span
                 className={`font-semibold ${wildcardMap.surface?.toLowerCase() === "turf" ? "text-green-400" : "text-amber-500"}`}
               >
-                {wildcardMap.track} ({wildcardMap.distance}m)
+                {wildcardMap.track} ({wildcardMap.distance}m{" "}
+                {wildcardMap.surface})
               </span>
               {wildcardMap.conditions && (
-                <span className="text-gray-500">
-                  {" "}
-                  • {wildcardMap.conditions.season} •{" "}
-                  {wildcardMap.conditions.ground} •{" "}
+                <span className="text-gray-400 ml-1">
+                  -- {wildcardMap.conditions.season} /{" "}
+                  {wildcardMap.conditions.ground} /{" "}
                   {wildcardMap.conditions.weather}
                 </span>
               )}
-            </p>
+            </span>
           )}
         </div>
-        <div className="flex flex-col items-end gap-2 lg:gap-3">
-          <div className="flex gap-1.5 lg:gap-2 xl:gap-3">
-            {!isSpectator && (
-              <>
-                <button
-                  onClick={onUndo}
-                  disabled={!canUndo}
-                  className={`bg-gray-700 text-gray-100 font-semibold py-1.5 lg:py-2 px-3 lg:px-4 xl:px-6 rounded-lg hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-gray-700 border border-gray-600 text-xs lg:text-sm xl:text-base ${isMultiplayer ? "hidden" : ""}`}
-                >
-                  ← Undo
-                </button>
-                <button
-                  onClick={onReset}
-                  className={`bg-gray-700 text-gray-100 font-semibold py-1.5 lg:py-2 px-3 lg:px-4 xl:px-6 rounded-lg hover:bg-gray-600 transition-colors border border-gray-600 text-xs lg:text-sm xl:text-base ${isMultiplayer ? "hidden" : ""}`}
-                >
-                  Reset
-                </button>
-              </>
+        {isMultiplayer && roomCode && (
+          <div
+            className={`group flex items-center gap-2 px-2.5 py-1 rounded-lg text-xs ${isSpectator ? "bg-purple-900/20 border border-purple-700/30" : "bg-gray-700/40"}`}
+          >
+            {isSpectator ? (
+              <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse" />
+            ) : (
+              getStatusIndicator()
             )}
+            <span className={isSpectator ? "text-purple-300" : "text-gray-400"}>
+              {isSpectator ? "Spectating" : isHost ? "Host" : "Room"}
+            </span>
             <button
-              onClick={onBackToMenu}
-              className="bg-gray-700 text-gray-100 font-semibold py-1.5 lg:py-2 px-3 lg:px-4 xl:px-6 rounded-lg hover:bg-gray-600 transition-colors border border-gray-600 text-xs lg:text-sm xl:text-base"
+              onClick={handleCopyRoomCode}
+              className={`font-mono transition-all duration-200 blur-sm group-hover:blur-none ${isSpectator ? "text-purple-400 hover:text-purple-300" : "text-blue-400 hover:text-blue-300"}`}
+              title="Hover to reveal, click to copy"
             >
-              {isSpectator ? "Leave" : "Format Selection"}
+              {formatRoomCode(roomCode)}
             </button>
+            {!isSpectator && (
+              <span className="text-gray-500">{playerCount}p</span>
+            )}
           </div>
-          {isMultiplayer && roomCode && (
-            <div
-              className={`group flex items-center gap-2 px-3 py-1.5 rounded-lg ${isSpectator ? "bg-purple-900/30 border border-purple-700/50" : "bg-gray-700/50"}`}
-            >
-              {isSpectator ? (
-                <span className="w-2 h-2 rounded-full bg-purple-400 animate-pulse" />
-              ) : (
-                getStatusIndicator()
-              )}
-              <span
-                className={`text-sm ${isSpectator ? "text-purple-300" : "text-gray-300"}`}
-              >
-                {isSpectator ? "Spectating" : isHost ? "Hosting" : "Room"}:
-              </span>
-              <button
-                onClick={handleCopyRoomCode}
-                className={`font-mono text-sm transition-all duration-200 blur-sm group-hover:blur-none ${isSpectator ? "text-purple-400 hover:text-purple-300" : "text-blue-400 hover:text-blue-300"}`}
-                title="Hover to reveal, click to copy"
-              >
-                {formatRoomCode(roomCode)}
-              </button>
-              {!isSpectator && (
-                <span className="text-xs text-gray-400">
-                  ({playerCount} player{playerCount !== 1 ? "s" : ""})
-                </span>
-              )}
-            </div>
-          )}
-          {/* Timer display - bottom right */}
-          {isTimerActive && timeRemaining !== undefined && (
-            <div
-              className={`px-4 py-2 rounded-lg font-mono text-xl font-bold transition-colors ${
-                isCritical
-                  ? "bg-red-900/50 text-red-400 animate-pulse"
-                  : isWarning
-                    ? "bg-yellow-900/50 text-yellow-400"
-                    : "bg-gray-700/50 text-gray-300"
-              }`}
-            >
-              ⏱ {formatTime(timeRemaining)}
-            </div>
-          )}
-        </div>
+        )}
       </div>
+
+      {/* Third row: Draft Order Timeline */}
+      {["map-pick", "map-ban", "uma-pick", "uma-ban"].includes(phase) && (
+        <div className="mt-2">
+          <DraftTimeline
+            phase={phase}
+            currentTeam={currentTeam}
+            completedActions={completedActions}
+            team1Name={team1Name}
+            team2Name={team2Name}
+          />
+        </div>
+      )}
     </div>
   );
 }

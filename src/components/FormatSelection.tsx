@@ -162,7 +162,7 @@ export default function FormatSelection({
                 onClick={() => setShowHowToPlay(false)}
                 className="text-gray-400 hover:text-gray-200 text-2xl"
               >
-                ✕
+                X
               </button>
             </div>
 
