@@ -269,15 +269,19 @@ export async function setupPresence(
   roomCode: string,
   playerId: string,
 ): Promise<void> {
-  // Reference to this player's connected status
-  const playerConnectedRef = ref(
-    db,
-    `${buildPath.players(roomCode)}/${playerId}/connected`,
+  // Determine whether this user is in players or spectators
+  const playerSnap = await get(
+    ref(db, `${buildPath.players(roomCode)}/${playerId}`),
   );
-  const spectatorConnectedRef = ref(
-    db,
-    `${buildPath.spectators(roomCode)}/${playerId}/connected`,
-  );
+  const isPlayer = playerSnap.exists();
+
+  // Pick the correct base path
+  const basePath = isPlayer
+    ? `${buildPath.players(roomCode)}/${playerId}`
+    : `${buildPath.spectators(roomCode)}/${playerId}`;
+
+  const connectedFieldRef = ref(db, `${basePath}/connected`);
+  const lastSeenFieldRef = ref(db, `${basePath}/lastSeen`);
 
   // Reference to Firebase's special .info/connected path
   const connectedRef = ref(db, ".info/connected");
@@ -285,23 +289,11 @@ export async function setupPresence(
   onValue(connectedRef, async (snapshot) => {
     if (snapshot.val() === true) {
       // We're connected, set up onDisconnect handlers
-      await onDisconnect(playerConnectedRef).set(false);
-      await onDisconnect(spectatorConnectedRef).set(false);
-
-      // Also update lastSeen on disconnect
-      const playerLastSeenRef = ref(
-        db,
-        `${buildPath.players(roomCode)}/${playerId}/lastSeen`,
-      );
-      const spectatorLastSeenRef = ref(
-        db,
-        `${buildPath.spectators(roomCode)}/${playerId}/lastSeen`,
-      );
-      await onDisconnect(playerLastSeenRef).set(Date.now());
-      await onDisconnect(spectatorLastSeenRef).set(Date.now());
+      await onDisconnect(connectedFieldRef).set(false);
+      await onDisconnect(lastSeenFieldRef).set(Date.now());
 
       // Set connected to true
-      await set(playerConnectedRef, true);
+      await set(connectedFieldRef, true);
     }
   });
 }
