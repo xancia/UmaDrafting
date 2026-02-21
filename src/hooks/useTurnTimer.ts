@@ -10,6 +10,7 @@ const ACTIVE_PHASES: DraftPhase[] = [
   "map-ban",
   "uma-pick",
   "uma-ban",
+  "uma-pre-ban",
 ];
 
 /**

@@ -175,7 +175,9 @@ export default function Draft5v5({
   }>({ first: "", second: "", third: "" });
 
   const isUmaPhase =
-    draftState.phase === "uma-pick" || draftState.phase === "uma-ban";
+    draftState.phase === "uma-pick" ||
+    draftState.phase === "uma-ban" ||
+    draftState.phase === "uma-pre-ban";
   const isComplete = draftState.phase === "complete";
 
   // Clear session when draft completes
@@ -251,7 +253,9 @@ export default function Draft5v5({
 
     // Determine if we're in a uma or map phase
     const isUmaPhaseNow =
-      draftState.phase === "uma-pick" || draftState.phase === "uma-ban";
+      draftState.phase === "uma-pick" ||
+      draftState.phase === "uma-ban" ||
+      draftState.phase === "uma-pre-ban";
     const isMapPhaseNow =
       draftState.phase === "map-pick" || draftState.phase === "map-ban";
 
@@ -385,11 +389,15 @@ export default function Draft5v5({
   // Calculate total picks for turn key - ensures timer resets after each pick in double-pick scenarios
   // Guard against undefined arrays (Firebase doesn't store empty arrays)
   const totalPicks =
-    draftState.phase === "uma-pick" || draftState.phase === "uma-ban"
+    draftState.phase === "uma-pick" ||
+    draftState.phase === "uma-ban" ||
+    draftState.phase === "uma-pre-ban"
       ? (draftState.team1?.pickedUmas?.length || 0) +
         (draftState.team2?.pickedUmas?.length || 0) +
         (draftState.team1?.bannedUmas?.length || 0) +
-        (draftState.team2?.bannedUmas?.length || 0)
+        (draftState.team2?.bannedUmas?.length || 0) +
+        (draftState.team1?.preBannedUmas?.length || 0) +
+        (draftState.team2?.preBannedUmas?.length || 0)
       : (draftState.team1?.pickedMaps?.length || 0) +
         (draftState.team2?.pickedMaps?.length || 0) +
         (draftState.team1?.bannedMaps?.length || 0) +
@@ -708,12 +716,12 @@ export default function Draft5v5({
           setHistory((prev) => [...prev, newState]);
           return;
         } else if (
-          action.phase === "uma-pick" &&
+          action.phase === "uma-pre-ban" &&
           draftState.phase === "post-map-pause"
         ) {
           const newState = {
             ...draftState,
-            phase: "uma-pick" as const,
+            phase: "uma-pre-ban" as const,
             currentTeam: "team1" as const,
             team1Ready: false,
             team2Ready: false,
@@ -1168,11 +1176,11 @@ export default function Draft5v5({
     }
   };
 
-  // Handle continuing to uma draft (from post-map-pause to uma-pick)
+  // Handle continuing to uma draft (from post-map-pause to uma-pre-ban)
   const handleContinueToUma = () => {
     const newState = {
       ...draftState,
-      phase: "uma-pick" as const,
+      phase: "uma-pre-ban" as const,
       currentTeam: "team1" as const,
       team1Ready: false,
       team2Ready: false,
@@ -1186,10 +1194,10 @@ export default function Draft5v5({
     } else if (isMultiplayer && !isHost) {
       // Non-host players send action to host
       sendDraftAction({
-        action: "pick",
+        action: "ban",
         itemType: "control",
         itemId: "continue-to-uma",
-        phase: "uma-pick",
+        phase: "uma-pre-ban",
       });
     }
   };
@@ -1528,6 +1536,9 @@ export default function Draft5v5({
       const opponentTeam = getOpponentTeam();
       return draftState[opponentTeam].pickedUmas;
     }
+    if (draftState.phase === "uma-pre-ban") {
+      return draftState.availableUmas;
+    }
     return draftState.availableUmas;
   };
 
@@ -1708,6 +1719,7 @@ export default function Draft5v5({
           teamName={team1Name}
           pickedUmas={draftState.team1.pickedUmas}
           bannedUmas={draftState.team1.bannedUmas}
+          preBannedUmas={draftState.team1.preBannedUmas}
           pickedMaps={draftState.team1.pickedMaps}
           bannedMaps={draftState.team1.bannedMaps}
           isCurrentTurn={
@@ -1718,7 +1730,8 @@ export default function Draft5v5({
             draftState.phase === "map-pick" || draftState.phase === "map-ban"
               ? "maps"
               : draftState.phase === "uma-pick" ||
-                  draftState.phase === "uma-ban"
+                  draftState.phase === "uma-ban" ||
+                  draftState.phase === "uma-pre-ban"
                 ? "umas"
                 : null
           }
@@ -1728,6 +1741,7 @@ export default function Draft5v5({
             draftState.phase === "post-map-pause" ||
             draftState.phase === "uma-pick" ||
             draftState.phase === "uma-ban" ||
+            draftState.phase === "uma-pre-ban" ||
             draftState.phase === "complete"
           }
           ghostSelection={
@@ -1968,6 +1982,7 @@ export default function Draft5v5({
                 <div className="shrink-0">
                   <h2 className="text-lg lg:text-xl xl:text-2xl font-bold mb-2 lg:mb-4 text-gray-100">
                     {draftState.phase === "uma-pick" && "Available Umamusume"}
+                    {draftState.phase === "uma-pre-ban" && "Pre-Ban Umamusume"}
                     {draftState.phase === "uma-ban" &&
                       "Ban Opponent's Umamusume"}
                     {draftState.phase === "map-pick" &&
@@ -2301,6 +2316,18 @@ export default function Draft5v5({
                       </div>
                     ))}
                   </div>
+                  {draftState.team1.preBannedUmas?.length > 0 && (
+                    <div className="mt-1 pt-1 border-t border-gray-700/50">
+                      <span className="text-[9px] text-orange-400/70 uppercase">
+                        Pre-Banned:{" "}
+                      </span>
+                      <span className="text-[9px] text-gray-500">
+                        {draftState.team1.preBannedUmas
+                          .map((u) => u.name)
+                          .join(", ")}
+                      </span>
+                    </div>
+                  )}
                   {draftState.team1.bannedUmas.length > 0 && (
                     <div className="mt-1 pt-1 border-t border-gray-700/50">
                       <span className="text-[9px] text-red-400/70 uppercase">
@@ -2341,6 +2368,18 @@ export default function Draft5v5({
                       </div>
                     ))}
                   </div>
+                  {draftState.team2.preBannedUmas?.length > 0 && (
+                    <div className="mt-1 pt-1 border-t border-gray-700/50">
+                      <span className="text-[9px] text-orange-400/70 uppercase">
+                        Pre-Banned:{" "}
+                      </span>
+                      <span className="text-[9px] text-gray-500">
+                        {draftState.team2.preBannedUmas
+                          .map((u) => u.name)
+                          .join(", ")}
+                      </span>
+                    </div>
+                  )}
                   {draftState.team2.bannedUmas.length > 0 && (
                     <div className="mt-1 pt-1 border-t border-gray-700/50">
                       <span className="text-[9px] text-red-400/70 uppercase">
@@ -2469,6 +2508,12 @@ export default function Draft5v5({
                     const t2Umas = draftState.team2.pickedUmas
                       .map((u) => u.name)
                       .join(", ");
+                    const t1PreBans = (draftState.team1.preBannedUmas || [])
+                      .map((u) => u.name)
+                      .join(", ");
+                    const t2PreBans = (draftState.team2.preBannedUmas || [])
+                      .map((u) => u.name)
+                      .join(", ");
                     const t1Bans = draftState.team1.bannedUmas
                       .map((u) => u.name)
                       .join(", ");
@@ -2491,7 +2536,7 @@ export default function Draft5v5({
                     const wcConditions = formatConditions(
                       draftState.wildcardMap,
                     );
-                    const text = `=== DRAFT RESULTS ===\n\n${team1Name}: ${t1Umas}\nBanned: ${t1Bans || "None"}\n\n${team2Name}: ${t2Umas}\nBanned: ${t2Bans || "None"}\n\nMap Schedule:\n${maps}\n\nTiebreaker: ${draftState.wildcardMap.track} ${draftState.wildcardMap.distance}m (${draftState.wildcardMap.surface})${wcConditions}`;
+                    const text = `=== DRAFT RESULTS ===\n\n${team1Name}: ${t1Umas}\nPre-Banned: ${t1PreBans || "None"}\nBanned: ${t1Bans || "None"}\n\n${team2Name}: ${t2Umas}\nPre-Banned: ${t2PreBans || "None"}\nBanned: ${t2Bans || "None"}\n\nMap Schedule:\n${maps}\n\nTiebreaker: ${draftState.wildcardMap.track} ${draftState.wildcardMap.distance}m (${draftState.wildcardMap.surface})${wcConditions}`;
                     navigator.clipboard.writeText(text);
                   }}
                   className="bg-gray-700/80 hover:bg-gray-600 text-gray-200 font-semibold py-2 px-6 rounded-lg transition-colors border border-gray-600/50 text-sm"
@@ -2535,7 +2580,9 @@ export default function Draft5v5({
             const isMyTurn =
               !isMultiplayer || draftState.currentTeam === localTeam;
             const isBanPhase =
-              draftState.phase === "uma-ban" || draftState.phase === "map-ban";
+              draftState.phase === "uma-ban" ||
+              draftState.phase === "map-ban" ||
+              draftState.phase === "uma-pre-ban";
 
             return (
               <div className="shrink-0 py-3 lg:py-4 bg-gray-900/80 backdrop-blur-sm border-t border-gray-700/50">
@@ -2583,6 +2630,7 @@ export default function Draft5v5({
           teamName={team2Name}
           pickedUmas={draftState.team2.pickedUmas}
           bannedUmas={draftState.team2.bannedUmas}
+          preBannedUmas={draftState.team2.preBannedUmas}
           pickedMaps={draftState.team2.pickedMaps}
           bannedMaps={draftState.team2.bannedMaps}
           isCurrentTurn={
@@ -2593,7 +2641,8 @@ export default function Draft5v5({
             draftState.phase === "map-pick" || draftState.phase === "map-ban"
               ? "maps"
               : draftState.phase === "uma-pick" ||
-                  draftState.phase === "uma-ban"
+                  draftState.phase === "uma-ban" ||
+                  draftState.phase === "uma-pre-ban"
                 ? "umas"
                 : null
           }
@@ -2603,6 +2652,7 @@ export default function Draft5v5({
             draftState.phase === "post-map-pause" ||
             draftState.phase === "uma-pick" ||
             draftState.phase === "uma-ban" ||
+            draftState.phase === "uma-pre-ban" ||
             draftState.phase === "complete"
           }
           ghostSelection={

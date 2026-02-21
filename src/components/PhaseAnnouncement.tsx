@@ -22,6 +22,10 @@ const PHASE_CONFIG: Partial<
     text: "UMA PICK PHASE",
     color: "text-green-400",
   },
+  "uma-pre-ban": {
+    text: "UMA PRE-BAN PHASE",
+    color: "text-orange-400",
+  },
   "uma-ban": {
     text: "UMA BAN PHASE",
     color: "text-red-400",

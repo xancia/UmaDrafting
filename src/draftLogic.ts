@@ -3,6 +3,11 @@ import { SAMPLE_UMAS, SAMPLE_MAPS } from "./data";
 import { generateTrackConditions } from "./utils/trackConditions";
 // import { findUmaVariations } from "./utils/umaUtils";
 
+// ─── Pre-Ban Configuration ─────────────────────────────────────────────
+// Number of pre-bans each team gets before uma picks begin.
+// Increase this number to add more pre-ban rounds (teams alternate 1 ban each).
+export const PRE_BANS_PER_TEAM = 1;
+
 export const getInitialDraftState = (): DraftState => {
   // Pre-generate conditions for all maps at initialization
   const mapsWithConditions: Map[] = SAMPLE_MAPS.map((map) => ({
@@ -25,12 +30,14 @@ export const getInitialDraftState = (): DraftState => {
     team1: {
       pickedUmas: [],
       bannedUmas: [],
+      preBannedUmas: [],
       pickedMaps: [],
       bannedMaps: [],
     },
     team2: {
       pickedUmas: [],
       bannedUmas: [],
+      preBannedUmas: [],
       pickedMaps: [],
       bannedMaps: [],
     },
@@ -53,6 +60,10 @@ export const getNextPhase = (state: DraftState): DraftPhase => {
   } else if (phase === "map-ban") {
     const totalBans = team1.bannedMaps.length + team2.bannedMaps.length;
     if (totalBans >= 2) return "post-map-pause"; // Pause after map bans
+  } else if (phase === "uma-pre-ban") {
+    const totalPreBans =
+      (team1.preBannedUmas?.length || 0) + (team2.preBannedUmas?.length || 0);
+    if (totalPreBans >= PRE_BANS_PER_TEAM * 2) return "uma-pick";
   } else if (phase === "uma-pick") {
     const totalPicks = team1.pickedUmas.length + team2.pickedUmas.length;
     // Transition to ban phase after 10 picks (5 each)
@@ -84,6 +95,8 @@ export const canTeamAct = (state: DraftState): boolean => {
     return team.pickedUmas.length < 6; // Max 6 picks per team (5 pre-ban + 2 post-ban - 1 banned)
   } else if (phase === "uma-ban") {
     return team.bannedUmas.length < 1;
+  } else if (phase === "uma-pre-ban") {
+    return (team.preBannedUmas?.length || 0) < PRE_BANS_PER_TEAM;
   } else if (phase === "map-pick") {
     return team.pickedMaps.length < 4;
   } else if (phase === "map-ban") {
@@ -155,7 +168,16 @@ export const selectUma = (state: DraftState, uma: UmaMusume): DraftState => {
   const { phase, currentTeam } = state;
   const newState = { ...state };
 
-  if (phase === "uma-pick") {
+  if (phase === "uma-pre-ban") {
+    // Pre-ban: remove uma from available pool entirely
+    newState[currentTeam] = {
+      ...newState[currentTeam],
+      preBannedUmas: [...(newState[currentTeam].preBannedUmas || []), uma],
+    };
+    newState.availableUmas = newState.availableUmas.filter(
+      (u) => u.id !== uma.id,
+    );
+  } else if (phase === "uma-pick") {
     newState[currentTeam] = {
       ...newState[currentTeam],
       pickedUmas: [...newState[currentTeam].pickedUmas, uma],
@@ -238,6 +260,9 @@ export const selectUma = (state: DraftState, uma: UmaMusume): DraftState => {
   } else if (phase === "uma-ban" && nextPhase === "uma-pick") {
     // After ban phase, team2 picks first for remaining picks
     newState.currentTeam = "team2";
+  } else if (phase === "uma-pre-ban" && nextPhase === "uma-pick") {
+    // After pre-ban phase, team1 picks first
+    newState.currentTeam = "team1";
   } else {
     // For all other phases, alternate teams normally
     newState.currentTeam = getNextTeam(currentTeam);
@@ -482,6 +507,11 @@ export const getRandomTimeoutSelection = (
     }
     case "uma-ban": {
       const uma = getRandomBanUma(state);
+      if (uma) return { type: "uma", item: uma };
+      break;
+    }
+    case "uma-pre-ban": {
+      const uma = getRandomAvailableUma(state);
       if (uma) return { type: "uma", item: uma };
       break;
     }

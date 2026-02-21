@@ -51,7 +51,9 @@ export default function DraftHeader({
   const isTimerActive =
     timerEnabled &&
     timeRemaining !== undefined &&
-    ["map-pick", "map-ban", "uma-pick", "uma-ban"].includes(phase);
+    ["map-pick", "map-ban", "uma-pick", "uma-ban", "uma-pre-ban"].includes(
+      phase,
+    );
   const isWarning = isTimerActive && timeRemaining <= 10 && timeRemaining > 5;
   const isCritical = isTimerActive && timeRemaining <= 5;
 
@@ -72,6 +74,8 @@ export default function DraftHeader({
         return "Ready to Start";
       case "uma-pick":
         return "Umamusume Picking Phase";
+      case "uma-pre-ban":
+        return "Umamusume Pre-Ban Phase";
       case "uma-ban":
         return "Umamusume Banning Phase";
       case "map-pick":

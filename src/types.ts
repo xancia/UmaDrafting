@@ -26,6 +26,7 @@ export type DraftPhase =
   | "pre-draft-pause" // Pause before starting map draft (after wildcard)
   | "uma-pick"
   | "uma-ban"
+  | "uma-pre-ban" // Pre-bans from available pool before uma picks
   | "map-pick"
   | "map-ban"
   | "post-map-pause" // Pause after map bans, before uma picks
@@ -56,12 +57,14 @@ export interface DraftState {
   team1: {
     pickedUmas: UmaMusume[];
     bannedUmas: UmaMusume[];
+    preBannedUmas: UmaMusume[];
     pickedMaps: Map[];
     bannedMaps: Map[];
   };
   team2: {
     pickedUmas: UmaMusume[];
     bannedUmas: UmaMusume[];
+    preBannedUmas: UmaMusume[];
     pickedMaps: Map[];
     bannedMaps: Map[];
   };

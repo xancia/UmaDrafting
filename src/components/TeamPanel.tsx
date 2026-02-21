@@ -6,6 +6,7 @@ interface TeamPanelProps {
   teamName?: string;
   pickedUmas: UmaMusume[];
   bannedUmas: UmaMusume[];
+  preBannedUmas?: UmaMusume[];
   pickedMaps: Map[];
   bannedMaps: Map[];
   isCurrentTurn?: boolean;
@@ -22,6 +23,7 @@ export default function TeamPanel({
   teamName,
   pickedUmas,
   bannedUmas,
+  preBannedUmas = [],
   pickedMaps,
   bannedMaps,
   isCurrentTurn = false,
@@ -299,13 +301,28 @@ export default function TeamPanel({
           })}
         </div>
 
-        {/* Banned Uma Section */}
-        {bannedUmas.length > 0 && (
+        {/* Banned Uma Section - Pre-banned and mid-draft banned side by side */}
+        {(preBannedUmas.length > 0 || bannedUmas.length > 0) && (
           <div className="mt-2 lg:mt-3">
             <h4 className="text-xs lg:text-sm font-semibold mb-1 text-red-400 uppercase tracking-wider">
               Banned
             </h4>
-            <div className="flex gap-1.5 lg:gap-2">
+            <div className="flex gap-1.5 lg:gap-2 flex-wrap">
+              {preBannedUmas.map((uma) => (
+                <div
+                  key={uma.id}
+                  className="w-12 h-12 lg:w-14 lg:h-14 rounded-lg border-2 border-orange-500/50 overflow-hidden relative"
+                >
+                  <img
+                    src={uma.imageUrl}
+                    alt={uma.name}
+                    className="w-full h-full object-cover grayscale opacity-50"
+                  />
+                  <div className="absolute inset-0 flex items-center justify-center text-orange-500 text-2xl font-bold">
+                    X
+                  </div>
+                </div>
+              ))}
               {bannedUmas.map((uma) => (
                 <div
                   key={uma.id}

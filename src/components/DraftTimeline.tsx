@@ -19,6 +19,12 @@ interface DraftTimelineProps {
  */
 type TimelineStep = { team: Team; label: string };
 
+/** Uma pre-ban order: T1 bans 1, T2 bans 1 (matches PRE_BANS_PER_TEAM=1) */
+const UMA_PRE_BAN: TimelineStep[] = [
+  { team: "team1", label: "X" },
+  { team: "team2", label: "X" },
+];
+
 /** Pre-ban uma pick order: T1(1), T2(2), T1(2), T2(2), T1(2), T2(1) = 5 each */
 const UMA_PICK_PRE_BAN: TimelineStep[] = [
   { team: "team1", label: "P" },
@@ -90,27 +96,53 @@ function getTimelineForPhase(
         currentIndex: completedActions,
         sectionLabel: "Map Bans",
       };
+    case "uma-pre-ban":
+      return {
+        steps: [
+          ...UMA_PRE_BAN,
+          ...UMA_PICK_PRE_BAN,
+          ...UMA_BAN,
+          ...UMA_PICK_POST_BAN,
+        ],
+        currentIndex: completedActions,
+        sectionLabel: "Uma Draft",
+      };
     case "uma-pick": {
+      const preBanCount = UMA_PRE_BAN.length;
       // Pre-ban picks (5 each = 10 total), then post-ban picks (2 each = 4 total)
       if (completedActions < 10) {
         return {
-          steps: [...UMA_PICK_PRE_BAN, ...UMA_BAN, ...UMA_PICK_POST_BAN],
-          currentIndex: completedActions,
+          steps: [
+            ...UMA_PRE_BAN,
+            ...UMA_PICK_PRE_BAN,
+            ...UMA_BAN,
+            ...UMA_PICK_POST_BAN,
+          ],
+          currentIndex: preBanCount + completedActions,
           sectionLabel: "Uma Draft",
         };
       }
       // Post-ban phase: 10 pre-ban picks already done + 2 bans
-      // So completedActions relative to post-ban = completedActions - 10
       return {
-        steps: [...UMA_PICK_PRE_BAN, ...UMA_BAN, ...UMA_PICK_POST_BAN],
-        currentIndex: 10 + 2 + (completedActions - 10),
+        steps: [
+          ...UMA_PRE_BAN,
+          ...UMA_PICK_PRE_BAN,
+          ...UMA_BAN,
+          ...UMA_PICK_POST_BAN,
+        ],
+        currentIndex: preBanCount + 10 + 2 + (completedActions - 10),
         sectionLabel: "Uma Draft",
       };
     }
     case "uma-ban":
       return {
-        steps: [...UMA_PICK_PRE_BAN, ...UMA_BAN, ...UMA_PICK_POST_BAN],
-        currentIndex: 10 + completedActions,
+        steps: [
+          ...UMA_PRE_BAN,
+          ...UMA_PICK_PRE_BAN,
+          ...UMA_BAN,
+          ...UMA_PICK_POST_BAN,
+        ],
+        currentIndex: UMA_PRE_BAN.length + 10 + completedActions,
         sectionLabel: "Uma Draft",
       };
     default:
