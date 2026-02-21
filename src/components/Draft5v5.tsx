@@ -712,7 +712,13 @@ export default function Draft5v5({
           // Parse the result data sent by team 2 (no need to look up local state)
           try {
             const confirmed: RaceResult = JSON.parse(action.itemId);
-            setMatchResults((results) => [...results, confirmed]);
+            // Deduplicate: only add if this raceIndex hasn't been recorded yet
+            setMatchResults((results) => {
+              if (results.some((r) => r.raceIndex === confirmed.raceIndex)) {
+                return results;
+              }
+              return [...results, confirmed];
+            });
           } catch (e) {
             console.error("Failed to parse match-confirm data:", e);
           }
