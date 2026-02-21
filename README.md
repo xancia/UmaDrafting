@@ -8,6 +8,7 @@ A League of Legends-style draft interface for Uma Musume Pretty Derby competitiv
 
 - **Team-based drafting** - Side-by-side team displays with clear visual hierarchy
 - **Two-phase system** - Uma Musume selection followed by track/distance selection
+- **Pre-ban phase** - Each team bans 1 character from the pool before picks begin
 - **Ban mechanics** - Ban opponent picks after draft phase completes
 - **Turn timer** - 60-second countdown per pick with auto-selection on timeout
 - **Broadcast-ready UI** - Clean, professional interface designed for viewers
@@ -15,6 +16,8 @@ A League of Legends-style draft interface for Uma Musume Pretty Derby competitiv
 - **Spectator Mode** - Watch live drafts without participating
 - **Reconnection Support** - Rejoin your draft if disconnected
 - **Dynamic Track Conditions** - Random weather and ground conditions for each race
+- **Match Reporting** - Report race results with scoring, scoreboard, and series winner detection
+- **Multiplayer Consensus** - Team 2 confirms or disputes reported results
 
 ## Multiplayer
 
@@ -58,14 +61,50 @@ https://drafter.uma.guide/
 3. **Track Banning** (Team 2 starts)
    - Each team bans 1 track from opponent's picks
 
-4. **Uma Musume Picking** (Team 1 starts)
-   - Each team makes 7 total picks (ends with 6 after ban)
+4. **Uma Musume Pre-Ban** (Team 1 starts)
+   - Each team bans 1 character from the full available pool
+   - Pre-banned characters are removed entirely and cannot be picked by either team
+   - Bans alternate: Team 1 bans first, then Team 2
+
+5. **Uma Musume Picking** (Team 1 starts)
+   - Each team makes 7 total picks (ends with 6 after mid-draft ban)
    - Snake draft pattern with mid-draft banning
    - After 5 picks each, pause for ban phase
 
-5. **Uma Musume Banning** (Team 2 starts)
+6. **Uma Musume Banning** (Team 2 starts)
    - Each team bans 1 character from opponent's 5 picks
    - Then resume picking for final 2 characters each (ending with 6 total)
+
+## Match Reporting
+
+After the draft is complete, the host can report race results directly from the summary screen.
+
+### Scoring System
+
+- **Points mode** (default): 1st place = 4 pts, 2nd = 2 pts, 3rd = 1 pt. First team to 25 points wins the series.
+- **Wins mode** (alternate): Each race winner gets 1 win. Best of 7.
+
+### How to Report
+
+1. After draft completes, click **Report Race X** on the summary screen
+2. Select the 1st, 2nd, and 3rd place finishers from the drafted uma pool
+3. Click **Submit** to send the result
+
+### Multiplayer Confirmation
+
+In multiplayer mode, match reporting requires consensus:
+
+- The **host** submits race results
+- **Team 2** sees a confirmation prompt with the reported placements
+- Team 2 can **Confirm** (result is recorded) or **Dispute** (result is discarded, host can resubmit)
+- In local/single-player mode, results are auto-confirmed
+
+### Scoreboard
+
+- A live scoreboard appears on the summary screen showing cumulative scores
+- Race-by-race breakdown is shown below the scoreboard
+- When a team reaches the winning threshold, a series winner banner is displayed
+- The **Copy Draft Results** button includes pre-banned and banned characters in the output
 
 ## Getting Started
 

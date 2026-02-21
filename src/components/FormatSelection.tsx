@@ -175,7 +175,7 @@ export default function FormatSelection({
                 <div className="bg-gray-900/50 rounded-lg p-3 border border-gray-700">
                   <p className="text-center text-gray-200">
                     Wildcard Reveal → Strategy Phase → Map Draft → Strategy
-                    Phase → Uma Draft
+                    Phase → Uma Pre-Ban → Uma Draft
                   </p>
                 </div>
               </div>
@@ -190,6 +190,13 @@ export default function FormatSelection({
                     <span className="text-blue-400">•</span>
                     <span>
                       <strong>Map Draft:</strong> Pick 4, Ban 1
+                    </span>
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="text-orange-400">•</span>
+                    <span>
+                      <strong>Uma Pre-Ban:</strong> Each team bans 1 uma from
+                      the full pool (removed for both teams)
                     </span>
                   </li>
                   <li className="flex gap-2">
@@ -268,6 +275,42 @@ export default function FormatSelection({
                   <li className="flex gap-2">
                     <span className="text-green-400">•</span>
                     <span>If racing on stream, wait for spectator to join</span>
+                  </li>
+                </ul>
+              </div>
+
+              {/* Match Reporting */}
+              <div>
+                <h3 className="text-lg font-bold text-purple-400 mb-2">
+                  Match Reporting
+                </h3>
+                <ul className="space-y-2 text-gray-300">
+                  <li className="flex gap-2">
+                    <span className="text-purple-400">•</span>
+                    <span>
+                      <strong>Scoring:</strong> 1st = 4 pts, 2nd = 2 pts, 3rd =
+                      1 pt. First to 25 points wins.
+                    </span>
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="text-purple-400">•</span>
+                    <span>
+                      After draft, the host clicks <strong>Report Race</strong>{" "}
+                      and selects the top 3 finishers.
+                    </span>
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="text-purple-400">•</span>
+                    <span>
+                      In multiplayer, Team 2 must <strong>Confirm</strong> or{" "}
+                      <strong>Dispute</strong> each result.
+                    </span>
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="text-purple-400">•</span>
+                    <span>
+                      Scores update live on the summary screen scoreboard.
+                    </span>
                   </li>
                 </ul>
               </div>
