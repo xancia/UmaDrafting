@@ -709,18 +709,15 @@ export default function Draft5v5({
 
         // Handle match result confirmation from team 2
         if (action.action === "match-confirm") {
-          // Use ref to get current pending report (closure may be stale)
-          const currentPending = pendingReportRef.current;
-          if (currentPending) {
-            const confirmed: RaceResult = {
-              raceIndex: currentPending.raceIndex,
-              placements: currentPending.placements,
-              confirmed: true,
-            };
+          // Parse the result data sent by team 2 (no need to look up local state)
+          try {
+            const confirmed: RaceResult = JSON.parse(action.itemId);
             setMatchResults((results) => [...results, confirmed]);
-            setPendingReport(null);
-            pendingReportRef.current = null;
+          } catch (e) {
+            console.error("Failed to parse match-confirm data:", e);
           }
+          setPendingReport(null);
+          pendingReportRef.current = null;
           // Clear pending report from synced state using functional updater
           // to avoid stale draftState closure
           setDraftState((current) => {
@@ -1538,26 +1535,28 @@ export default function Draft5v5({
 
   // Team 2 confirms the pending report
   const confirmMatchReport = () => {
+    if (!pendingReport) return;
+
+    const result: RaceResult = {
+      raceIndex: pendingReport.raceIndex,
+      placements: pendingReport.placements,
+      confirmed: true,
+    };
+
     if (isMultiplayer && !isHost) {
-      // Send confirmation to host
+      // Send confirmation to host WITH the result data so host doesn't
+      // need to look up pendingReport (which may be stale in closures)
       sendDraftAction({
         action: "match-confirm",
         itemType: "control",
-        itemId: "confirm",
+        itemId: JSON.stringify(result),
       });
     }
     // Apply locally and mark as responded so sync effect won't re-set it
-    if (pendingReport) {
-      respondedReportRef.current =
-        pendingReport.submissionId ?? pendingReport.raceIndex;
-      const result: RaceResult = {
-        raceIndex: pendingReport.raceIndex,
-        placements: pendingReport.placements,
-        confirmed: true,
-      };
-      setMatchResults((prev) => [...prev, result]);
-      setPendingReport(null);
-    }
+    respondedReportRef.current =
+      pendingReport.submissionId ?? pendingReport.raceIndex;
+    setMatchResults((prev) => [...prev, result]);
+    setPendingReport(null);
   };
 
   // Team 2 rejects the pending report
