@@ -103,7 +103,8 @@ export interface DraftActionPayload {
     | "ready"
     | "team-name"
     | "match-report"
-    | "match-confirm";
+    | "match-confirm"
+    | "match-reject";
   itemType: "uma" | "map" | "control";
   itemId: string;
   phase?: string; // Optional phase parameter for control actions

@@ -697,6 +697,22 @@ export default function Draft5v5({
             setMatchResults((results) => [...results, confirmed]);
             return null;
           });
+          // Clear pending report from synced state
+          syncUpdateDraftState({
+            ...draftState,
+            pendingMatchReport: undefined,
+          } as DraftState);
+          return;
+        }
+
+        // Handle match result rejection from team 2
+        if (action.action === "match-reject") {
+          setPendingReport(null);
+          // Clear pending report from synced state
+          syncUpdateDraftState({
+            ...draftState,
+            pendingMatchReport: undefined,
+          } as DraftState);
           return;
         }
 
@@ -1508,6 +1524,14 @@ export default function Draft5v5({
 
   // Team 2 rejects the pending report
   const rejectMatchReport = () => {
+    if (isMultiplayer && !isHost) {
+      // Send rejection to host
+      sendDraftAction({
+        action: "match-reject",
+        itemType: "control",
+        itemId: "reject",
+      });
+    }
     setPendingReport(null);
   };
 
