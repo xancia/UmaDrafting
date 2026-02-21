@@ -168,9 +168,16 @@ export default function Draft5v5({
   const [pendingReport, setPendingReport] = useState<PendingReport | null>(
     null,
   );
+  // Keep a ref in sync so the action handler (which doesn't have pendingReport
+  // in its dependency array) can read the current value.
+  const pendingReportRef = useRef<PendingReport | null>(null);
   // Track the raceIndex that team 2 has already responded to, to prevent
   // the sync effect from re-setting pendingReport from stale synced state.
   const respondedReportRef = useRef<number | null>(null);
+  // Keep pendingReportRef in sync with state
+  useEffect(() => {
+    pendingReportRef.current = pendingReport;
+  }, [pendingReport]);
   const [reportRaceIndex, setReportRaceIndex] = useState<number>(0);
   const [reportPlacements, setReportPlacements] = useState<{
     first: string;
@@ -702,17 +709,18 @@ export default function Draft5v5({
 
         // Handle match result confirmation from team 2
         if (action.action === "match-confirm") {
-          // Team 2 confirmed the pending report
-          setPendingReport((prev) => {
-            if (!prev) return null;
+          // Use ref to get current pending report (closure may be stale)
+          const currentPending = pendingReportRef.current;
+          if (currentPending) {
             const confirmed: RaceResult = {
-              raceIndex: prev.raceIndex,
-              placements: prev.placements,
+              raceIndex: currentPending.raceIndex,
+              placements: currentPending.placements,
               confirmed: true,
             };
             setMatchResults((results) => [...results, confirmed]);
-            return null;
-          });
+            setPendingReport(null);
+            pendingReportRef.current = null;
+          }
           // Clear pending report from synced state using functional updater
           // to avoid stale draftState closure
           setDraftState((current) => {
@@ -729,6 +737,7 @@ export default function Draft5v5({
         // Handle match result rejection from team 2
         if (action.action === "match-reject") {
           setPendingReport(null);
+          pendingReportRef.current = null;
           // Clear pending report from synced state
           setDraftState((current) => {
             const cleared = {
