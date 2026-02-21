@@ -726,7 +726,7 @@ export default function Draft5v5({
           setDraftState((current) => {
             const cleared = {
               ...current,
-              pendingMatchReport: undefined,
+              pendingMatchReport: null,
             } as DraftState;
             syncUpdateDraftState(cleared);
             return current;
@@ -742,7 +742,7 @@ export default function Draft5v5({
           setDraftState((current) => {
             const cleared = {
               ...current,
-              pendingMatchReport: undefined,
+              pendingMatchReport: null,
             } as DraftState;
             syncUpdateDraftState(cleared);
             return current;
