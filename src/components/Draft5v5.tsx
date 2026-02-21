@@ -167,6 +167,9 @@ export default function Draft5v5({
   const [pendingReport, setPendingReport] = useState<PendingReport | null>(
     null,
   );
+  // Track the raceIndex that team 2 has already responded to, to prevent
+  // the sync effect from re-setting pendingReport from stale synced state.
+  const respondedReportRef = useRef<number | null>(null);
   const [reportRaceIndex, setReportRaceIndex] = useState<number>(0);
   const [reportPlacements, setReportPlacements] = useState<{
     first: string;
@@ -601,14 +604,21 @@ export default function Draft5v5({
         pendingMatchReport?: { raceIndex: number; placements: RacePlacement[] };
       };
       if (synced.pendingMatchReport && !multiplayerConfig?.isHost) {
-        setPendingReport({
-          raceIndex: synced.pendingMatchReport.raceIndex,
-          placements: synced.pendingMatchReport.placements,
-          awaitingConfirm: true,
-        });
+        // Only set if team 2 hasn't already responded to this specific report
+        if (
+          respondedReportRef.current !== synced.pendingMatchReport.raceIndex
+        ) {
+          setPendingReport({
+            raceIndex: synced.pendingMatchReport.raceIndex,
+            placements: synced.pendingMatchReport.placements,
+            awaitingConfirm: true,
+          });
+        }
       } else if (!synced.pendingMatchReport && !multiplayerConfig?.isHost) {
-        // Host cleared it (rejected or confirmed)
+        // Host cleared it — also reset the responded ref so future reports for
+        // the same race index (re-submission after dispute) can come through
         setPendingReport(null);
+        respondedReportRef.current = null;
       }
     }
   }, [
@@ -697,11 +707,16 @@ export default function Draft5v5({
             setMatchResults((results) => [...results, confirmed]);
             return null;
           });
-          // Clear pending report from synced state
-          syncUpdateDraftState({
-            ...draftState,
-            pendingMatchReport: undefined,
-          } as DraftState);
+          // Clear pending report from synced state using functional updater
+          // to avoid stale draftState closure
+          setDraftState((current) => {
+            const cleared = {
+              ...current,
+              pendingMatchReport: undefined,
+            } as DraftState;
+            syncUpdateDraftState(cleared);
+            return current;
+          });
           return;
         }
 
@@ -709,10 +724,14 @@ export default function Draft5v5({
         if (action.action === "match-reject") {
           setPendingReport(null);
           // Clear pending report from synced state
-          syncUpdateDraftState({
-            ...draftState,
-            pendingMatchReport: undefined,
-          } as DraftState);
+          setDraftState((current) => {
+            const cleared = {
+              ...current,
+              pendingMatchReport: undefined,
+            } as DraftState;
+            syncUpdateDraftState(cleared);
+            return current;
+          });
           return;
         }
 
@@ -1510,8 +1529,9 @@ export default function Draft5v5({
         itemId: "confirm",
       });
     }
-    // Also apply locally for non-host
+    // Apply locally and mark as responded so sync effect won't re-set it
     if (pendingReport) {
+      respondedReportRef.current = pendingReport.raceIndex;
       const result: RaceResult = {
         raceIndex: pendingReport.raceIndex,
         placements: pendingReport.placements,
@@ -1524,6 +1544,9 @@ export default function Draft5v5({
 
   // Team 2 rejects the pending report
   const rejectMatchReport = () => {
+    if (pendingReport) {
+      respondedReportRef.current = pendingReport.raceIndex;
+    }
     if (isMultiplayer && !isHost) {
       // Send rejection to host
       sendDraftAction({
