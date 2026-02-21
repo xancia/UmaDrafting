@@ -61,6 +61,7 @@ interface PendingReport {
   raceIndex: number;
   placements: RacePlacement[];
   awaitingConfirm: boolean; // waiting for team 2
+  submissionId?: number; // unique id to distinguish resubmissions
 }
 
 interface MultiplayerConfig {
@@ -601,22 +602,27 @@ export default function Draft5v5({
 
       // Sync pending match report from host to team 2
       const synced = syncedDraftState as DraftState & {
-        pendingMatchReport?: { raceIndex: number; placements: RacePlacement[] };
+        pendingMatchReport?: {
+          raceIndex: number;
+          placements: RacePlacement[];
+          submissionId?: number;
+        };
       };
       if (synced.pendingMatchReport && !multiplayerConfig?.isHost) {
-        // Only set if team 2 hasn't already responded to this specific report
-        if (
-          respondedReportRef.current !== synced.pendingMatchReport.raceIndex
-        ) {
+        // Only set if team 2 hasn't already responded to this exact submission
+        const subId =
+          synced.pendingMatchReport.submissionId ??
+          synced.pendingMatchReport.raceIndex;
+        if (respondedReportRef.current !== subId) {
           setPendingReport({
             raceIndex: synced.pendingMatchReport.raceIndex,
             placements: synced.pendingMatchReport.placements,
             awaitingConfirm: true,
+            submissionId: subId,
           });
         }
       } else if (!synced.pendingMatchReport && !multiplayerConfig?.isHost) {
-        // Host cleared it — also reset the responded ref so future reports for
-        // the same race index (re-submission after dispute) can come through
+        // Host cleared it
         setPendingReport(null);
         respondedReportRef.current = null;
       }
@@ -1499,11 +1505,13 @@ export default function Draft5v5({
       };
       setPendingReport(report);
       // Sync pending report via draft state so team 2 can see it
+      // Include a unique submissionId so resubmissions are distinguishable
       syncUpdateDraftState({
         ...draftState,
         pendingMatchReport: {
           raceIndex: reportRaceIndex,
           placements,
+          submissionId: Date.now(),
         },
       } as DraftState);
       setShowMatchReporting(false);
@@ -1531,7 +1539,8 @@ export default function Draft5v5({
     }
     // Apply locally and mark as responded so sync effect won't re-set it
     if (pendingReport) {
-      respondedReportRef.current = pendingReport.raceIndex;
+      respondedReportRef.current =
+        pendingReport.submissionId ?? pendingReport.raceIndex;
       const result: RaceResult = {
         raceIndex: pendingReport.raceIndex,
         placements: pendingReport.placements,
@@ -1545,7 +1554,8 @@ export default function Draft5v5({
   // Team 2 rejects the pending report
   const rejectMatchReport = () => {
     if (pendingReport) {
-      respondedReportRef.current = pendingReport.raceIndex;
+      respondedReportRef.current =
+        pendingReport.submissionId ?? pendingReport.raceIndex;
     }
     if (isMultiplayer && !isHost) {
       // Send rejection to host
