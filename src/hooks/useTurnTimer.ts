@@ -74,6 +74,15 @@ export function useTurnTimer({
   const timeoutCalledRef = useRef(false);
   const previousTurnKeyRef = useRef(currentTurnKey);
   const turnStartTimeRef = useRef(Date.now());
+  const previousIsAuthorityRef = useRef(isTimerAuthority);
+
+  // Keep onTimeout ref current to avoid stale closures in the interval.
+  // Without this, the interval captures an old onTimeout and can fire a stale
+  // callback via setTimeout after state has already changed.
+  const onTimeoutRef = useRef(onTimeout);
+  useEffect(() => {
+    onTimeoutRef.current = onTimeout;
+  }, [onTimeout]);
 
   // Determine if timer should be active based on phase
   const isActivePhase = ACTIVE_PHASES.includes(phase);
@@ -91,6 +100,19 @@ export function useTurnTimer({
     }
   }, [currentTurnKey, duration]);
 
+  // Reset timer when becoming timer authority (handles multiplayer turn switches).
+  // When the turn switches to us, isTimerAuthority goes false → true. Without this,
+  // turnStartTimeRef retains the value from ~60s ago and the first interval tick
+  // immediately computes remaining=0, causing an instant timeout.
+  useEffect(() => {
+    if (isTimerAuthority && !previousIsAuthorityRef.current) {
+      turnStartTimeRef.current = Date.now();
+      setTimeRemaining(duration);
+      timeoutCalledRef.current = false;
+    }
+    previousIsAuthorityRef.current = isTimerAuthority;
+  }, [isTimerAuthority, duration]);
+
   // Reset timer when phase changes to an active phase
   useEffect(() => {
     if (isActivePhase) {
@@ -101,6 +123,8 @@ export function useTurnTimer({
   }, [phase, isActivePhase, duration]);
 
   // Countdown effect - uses timestamp-based calculation to handle background tab throttling
+  // Uses onTimeoutRef instead of onTimeout in deps to prevent interval churn
+  // every time handleTurnTimeout is recreated (which happens on every state change).
   useEffect(() => {
     if (!shouldCountDown) return;
 
@@ -114,13 +138,14 @@ export function useTurnTimer({
 
       if (remaining <= 0 && !timeoutCalledRef.current && isTimerAuthority) {
         timeoutCalledRef.current = true;
-        // Call timeout in next tick to avoid state update during render
-        setTimeout(() => onTimeout(), 0);
+        // Call latest onTimeout via ref to avoid stale closures.
+        // setInterval callback is already async so no risk of calling during render.
+        onTimeoutRef.current();
       }
     }, 100); // Update more frequently to catch up quickly when tab becomes active
 
     return () => clearInterval(interval);
-  }, [shouldCountDown, isTimerAuthority, onTimeout, duration]);
+  }, [shouldCountDown, isTimerAuthority, duration]);
 
   const pause = useCallback(() => {
     setIsPaused(true);
