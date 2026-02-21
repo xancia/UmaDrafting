@@ -146,12 +146,14 @@ export function useDraftSync(
         team1: {
           pickedUmas: [],
           bannedUmas: [],
+          preBannedUmas: [],
           pickedMaps: [],
           bannedMaps: [],
         },
         team2: {
           pickedUmas: [],
           bannedUmas: [],
+          preBannedUmas: [],
           pickedMaps: [],
           bannedMaps: [],
         },
