@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import type { DraftState, UmaMusume, Map } from "../types";
 import {
   getInitialDraftState,
@@ -30,6 +30,38 @@ import type {
   FirebasePendingAction,
   FirebasePendingSelection,
 } from "../types/firebase";
+
+// ─── Match Reporting Config ───────────────────────────────────────────
+// Toggle between "points" and "wins" scoring systems
+type ScoringMode = "points" | "wins";
+const SCORING_MODE: ScoringMode = "points";
+
+// Points awarded per placement (only used in "points" mode)
+const POINT_VALUES = { 1: 4, 2: 2, 3: 1 } as const;
+const POINTS_TO_WIN = 25;
+
+// In "wins" mode, how many race wins to win the series
+const WINS_TO_WIN = 4;
+
+// ─── Match Result Types ──────────────────────────────────────────────
+interface RacePlacement {
+  position: 1 | 2 | 3;
+  umaId: string;
+  umaName: string;
+  team: "team1" | "team2";
+}
+
+interface RaceResult {
+  raceIndex: number; // 0-based index into the map schedule
+  placements: RacePlacement[]; // top 3
+  confirmed: boolean; // team 2 agreed
+}
+
+interface PendingReport {
+  raceIndex: number;
+  placements: RacePlacement[];
+  awaitingConfirm: boolean; // waiting for team 2
+}
 
 interface MultiplayerConfig {
   roomCode: string;
@@ -128,6 +160,19 @@ export default function Draft5v5({
 
   // Ready-up timer (5 minutes = 300 seconds)
   const [readyUpTime, setReadyUpTime] = useState<number>(300);
+
+  // Match reporting state
+  const [matchResults, setMatchResults] = useState<RaceResult[]>([]);
+  const [showMatchReporting, setShowMatchReporting] = useState<boolean>(false);
+  const [pendingReport, setPendingReport] = useState<PendingReport | null>(
+    null,
+  );
+  const [reportRaceIndex, setReportRaceIndex] = useState<number>(0);
+  const [reportPlacements, setReportPlacements] = useState<{
+    first: string;
+    second: string;
+    third: string;
+  }>({ first: "", second: "", third: "" });
 
   const isUmaPhase =
     draftState.phase === "uma-pick" || draftState.phase === "uma-ban";
@@ -542,6 +587,21 @@ export default function Draft5v5({
         setShowWildcardModal(false);
         setWildcardAcknowledged(true);
       }
+
+      // Sync pending match report from host to team 2
+      const synced = syncedDraftState as DraftState & {
+        pendingMatchReport?: { raceIndex: number; placements: RacePlacement[] };
+      };
+      if (synced.pendingMatchReport && !multiplayerConfig?.isHost) {
+        setPendingReport({
+          raceIndex: synced.pendingMatchReport.raceIndex,
+          placements: synced.pendingMatchReport.placements,
+          awaitingConfirm: true,
+        });
+      } else if (!synced.pendingMatchReport && !multiplayerConfig?.isHost) {
+        // Host cleared it (rejected or confirmed)
+        setPendingReport(null);
+      }
     }
   }, [
     isMultiplayer,
@@ -613,6 +673,22 @@ export default function Draft5v5({
           };
           syncUpdateDraftState(newState);
           setDraftState(newState);
+          return;
+        }
+
+        // Handle match result confirmation from team 2
+        if (action.action === "match-confirm") {
+          // Team 2 confirmed the pending report
+          setPendingReport((prev) => {
+            if (!prev) return null;
+            const confirmed: RaceResult = {
+              raceIndex: prev.raceIndex,
+              placements: prev.placements,
+              confirmed: true,
+            };
+            setMatchResults((results) => [...results, confirmed]);
+            return null;
+          });
           return;
         }
 
@@ -1245,6 +1321,188 @@ export default function Draft5v5({
     return draftState.currentTeam === "team1" ? "team2" : "team1";
   };
 
+  // ─── Match Reporting Helpers ─────────────────────────────────────────
+  // Build the interleaved map schedule (same logic as render)
+  const getMapSchedule = useCallback(() => {
+    const t1Maps = draftState.team1.pickedMaps;
+    const t2Maps = draftState.team2.pickedMaps;
+    const schedule: { map: Map; team: string; index: number }[] = [];
+    const maxLen = Math.max(t1Maps.length, t2Maps.length);
+    for (let i = 0; i < maxLen; i++) {
+      if (i < t1Maps.length)
+        schedule.push({
+          map: t1Maps[i],
+          team: team1Name,
+          index: schedule.length + 1,
+        });
+      if (i < t2Maps.length)
+        schedule.push({
+          map: t2Maps[i],
+          team: team2Name,
+          index: schedule.length + 1,
+        });
+    }
+    // Add tiebreaker (wildcard map) as the final race
+    schedule.push({
+      map: draftState.wildcardMap,
+      team: "Tiebreaker",
+      index: schedule.length + 1,
+    });
+    return schedule;
+  }, [
+    draftState.team1.pickedMaps,
+    draftState.team2.pickedMaps,
+    draftState.wildcardMap,
+    team1Name,
+    team2Name,
+  ]);
+
+  // All drafted uma from both teams (for match reporting dropdowns)
+  const allDraftedUmas = useMemo(() => {
+    return [
+      ...draftState.team1.pickedUmas.map((u) => ({
+        ...u,
+        team: "team1" as const,
+      })),
+      ...draftState.team2.pickedUmas.map((u) => ({
+        ...u,
+        team: "team2" as const,
+      })),
+    ];
+  }, [draftState.team1.pickedUmas, draftState.team2.pickedUmas]);
+
+  // Compute current scores from confirmed results
+  const scores = useMemo(() => {
+    let team1Points = 0;
+    let team2Points = 0;
+    let team1Wins = 0;
+    let team2Wins = 0;
+
+    for (const result of matchResults) {
+      let raceT1 = 0;
+      let raceT2 = 0;
+      for (const p of result.placements) {
+        const pts = POINT_VALUES[p.position] || 0;
+        if (p.team === "team1") {
+          raceT1 += pts;
+        } else {
+          raceT2 += pts;
+        }
+      }
+      team1Points += raceT1;
+      team2Points += raceT2;
+      if (raceT1 > raceT2) team1Wins++;
+      else if (raceT2 > raceT1) team2Wins++;
+    }
+
+    return { team1Points, team2Points, team1Wins, team2Wins };
+  }, [matchResults]);
+
+  // Determine next unreported race index
+  const nextRaceIndex = useMemo(() => {
+    const reportedIndices = new Set(matchResults.map((r) => r.raceIndex));
+    const schedule = getMapSchedule();
+    for (let i = 0; i < schedule.length; i++) {
+      if (!reportedIndices.has(i)) return i;
+    }
+    return schedule.length; // all reported
+  }, [matchResults, getMapSchedule]);
+
+  // Open reporting modal for the next race
+  const openMatchReporting = () => {
+    setReportRaceIndex(nextRaceIndex);
+    setReportPlacements({ first: "", second: "", third: "" });
+    setShowMatchReporting(true);
+  };
+
+  // Find uma info by id from all drafted umas
+  const findDraftedUma = (id: string) =>
+    allDraftedUmas.find((u) => u.id.toString() === id);
+
+  // Submit race result (host)
+  const submitRaceReport = () => {
+    const first = findDraftedUma(reportPlacements.first);
+    const second = findDraftedUma(reportPlacements.second);
+    const third = findDraftedUma(reportPlacements.third);
+    if (!first || !second || !third) return;
+
+    const placements: RacePlacement[] = [
+      {
+        position: 1,
+        umaId: first.id.toString(),
+        umaName: first.name,
+        team: first.team,
+      },
+      {
+        position: 2,
+        umaId: second.id.toString(),
+        umaName: second.name,
+        team: second.team,
+      },
+      {
+        position: 3,
+        umaId: third.id.toString(),
+        umaName: third.name,
+        team: third.team,
+      },
+    ];
+
+    if (isMultiplayer) {
+      // Host sets pending report, waits for team 2 to confirm
+      const report: PendingReport = {
+        raceIndex: reportRaceIndex,
+        placements,
+        awaitingConfirm: true,
+      };
+      setPendingReport(report);
+      // Sync pending report via draft state so team 2 can see it
+      syncUpdateDraftState({
+        ...draftState,
+        pendingMatchReport: {
+          raceIndex: reportRaceIndex,
+          placements,
+        },
+      } as DraftState);
+      setShowMatchReporting(false);
+    } else {
+      // Local mode: auto-confirm
+      const result: RaceResult = {
+        raceIndex: reportRaceIndex,
+        placements,
+        confirmed: true,
+      };
+      setMatchResults((prev) => [...prev, result]);
+      setShowMatchReporting(false);
+    }
+  };
+
+  // Team 2 confirms the pending report
+  const confirmMatchReport = () => {
+    if (isMultiplayer && !isHost) {
+      // Send confirmation to host
+      sendDraftAction({
+        action: "match-confirm",
+        itemType: "control",
+        itemId: "confirm",
+      });
+    }
+    // Also apply locally for non-host
+    if (pendingReport) {
+      const result: RaceResult = {
+        raceIndex: pendingReport.raceIndex,
+        placements: pendingReport.placements,
+        confirmed: true,
+      };
+      setMatchResults((prev) => [...prev, result]);
+      setPendingReport(null);
+    }
+  };
+
+  // Team 2 rejects the pending report
+  const rejectMatchReport = () => {
+    setPendingReport(null);
+  };
+
   // Check if a map can be picked based on distance and surface constraints
   const canSelectMap = (map: Map): boolean => {
     if (draftState.phase !== "map-pick") return true;
@@ -1832,6 +2090,189 @@ export default function Draft5v5({
                 Draft Complete
               </h2>
 
+              {/* Scoreboard */}
+              <div className="mb-4 lg:mb-6">
+                <div className="bg-gray-900/70 rounded-xl p-3 lg:p-4 border border-gray-600/40 flex items-center justify-center gap-6 lg:gap-10">
+                  <div className="text-center">
+                    <p className="text-xs text-gray-400 uppercase tracking-wider mb-0.5">
+                      {team1Name}
+                    </p>
+                    <p className="text-3xl lg:text-4xl font-bold text-blue-400 font-mono">
+                      {SCORING_MODE === "points"
+                        ? scores.team1Points
+                        : scores.team1Wins}
+                    </p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-xs text-gray-500 uppercase tracking-wider mb-0.5">
+                      {SCORING_MODE === "points"
+                        ? `First to ${POINTS_TO_WIN}`
+                        : `Best of ${WINS_TO_WIN * 2 - 1}`}
+                    </p>
+                    <p className="text-lg text-gray-500 font-bold">vs</p>
+                    <p className="text-[10px] text-gray-600">
+                      {matchResults.length} race
+                      {matchResults.length !== 1 ? "s" : ""} reported
+                    </p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-xs text-gray-400 uppercase tracking-wider mb-0.5">
+                      {team2Name}
+                    </p>
+                    <p className="text-3xl lg:text-4xl font-bold text-red-400 font-mono">
+                      {SCORING_MODE === "points"
+                        ? scores.team2Points
+                        : scores.team2Wins}
+                    </p>
+                  </div>
+                </div>
+                {/* Series winner announcement */}
+                {((SCORING_MODE === "points" &&
+                  (scores.team1Points >= POINTS_TO_WIN ||
+                    scores.team2Points >= POINTS_TO_WIN)) ||
+                  (SCORING_MODE === "wins" &&
+                    (scores.team1Wins >= WINS_TO_WIN ||
+                      scores.team2Wins >= WINS_TO_WIN))) && (
+                  <div className="mt-3 bg-yellow-900/30 border border-yellow-600/40 rounded-lg p-3 text-center">
+                    <p className="text-yellow-400 font-bold text-lg">
+                      {SCORING_MODE === "points"
+                        ? scores.team1Points >= POINTS_TO_WIN
+                          ? team1Name
+                          : team2Name
+                        : scores.team1Wins >= WINS_TO_WIN
+                          ? team1Name
+                          : team2Name}{" "}
+                      wins the series!
+                    </p>
+                    <p className="text-gray-400 text-xs mt-1">
+                      Final score:{" "}
+                      {SCORING_MODE === "points"
+                        ? `${scores.team1Points} - ${scores.team2Points}`
+                        : `${scores.team1Wins} - ${scores.team2Wins}`}{" "}
+                      after {matchResults.length} race
+                      {matchResults.length !== 1 ? "s" : ""}
+                    </p>
+                  </div>
+                )}
+                {/* Race-by-race breakdown */}
+                {matchResults.length > 0 && (
+                  <div className="mt-2 space-y-1">
+                    {matchResults.map((result) => {
+                      const schedule = getMapSchedule();
+                      const raceMap = schedule[result.raceIndex];
+                      const raceT1 = result.placements
+                        .filter((p) => p.team === "team1")
+                        .reduce(
+                          (sum, p) => sum + (POINT_VALUES[p.position] || 0),
+                          0,
+                        );
+                      const raceT2 = result.placements
+                        .filter((p) => p.team === "team2")
+                        .reduce(
+                          (sum, p) => sum + (POINT_VALUES[p.position] || 0),
+                          0,
+                        );
+                      return (
+                        <div
+                          key={result.raceIndex}
+                          className="flex items-center gap-2 px-3 py-1 bg-gray-900/30 rounded text-xs"
+                        >
+                          <span className="text-gray-500 font-mono w-5">
+                            {result.raceIndex + 1}.
+                          </span>
+                          <span className="text-gray-300 flex-1">
+                            {raceMap?.map.track} {raceMap?.map.distance}m
+                          </span>
+                          <span className="text-gray-400">
+                            {result.placements.map((p) => (
+                              <span
+                                key={p.position}
+                                className={`mx-0.5 ${p.team === "team1" ? "text-blue-400" : "text-red-400"}`}
+                              >
+                                {p.position === 1
+                                  ? "1st "
+                                  : p.position === 2
+                                    ? "2nd "
+                                    : "3rd "}
+                                {p.umaName}
+                              </span>
+                            ))}
+                          </span>
+                          {SCORING_MODE === "points" && (
+                            <span className="text-gray-500 ml-2">
+                              <span className="text-blue-400">{raceT1}</span>-
+                              <span className="text-red-400">{raceT2}</span>
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* Pending match report confirmation (shown to team 2) */}
+              {pendingReport?.awaitingConfirm && !isHost && (
+                <div className="mb-4 bg-yellow-900/30 border border-yellow-600/40 rounded-lg p-3 lg:p-4">
+                  <h3 className="text-yellow-400 font-bold text-sm mb-2 text-center">
+                    Confirm Race Result
+                  </h3>
+                  <div className="text-center text-sm text-gray-200 mb-3">
+                    {(() => {
+                      const schedule = getMapSchedule();
+                      const raceMap = schedule[pendingReport.raceIndex];
+                      return (
+                        <p>
+                          Race {pendingReport.raceIndex + 1}:{" "}
+                          {raceMap?.map.track} {raceMap?.map.distance}m
+                        </p>
+                      );
+                    })()}
+                    <div className="mt-2 space-y-1">
+                      {pendingReport.placements.map((p) => (
+                        <div key={p.position} className="text-gray-300">
+                          {p.position === 1
+                            ? "1st"
+                            : p.position === 2
+                              ? "2nd"
+                              : "3rd"}
+                          : {p.umaName}
+                          <span
+                            className={`ml-1 text-xs ${p.team === "team1" ? "text-blue-400" : "text-red-400"}`}
+                          >
+                            ({p.team === "team1" ? team1Name : team2Name})
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="flex justify-center gap-3">
+                    <button
+                      onClick={rejectMatchReport}
+                      className="bg-gray-700 hover:bg-gray-600 text-gray-200 font-semibold py-1.5 px-5 rounded-lg text-sm border border-gray-600"
+                    >
+                      Dispute
+                    </button>
+                    <button
+                      onClick={confirmMatchReport}
+                      className="bg-green-600 hover:bg-green-700 text-white font-semibold py-1.5 px-5 rounded-lg text-sm"
+                    >
+                      Confirm
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Pending confirmation notice for host */}
+              {pendingReport?.awaitingConfirm && isHost && (
+                <div className="mb-4 bg-yellow-900/20 border border-yellow-700/30 rounded-lg p-3 text-center">
+                  <p className="text-yellow-400 text-sm">
+                    Waiting for {team2Name} to confirm race{" "}
+                    {pendingReport.raceIndex + 1} result...
+                  </p>
+                </div>
+              )}
+
               {/* Team Rosters Side by Side */}
               <div className="grid grid-cols-2 gap-4 lg:gap-6 mb-6">
                 {/* Team 1 Roster */}
@@ -2018,8 +2459,8 @@ export default function Draft5v5({
                 </div>
               </div>
 
-              {/* Copy Results Button */}
-              <div className="mt-4 flex justify-center">
+              {/* Copy Results & Match Reporting Buttons */}
+              <div className="mt-4 flex justify-center gap-3">
                 <button
                   onClick={() => {
                     const t1Umas = draftState.team1.pickedUmas
@@ -2034,22 +2475,55 @@ export default function Draft5v5({
                     const t2Bans = draftState.team2.bannedUmas
                       .map((u) => u.name)
                       .join(", ");
+                    const formatConditions = (m: Map) =>
+                      m.conditions
+                        ? ` [${m.conditions.season} / ${m.conditions.weather} / ${m.conditions.ground}]`
+                        : "";
                     const maps = [
                       ...draftState.team1.pickedMaps,
                       ...draftState.team2.pickedMaps,
                     ]
                       .map(
                         (m, i) =>
-                          `${i + 1}. ${m.track} ${m.distance}m (${m.surface})`,
+                          `${i + 1}. ${m.track} ${m.distance}m (${m.surface})${formatConditions(m)}`,
                       )
                       .join("\n");
-                    const text = `=== DRAFT RESULTS ===\n\n${team1Name}: ${t1Umas}\nBanned: ${t1Bans || "None"}\n\n${team2Name}: ${t2Umas}\nBanned: ${t2Bans || "None"}\n\nMap Schedule:\n${maps}\n\nTiebreaker: ${draftState.wildcardMap.track} ${draftState.wildcardMap.distance}m (${draftState.wildcardMap.surface})`;
+                    const wcConditions = formatConditions(
+                      draftState.wildcardMap,
+                    );
+                    const text = `=== DRAFT RESULTS ===\n\n${team1Name}: ${t1Umas}\nBanned: ${t1Bans || "None"}\n\n${team2Name}: ${t2Umas}\nBanned: ${t2Bans || "None"}\n\nMap Schedule:\n${maps}\n\nTiebreaker: ${draftState.wildcardMap.track} ${draftState.wildcardMap.distance}m (${draftState.wildcardMap.surface})${wcConditions}`;
                     navigator.clipboard.writeText(text);
                   }}
                   className="bg-gray-700/80 hover:bg-gray-600 text-gray-200 font-semibold py-2 px-6 rounded-lg transition-colors border border-gray-600/50 text-sm"
                 >
                   Copy Draft Results
                 </button>
+                {(!isMultiplayer || isHost) && !pendingReport && (
+                  <button
+                    onClick={openMatchReporting}
+                    disabled={
+                      nextRaceIndex >= getMapSchedule().length ||
+                      (SCORING_MODE === "points" &&
+                        (scores.team1Points >= POINTS_TO_WIN ||
+                          scores.team2Points >= POINTS_TO_WIN)) ||
+                      (SCORING_MODE === "wins" &&
+                        (scores.team1Wins >= WINS_TO_WIN ||
+                          scores.team2Wins >= WINS_TO_WIN))
+                    }
+                    className="bg-purple-600/80 hover:bg-purple-500 disabled:bg-gray-700 disabled:text-gray-500 text-white font-semibold py-2 px-6 rounded-lg transition-colors border border-purple-500/50 disabled:border-gray-600 text-sm"
+                  >
+                    {(SCORING_MODE === "points" &&
+                      (scores.team1Points >= POINTS_TO_WIN ||
+                        scores.team2Points >= POINTS_TO_WIN)) ||
+                    (SCORING_MODE === "wins" &&
+                      (scores.team1Wins >= WINS_TO_WIN ||
+                        scores.team2Wins >= WINS_TO_WIN))
+                      ? "Series Complete"
+                      : nextRaceIndex >= getMapSchedule().length
+                        ? "All Races Reported"
+                        : `Report Race ${nextRaceIndex + 1}`}
+                  </button>
+                )}
               </div>
             </div>
           )}
@@ -2388,6 +2862,112 @@ export default function Draft5v5({
                 className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-1.5 lg:py-2 px-6 lg:px-8 rounded-lg transition-colors text-sm lg:text-base"
               >
                 Start Draft
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Match Reporting Modal */}
+      {showMatchReporting && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-800 rounded-xl shadow-2xl p-4 lg:p-6 xl:p-8 border-2 border-gray-700 max-w-lg w-full">
+            <h2 className="text-xl lg:text-2xl font-bold text-gray-100 mb-1 lg:mb-2">
+              Report Race {reportRaceIndex + 1}
+            </h2>
+            {(() => {
+              const schedule = getMapSchedule();
+              const raceMap = schedule[reportRaceIndex];
+              if (!raceMap) return null;
+              return (
+                <p className="text-sm text-gray-400 mb-4">
+                  {raceMap.map.track} {raceMap.map.distance}m (
+                  {raceMap.map.surface})
+                  {raceMap.map.conditions && (
+                    <span className="ml-1 text-gray-500">
+                      — {raceMap.map.conditions.season} /{" "}
+                      {raceMap.map.conditions.ground} /{" "}
+                      {raceMap.map.conditions.weather}
+                    </span>
+                  )}
+                </p>
+              );
+            })()}
+
+            <div className="space-y-3 mb-6">
+              {[
+                {
+                  label: "1st Place",
+                  key: "first" as const,
+                  points: POINT_VALUES[1],
+                },
+                {
+                  label: "2nd Place",
+                  key: "second" as const,
+                  points: POINT_VALUES[2],
+                },
+                {
+                  label: "3rd Place",
+                  key: "third" as const,
+                  points: POINT_VALUES[3],
+                },
+              ].map(({ label, key, points }) => {
+                // Filter out already-selected umas from other positions
+                const selectedIds = Object.entries(reportPlacements)
+                  .filter(([k]) => k !== key)
+                  .map(([, v]) => v)
+                  .filter(Boolean);
+
+                return (
+                  <div key={key}>
+                    <label className="block text-xs font-semibold text-gray-300 mb-1">
+                      {label}{" "}
+                      {SCORING_MODE === "points" && (
+                        <span className="text-gray-500">({points} pts)</span>
+                      )}
+                    </label>
+                    <select
+                      value={reportPlacements[key]}
+                      onChange={(e) =>
+                        setReportPlacements((prev) => ({
+                          ...prev,
+                          [key]: e.target.value,
+                        }))
+                      }
+                      className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-gray-100 focus:outline-none focus:border-purple-500"
+                    >
+                      <option value="">Select Uma...</option>
+                      {allDraftedUmas
+                        .filter((u) => !selectedIds.includes(u.id.toString()))
+                        .map((u) => (
+                          <option key={u.id} value={u.id.toString()}>
+                            {u.name} (
+                            {u.team === "team1" ? team1Name : team2Name})
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setShowMatchReporting(false)}
+                className="bg-gray-700 hover:bg-gray-600 text-gray-100 font-semibold py-1.5 px-6 rounded-lg transition-colors border border-gray-600 text-sm"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={submitRaceReport}
+                disabled={
+                  !reportPlacements.first ||
+                  !reportPlacements.second ||
+                  !reportPlacements.third
+                }
+                className="bg-purple-600 hover:bg-purple-700 disabled:bg-gray-700 disabled:text-gray-500 text-white font-semibold py-1.5 px-6 rounded-lg transition-colors text-sm"
+              >
+                {isMultiplayer ? "Submit for Confirmation" : "Confirm Result"}
               </button>
             </div>
           </div>
