@@ -2179,8 +2179,8 @@ export default function Draft5v5({
               {/* Scoreboard */}
               <div className="mb-4 lg:mb-6">
                 <div className="bg-gray-900/70 rounded-xl p-3 lg:p-4 border border-gray-600/40 flex items-center justify-center gap-6 lg:gap-10">
-                  <div className="text-center">
-                    <p className="text-xs text-gray-400 uppercase tracking-wider mb-0.5">
+                  <div className="flex-1 text-center min-w-0">
+                    <p className="text-xs text-gray-400 uppercase tracking-wider mb-0.5 break-words">
                       {team1Name}
                     </p>
                     <p className="text-3xl lg:text-4xl font-bold text-blue-400 font-mono">
@@ -2189,7 +2189,7 @@ export default function Draft5v5({
                         : scores.team1Wins}
                     </p>
                   </div>
-                  <div className="text-center">
+                  <div className="shrink-0 text-center">
                     <p className="text-xs text-gray-500 uppercase tracking-wider mb-0.5">
                       {SCORING_MODE === "points"
                         ? `First to ${POINTS_TO_WIN}`
@@ -2201,8 +2201,8 @@ export default function Draft5v5({
                       {matchResults.length !== 1 ? "s" : ""} reported
                     </p>
                   </div>
-                  <div className="text-center">
-                    <p className="text-xs text-gray-400 uppercase tracking-wider mb-0.5">
+                  <div className="flex-1 text-center min-w-0">
+                    <p className="text-xs text-gray-400 uppercase tracking-wider mb-0.5 break-words">
                       {team2Name}
                     </p>
                     <p className="text-3xl lg:text-4xl font-bold text-red-400 font-mono">
