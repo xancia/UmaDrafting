@@ -28,6 +28,10 @@ interface WaitingRoomProps {
   onRetryConnection?: () => void;
   /** Whether a connection retry is in progress */
   isRetrying?: boolean;
+  /** Turn timer duration in seconds */
+  turnDuration?: number;
+  /** Callback when host changes timer duration */
+  onTurnDurationChange?: (duration: number) => void;
 }
 
 /**
@@ -48,11 +52,15 @@ export default function WaitingRoom({
   connectionError,
   onRetryConnection,
   isRetrying = false,
+  turnDuration = 60,
+  onTurnDurationChange,
 }: WaitingRoomProps) {
   const [copied, setCopied] = useState(false);
   const [editingTeam1, setEditingTeam1] = useState(false);
   const [editingTeam2, setEditingTeam2] = useState(false);
   const [tempTeam1Name, setTempTeam1Name] = useState(team1Name);
+  const [showCustomTimer, setShowCustomTimer] = useState(false);
+  const [customTimerValue, setCustomTimerValue] = useState("");
   const [tempTeam2Name, setTempTeam2Name] = useState(team2Name);
   const canStart = playerCount >= 2;
 
@@ -217,6 +225,85 @@ export default function WaitingRoom({
           {playerCount < 2 && (
             <p className="text-xs lg:text-sm text-yellow-400/80 mt-2 lg:mt-3">
               Waiting for opponent to join...
+            </p>
+          )}
+        </div>
+
+        {/* Turn Timer Setting */}
+        <div className="bg-gray-900/50 rounded-lg p-3 lg:p-4 mb-4 lg:mb-6 xl:mb-8 border border-gray-700">
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+            Turn Timer
+          </p>
+          {isHost ? (
+            <div className="flex items-center gap-2 flex-wrap">
+              {[30, 60, 90].map((d) => (
+                <button
+                  key={d}
+                  onClick={() => {
+                    setShowCustomTimer(false);
+                    onTurnDurationChange?.(d);
+                  }}
+                  className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors ${
+                    turnDuration === d && !showCustomTimer
+                      ? "bg-blue-600 text-white"
+                      : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                  }`}
+                >
+                  {d}s
+                </button>
+              ))}
+              {showCustomTimer ? (
+                <div className="flex items-center gap-1.5">
+                  <input
+                    type="number"
+                    min={10}
+                    max={300}
+                    value={customTimerValue}
+                    onChange={(e) => setCustomTimerValue(e.target.value)}
+                    onBlur={() => {
+                      const v = Math.min(
+                        300,
+                        Math.max(10, parseInt(customTimerValue) || 60),
+                      );
+                      setCustomTimerValue(String(v));
+                      onTurnDurationChange?.(v);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        const v = Math.min(
+                          300,
+                          Math.max(10, parseInt(customTimerValue) || 60),
+                        );
+                        setCustomTimerValue(String(v));
+                        onTurnDurationChange?.(v);
+                      }
+                    }}
+                    className="w-16 px-2 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-gray-100 text-center focus:outline-none focus:border-blue-500"
+                    autoFocus
+                  />
+                  <span className="text-xs text-gray-400">sec</span>
+                </div>
+              ) : (
+                <button
+                  onClick={() => {
+                    setShowCustomTimer(true);
+                    setCustomTimerValue(String(turnDuration));
+                  }}
+                  className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors ${
+                    ![30, 60, 90].includes(turnDuration)
+                      ? "bg-blue-600 text-white"
+                      : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                  }`}
+                >
+                  {![30, 60, 90].includes(turnDuration)
+                    ? `${turnDuration}s`
+                    : "Custom"}
+                </button>
+              )}
+            </div>
+          ) : (
+            <p className="text-sm text-gray-300">
+              {turnDuration} seconds per turn
             </p>
           )}
         </div>

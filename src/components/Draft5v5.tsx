@@ -156,6 +156,11 @@ export default function Draft5v5({
   const [tempTeam1Name, setTempTeam1Name] = useState<string>("Team 1");
   const [tempTeam2Name, setTempTeam2Name] = useState<string>("Team 2");
 
+  // Turn timer duration (seconds) — configurable before draft starts
+  const [turnDuration, setTurnDuration] = useState<number>(
+    DEFAULT_TURN_DURATION,
+  );
+
   // Pending selection state for lock-in system
   const [pendingUma, setPendingUma] = useState<UmaMusume | null>(null);
   const [pendingMap, setPendingMap] = useState<Map | null>(null);
@@ -421,7 +426,7 @@ export default function Draft5v5({
 
   // Turn timer hook
   const { timeRemaining } = useTurnTimer({
-    duration: DEFAULT_TURN_DURATION,
+    duration: turnDuration,
     enabled: true,
     onTimeout: handleTurnTimeout,
     phase: draftState.phase,
@@ -602,6 +607,7 @@ export default function Draft5v5({
               "",
             team1Name: syncedDraftState.multiplayer?.team1Name || "Team 1",
             team2Name: syncedDraftState.multiplayer?.team2Name || "Team 2",
+            turnDuration: syncedDraftState.multiplayer?.turnDuration,
           },
         };
       });
@@ -612,6 +618,10 @@ export default function Draft5v5({
       }
       if (syncedDraftState.multiplayer?.team2Name) {
         setTeam2Name(syncedDraftState.multiplayer.team2Name);
+      }
+      // Sync turn duration from host
+      if (syncedDraftState.multiplayer?.turnDuration) {
+        setTurnDuration(syncedDraftState.multiplayer.turnDuration);
       }
 
       // Trigger wildcard reveal modal when phase changes to wildcard-reveal
@@ -1379,6 +1389,30 @@ export default function Draft5v5({
     }
   };
 
+  // Handle turn duration change from waiting room (host only)
+  const handleTurnDurationChange = (duration: number) => {
+    setTurnDuration(duration);
+
+    // Sync to Firebase so other players see the setting
+    if (isMultiplayer) {
+      const newState: DraftState = {
+        ...draftState,
+        multiplayer: {
+          ...draftState.multiplayer,
+          enabled: true,
+          connectionType: draftState.multiplayer?.connectionType || "host",
+          localTeam: draftState.multiplayer?.localTeam || "team1",
+          roomId: draftState.multiplayer?.roomId || "",
+          team1Name: draftState.multiplayer?.team1Name || team1Name,
+          team2Name: draftState.multiplayer?.team2Name || team2Name,
+          turnDuration: duration,
+        },
+      };
+      setDraftState(newState);
+      syncUpdateDraftState(newState);
+    }
+  };
+
   // Handle starting the draft from lobby (host only)
   const handleStartDraft = () => {
     if (!isHost) return;
@@ -1850,6 +1884,8 @@ export default function Draft5v5({
         onStartDraft={handleStartDraft}
         onLeave={handleWaitingRoomLeave}
         onTeamNameChange={handleTeamNameChange}
+        turnDuration={turnDuration}
+        onTurnDurationChange={handleTurnDurationChange}
         connectionError={joinError}
         onRetryConnection={handleRetryConnection}
         isRetrying={isRetryingJoin}
@@ -3074,6 +3110,55 @@ export default function Draft5v5({
                   maxLength={30}
                   className="w-full px-3 lg:px-4 py-1.5 lg:py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm lg:text-base text-gray-100 placeholder-gray-400 focus:outline-none focus:border-red-500"
                 />
+              </div>
+            </div>
+            {/* Turn Timer */}
+            <div className="mb-4 lg:mb-6">
+              <label className="block text-xs lg:text-sm font-semibold text-gray-400 mb-1.5 lg:mb-2">
+                Turn Timer
+              </label>
+              <div className="flex items-center gap-2 flex-wrap">
+                {[30, 60, 90].map((d) => (
+                  <button
+                    key={d}
+                    type="button"
+                    onClick={() => setTurnDuration(d)}
+                    className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors ${
+                      turnDuration === d
+                        ? "bg-blue-600 text-white"
+                        : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                    }`}
+                  >
+                    {d}s
+                  </button>
+                ))}
+                <div className="flex items-center gap-1.5">
+                  <input
+                    type="number"
+                    min={10}
+                    max={300}
+                    placeholder="Custom"
+                    value={
+                      ![30, 60, 90].includes(turnDuration) ? turnDuration : ""
+                    }
+                    onChange={(e) => {
+                      const v = parseInt(e.target.value);
+                      if (!isNaN(v))
+                        setTurnDuration(Math.min(300, Math.max(10, v)));
+                    }}
+                    onFocus={() => {
+                      if ([30, 60, 90].includes(turnDuration)) {
+                        // Clear preset highlight; keep current value in field
+                      }
+                    }}
+                    className={`w-20 px-2 py-1.5 bg-gray-700 border rounded-lg text-sm text-gray-100 text-center focus:outline-none focus:border-blue-500 ${
+                      ![30, 60, 90].includes(turnDuration)
+                        ? "border-blue-500"
+                        : "border-gray-600"
+                    }`}
+                  />
+                  <span className="text-xs text-gray-400">sec</span>
+                </div>
               </div>
             </div>
             <div className="flex justify-between">

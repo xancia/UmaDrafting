@@ -49,6 +49,8 @@ export interface MultiplayerState {
   /** Team names from room setup */
   team1Name?: string;
   team2Name?: string;
+  /** Turn timer duration in seconds (default: 60) */
+  turnDuration?: number;
 }
 
 export interface DraftState {

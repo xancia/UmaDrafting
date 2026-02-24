@@ -208,7 +208,8 @@ export default function FormatSelection({
                   <li className="flex gap-2">
                     <span className="text-blue-400">•</span>
                     <span>
-                      <strong>Turn Timer:</strong> 60 seconds per selection
+                      <strong>Turn Timer:</strong> Configurable (30s / 60s / 90s
+                      / custom)
                     </span>
                   </li>
                 </ul>
