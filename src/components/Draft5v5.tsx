@@ -561,59 +561,54 @@ export default function Draft5v5({
         syncedDraftState_multiplayer: syncedDraftState.multiplayer,
         isHost: multiplayerConfig?.isHost,
       });
-      // Preserve local multiplayer settings when syncing
-      setDraftState((prevState) => {
-        const localTeam =
-          prevState.multiplayer?.localTeam ||
-          (multiplayerConfig?.isHost ? "team1" : "team2");
-        const connectionType =
-          prevState.multiplayer?.connectionType ||
-          (multiplayerConfig?.isHost
-            ? "host"
-            : multiplayerConfig?.isSpectator
-              ? "spectator"
-              : "player");
 
-        // If user has acknowledged wildcard, don't let sync revert to wildcard-reveal phase
-        // They should stay at map-pick until they receive actual draft updates
-        let phase = syncedDraftState.phase;
-        if (
-          wildcardAcknowledged &&
-          syncedDraftState.phase === "wildcard-reveal"
-        ) {
-          phase =
-            prevState.phase === "map-pick"
-              ? "map-pick"
-              : syncedDraftState.phase;
-        }
+      // Host is the authority — it already sets local state directly in every
+      // handler via setDraftState. Applying the same state again from Firebase
+      // causes a redundant re-render (the "stutter"). The host only needs the
+      // sync effect for metadata (team names, turn duration, wildcard modal,
+      // match reports) — NOT the main draft state overwrite.
+      if (!multiplayerConfig?.isHost) {
+        // Non-host: apply the full synced state
+        setDraftState((prevState) => {
+          const localTeam =
+            prevState.multiplayer?.localTeam ||
+            (multiplayerConfig?.isSpectator ? "team1" : "team2");
+          const connectionType =
+            prevState.multiplayer?.connectionType ||
+            (multiplayerConfig?.isSpectator ? "spectator" : "player");
 
-        console.log("[SYNC EFFECT] Returning state", {
-          prevState_localTeam: prevState.multiplayer?.localTeam,
-          computed_localTeam: localTeam,
-          computed_connectionType: connectionType,
-          phase,
-          syncedCurrentTeam: syncedDraftState.currentTeam,
+          // If user has acknowledged wildcard, don't let sync revert to wildcard-reveal phase
+          let phase = syncedDraftState.phase;
+          if (
+            wildcardAcknowledged &&
+            syncedDraftState.phase === "wildcard-reveal"
+          ) {
+            phase =
+              prevState.phase === "map-pick"
+                ? "map-pick"
+                : syncedDraftState.phase;
+          }
+
+          return {
+            ...syncedDraftState,
+            phase,
+            multiplayer: {
+              enabled: true,
+              connectionType,
+              localTeam,
+              roomId:
+                syncedDraftState.multiplayer?.roomId ||
+                multiplayerConfig?.roomCode ||
+                "",
+              team1Name: syncedDraftState.multiplayer?.team1Name || "Team 1",
+              team2Name: syncedDraftState.multiplayer?.team2Name || "Team 2",
+              turnDuration:
+                syncedDraftState.multiplayer?.turnDuration ??
+                DEFAULT_TURN_DURATION,
+            },
+          };
         });
-
-        return {
-          ...syncedDraftState,
-          phase,
-          multiplayer: {
-            enabled: true,
-            connectionType,
-            localTeam,
-            roomId:
-              syncedDraftState.multiplayer?.roomId ||
-              multiplayerConfig?.roomCode ||
-              "",
-            team1Name: syncedDraftState.multiplayer?.team1Name || "Team 1",
-            team2Name: syncedDraftState.multiplayer?.team2Name || "Team 2",
-            turnDuration:
-              syncedDraftState.multiplayer?.turnDuration ??
-              DEFAULT_TURN_DURATION,
-          },
-        };
-      });
+      }
 
       // Also update local team name state from synced multiplayer state
       if (syncedDraftState.multiplayer?.team1Name) {
