@@ -22,6 +22,12 @@ interface WaitingRoomProps {
   onLeave?: () => void;
   /** Callback when team name is changed */
   onTeamNameChange?: (team: "team1" | "team2", name: string) => void;
+  /** Connection error message to display */
+  connectionError?: string | null;
+  /** Callback to retry the connection */
+  onRetryConnection?: () => void;
+  /** Whether a connection retry is in progress */
+  isRetrying?: boolean;
 }
 
 /**
@@ -39,6 +45,9 @@ export default function WaitingRoom({
   onStartDraft,
   onLeave,
   onTeamNameChange,
+  connectionError,
+  onRetryConnection,
+  isRetrying = false,
 }: WaitingRoomProps) {
   const [copied, setCopied] = useState(false);
   const [editingTeam1, setEditingTeam1] = useState(false);
@@ -211,6 +220,22 @@ export default function WaitingRoom({
             </p>
           )}
         </div>
+
+        {/* Connection Error */}
+        {connectionError && (
+          <div className="bg-red-900/20 border border-red-700 rounded-lg p-3 lg:p-4 mb-4 lg:mb-6 xl:mb-8">
+            <p className="text-sm text-red-300 mb-2">{connectionError}</p>
+            {onRetryConnection && (
+              <button
+                onClick={onRetryConnection}
+                disabled={isRetrying}
+                className="px-4 py-1.5 bg-red-700 hover:bg-red-600 text-white text-sm rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isRetrying ? "Retrying..." : "Retry Connection"}
+              </button>
+            )}
+          </div>
+        )}
 
         {/* Action Buttons */}
         {isHost ? (

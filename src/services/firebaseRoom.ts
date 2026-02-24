@@ -15,6 +15,8 @@ import {
   push,
   onValue,
   onDisconnect,
+  runTransaction,
+  onChildAdded,
 } from "firebase/database";
 import type { Unsubscribe } from "firebase/database";
 import { signInAnonymously, onAuthStateChanged } from "firebase/auth";
@@ -369,11 +371,18 @@ export async function updateDraftState(
   newState: DraftState,
 ): Promise<void> {
   const roomRef = ref(db, buildPath.room(roomCode));
+  const versionRef = ref(db, `${buildPath.room(roomCode)}/version`);
 
-  // Atomic update of draft state and version
+  // Atomically increment version using a transaction
+  let newVersion = 1;
+  await runTransaction(versionRef, (currentVersion) => {
+    newVersion = (currentVersion || 0) + 1;
+    return newVersion;
+  });
+
+  // Update draft state and timestamp (version already set by transaction)
   await update(roomRef, {
     draftState: newState,
-    version: (await get(roomRef)).val()?.version + 1 || 1,
     updatedAt: Date.now(),
   });
 }
@@ -420,13 +429,12 @@ export function subscribeToPendingActions(
 ): Unsubscribe {
   const actionsRef = ref(db, buildPath.pendingActions(roomCode));
 
-  return onValue(actionsRef, (snapshot) => {
+  // Use onChildAdded to process each action exactly once when it appears,
+  // instead of onValue which replays all actions on every change
+  return onChildAdded(actionsRef, (snapshot) => {
     if (snapshot.exists()) {
-      const actions = snapshot.val() as Record<string, FirebasePendingAction>;
-      // Process each action
-      Object.values(actions).forEach((action) => {
-        callback(action);
-      });
+      const action = snapshot.val() as FirebasePendingAction;
+      callback(action);
     }
   });
 }

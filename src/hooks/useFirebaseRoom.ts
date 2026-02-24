@@ -142,6 +142,12 @@ export function useFirebaseRoom(): UseFirebaseRoomReturn {
   >(null);
 
   /**
+   * Queue for actions that arrive before a handler is set.
+   * These are replayed once setPendingActionHandler is called.
+   */
+  const pendingActionQueueRef = useRef<FirebasePendingAction[]>([]);
+
+  /**
    * Set external handler for pending actions
    * The Draft component should set this to process actions
    */
@@ -149,13 +155,22 @@ export function useFirebaseRoom(): UseFirebaseRoomReturn {
     (action: FirebasePendingAction) => {
       if (pendingActionHandlerRef.current) {
         pendingActionHandlerRef.current(action);
-      }
 
-      // Auto-delete processed action
-      if (roomCode) {
-        firebaseRoom.removeProcessedAction(roomCode, action.id).catch((err) => {
-          console.error("Error removing processed action:", err);
-        });
+        // Only delete after the handler has processed it
+        if (roomCode) {
+          firebaseRoom
+            .removeProcessedAction(roomCode, action.id)
+            .catch((err) => {
+              console.error("Error removing processed action:", err);
+            });
+        }
+      } else {
+        // No handler set yet — queue the action instead of dropping it
+        console.warn(
+          "[useFirebaseRoom] No handler set, queuing action:",
+          action.id,
+        );
+        pendingActionQueueRef.current.push(action);
       }
     },
     [roomCode],
@@ -163,13 +178,33 @@ export function useFirebaseRoom(): UseFirebaseRoomReturn {
 
   /**
    * Allows components to set a handler for pending actions
-   * This is used by the Draft component to process player actions
+   * This is used by the Draft component to process player actions.
+   * When a handler is set, any queued actions are replayed immediately.
    */
   const setPendingActionHandler = useCallback(
     (handler: ((action: FirebasePendingAction) => void) | null) => {
       pendingActionHandlerRef.current = handler;
+
+      // Replay any queued actions that arrived before the handler was ready
+      if (handler && pendingActionQueueRef.current.length > 0) {
+        const queued = [...pendingActionQueueRef.current];
+        pendingActionQueueRef.current = [];
+        console.log(
+          `[useFirebaseRoom] Replaying ${queued.length} queued action(s)`,
+        );
+        for (const action of queued) {
+          handler(action);
+          if (roomCode) {
+            firebaseRoom
+              .removeProcessedAction(roomCode, action.id)
+              .catch((err) => {
+                console.error("Error removing processed action:", err);
+              });
+          }
+        }
+      }
     },
-    [],
+    [roomCode],
   );
 
   /**

@@ -162,6 +162,10 @@ export default function Draft5v5({
   // Ready-up timer (5 minutes = 300 seconds)
   const [readyUpTime, setReadyUpTime] = useState<number>(300);
 
+  // Join/connection error state for waiting room feedback
+  const [joinError, setJoinError] = useState<string | null>(null);
+  const [isRetryingJoin, setIsRetryingJoin] = useState<boolean>(false);
+
   // Match reporting state
   const [matchResults, setMatchResults] = useState<RaceResult[]>([]);
   const [showMatchReporting, setShowMatchReporting] = useState<boolean>(false);
@@ -446,6 +450,7 @@ export default function Draft5v5({
                 team: "team1",
               });
               if (result.success) {
+                setJoinError(null);
                 return; // Successfully reconnected
               }
               // Failed to reconnect (e.g., UID changed) - clear session and create new room
@@ -466,6 +471,12 @@ export default function Draft5v5({
           });
           if (!result.success) {
             console.error("Failed to create room:", result.error);
+            setJoinError(
+              result.error ||
+                "Failed to create room. Check your connection and try again.",
+            );
+          } else {
+            setJoinError(null);
           }
         } else if (!multiplayerConfig.isSpectator) {
           // Player joins existing room
@@ -477,6 +488,12 @@ export default function Draft5v5({
           });
           if (!result.success) {
             console.error("Failed to join room:", result.error);
+            setJoinError(
+              result.error ||
+                "Failed to join room. Check the room code and try again.",
+            );
+          } else {
+            setJoinError(null);
           }
         } else {
           // Spectator joins existing room
@@ -487,10 +504,19 @@ export default function Draft5v5({
           });
           if (!result.success) {
             console.error("Failed to join as spectator:", result.error);
+            setJoinError(
+              result.error ||
+                "Failed to join as spectator. Check the room code and try again.",
+            );
+          } else {
+            setJoinError(null);
           }
         }
       } catch (err) {
         console.error("Failed to setup room:", err);
+        setJoinError(
+          "Connection failed. Please check your internet and try again.",
+        );
       }
     };
 
@@ -1647,6 +1673,63 @@ export default function Draft5v5({
     onBackToMenu();
   };
 
+  // Handle retrying a failed join/create from waiting room
+  const handleRetryConnection = async () => {
+    if (!multiplayerConfig) return;
+    setIsRetryingJoin(true);
+    setJoinError(null);
+
+    try {
+      if (multiplayerConfig.isHost) {
+        const result = await firebaseCreateRoom({
+          format: "5v5",
+          hostName: multiplayerConfig.playerName,
+          team1Name: multiplayerConfig.playerName,
+          team2Name: "Team 2",
+          initialDraftState: draftState,
+        });
+        if (!result.success) {
+          setJoinError(
+            result.error ||
+              "Failed to create room. Check your connection and try again.",
+          );
+        }
+      } else if (!multiplayerConfig.isSpectator) {
+        const result = await firebaseJoinRoom({
+          roomCode: multiplayerConfig.roomCode,
+          playerName: multiplayerConfig.playerName,
+          connectionType: "player",
+          team: "team2",
+        });
+        if (!result.success) {
+          setJoinError(
+            result.error ||
+              "Failed to join room. Check the room code and try again.",
+          );
+        }
+      } else {
+        const result = await firebaseJoinRoom({
+          roomCode: multiplayerConfig.roomCode,
+          playerName: multiplayerConfig.playerName,
+          connectionType: "spectator",
+        });
+        if (!result.success) {
+          setJoinError(
+            result.error ||
+              "Failed to join as spectator. Check the room code and try again.",
+          );
+        }
+      }
+    } catch (err) {
+      console.error("Retry failed:", err);
+      setJoinError(
+        "Connection failed. Please check your internet and try again.",
+      );
+    } finally {
+      setIsRetryingJoin(false);
+    }
+  };
+
   // Compute completed actions count for the draft timeline
   const completedActions = (() => {
     const { phase } = draftState;
@@ -1754,6 +1837,9 @@ export default function Draft5v5({
         onStartDraft={handleStartDraft}
         onLeave={handleWaitingRoomLeave}
         onTeamNameChange={handleTeamNameChange}
+        connectionError={joinError}
+        onRetryConnection={handleRetryConnection}
+        isRetrying={isRetryingJoin}
       />
     );
   }
