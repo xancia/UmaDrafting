@@ -57,7 +57,12 @@ export default function PhaseAnnouncement({ phase }: PhaseAnnouncementProps) {
     prevPhaseRef.current = phase;
 
     const phaseConfig = PHASE_CONFIG[phase];
-    if (!phaseConfig) return;
+    if (!phaseConfig) {
+      // Transitioning to a non-announced phase (e.g. post-map-pause) —
+      // dismiss any lingering overlay so the backdrop doesn't stick.
+      setVisible(false);
+      return;
+    }
 
     // After uma-ban, the resumed uma-pick is the final pick phase
     const isResumedUmaPick = phase === "uma-pick" && prevPhase === "uma-ban";
