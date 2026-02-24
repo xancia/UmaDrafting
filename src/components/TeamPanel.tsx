@@ -16,6 +16,8 @@ interface TeamPanelProps {
   pulsingBorder?: boolean;
   showMapOrder?: boolean;
   ghostSelection?: FirebasePendingSelection | null;
+  /** How many consecutive picks this team has in a row (for snake draft slot highlighting) */
+  consecutivePicks?: number;
 }
 
 export default function TeamPanel({
@@ -33,21 +35,24 @@ export default function TeamPanel({
   pulsingBorder = false,
   showMapOrder = false,
   ghostSelection = null,
+  consecutivePicks = 1,
 }: TeamPanelProps) {
   const isTeam1 = team === "team1";
   const teamColor = isTeam1 ? "text-blue-500" : "text-red-500";
 
   const borderColor = isCurrentTurn
     ? isTeam1
-      ? "border-blue-500 shadow-blue-500/50"
-      : "border-red-500 shadow-red-500/50"
+      ? "border-blue-500"
+      : "border-red-500"
     : "border-gray-700";
 
-  const pulseClass =
-    pulsingBorder && isCurrentTurn
-      ? isTeam1
-        ? "animate-pulse-blue"
-        : "animate-pulse-red"
+  // Always glow when it's this team's turn, use stronger animation for active turn
+  const glowClass = isCurrentTurn
+    ? isTeam1
+      ? "animate-glow-blue"
+      : "animate-glow-red"
+    : pulsingBorder
+      ? ""
       : "";
 
   const defaultTeamName = isTeam1 ? "Team 1" : "Team 2";
@@ -61,7 +66,7 @@ export default function TeamPanel({
 
   return (
     <div
-      className={`bg-linear-to-br from-gray-900 to-gray-800 rounded-xl p-2 lg:p-3 xl:p-4 text-gray-100 h-full flex flex-col border-2 transition-all duration-300 overflow-y-auto hide-scrollbar ${borderColor} ${pulseClass} ${inactiveOpacity} ${
+      className={`bg-linear-to-br from-gray-900 to-gray-800 rounded-xl p-2 lg:p-3 xl:p-4 text-gray-100 h-full flex flex-col border-2 transition-all duration-300 overflow-y-auto hide-scrollbar ${borderColor} ${glowClass} ${inactiveOpacity} ${
         isCurrentTurn ? "shadow-lg" : "shadow-2xl"
       }`}
     >
@@ -232,21 +237,25 @@ export default function TeamPanel({
         <div className="grid grid-cols-3 gap-1.5 lg:gap-2 xl:gap-3">
           {[...Array(6)].map((_, index) => {
             const uma = pickedUmas[index];
-            const isNextEmptySlot =
+            // Highlight empty slots that will be filled in current turn sequence
+            const slotOffset = index - pickedUmas.length;
+            const isActiveSlot =
               !uma &&
-              index === pickedUmas.length &&
+              slotOffset >= 0 &&
+              slotOffset < consecutivePicks &&
               isCurrentTurn &&
               activeSection === "umas";
+            const isNextEmptySlot = isActiveSlot && slotOffset === 0;
             return (
               <div
                 key={index}
                 className={`aspect-square rounded-lg border-3 overflow-hidden transition-all duration-300 ${
                   uma
                     ? "border-gray-600 bg-gray-600 shadow-lg"
-                    : isNextEmptySlot
+                    : isActiveSlot
                       ? isTeam1
-                        ? "bg-gray-800/80 border-blue-500/40 border-dashed"
-                        : "bg-gray-800/80 border-red-500/40 border-dashed"
+                        ? "bg-gray-800/80 border-blue-500/40 border-dashed animate-slot-pulse-blue"
+                        : "bg-gray-800/80 border-red-500/40 border-dashed animate-slot-pulse-red"
                       : "bg-gray-800 border-gray-700"
                 }`}
               >
@@ -290,6 +299,21 @@ export default function TeamPanel({
                         {ghostSelection.name}
                       </span>
                     </div>
+                  </div>
+                ) : isActiveSlot ? (
+                  <div className="w-full h-full flex flex-col items-center justify-center">
+                    <span
+                      className={`text-lg font-bold ${isTeam1 ? "text-blue-500/60" : "text-red-500/60"}`}
+                    >
+                      ?
+                    </span>
+                    {consecutivePicks > 1 && (
+                      <span
+                        className={`text-[9px] font-semibold ${isTeam1 ? "text-blue-400/50" : "text-red-400/50"}`}
+                      >
+                        Pick {slotOffset + 1}
+                      </span>
+                    )}
                   </div>
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-gray-600 text-xl shrink-0">

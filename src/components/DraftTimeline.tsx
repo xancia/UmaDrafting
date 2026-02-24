@@ -75,7 +75,7 @@ const MAP_BAN: TimelineStep[] = [
  * Resolves which timeline to display and the current step index
  * given the draft phase and number of completed actions.
  */
-function getTimelineForPhase(
+export function getTimelineForPhase(
   phase: DraftPhase,
   completedActions: number,
 ): {

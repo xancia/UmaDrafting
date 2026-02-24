@@ -18,6 +18,7 @@ import { saveDraftSession, clearDraftSession } from "../utils/sessionStorage";
 import { formatRoomCode } from "../utils/roomCode";
 import { roomExists } from "../services/firebaseRoom";
 import DraftHeader from "./DraftHeader";
+import { getTimelineForPhase } from "./DraftTimeline";
 import TeamPanel from "./TeamPanel";
 import UmaCard from "./UmaCard";
 import MapCard from "./MapCard";
@@ -1754,6 +1755,22 @@ export default function Draft5v5({
     return 0;
   })();
 
+  // Compute how many consecutive picks the current team has (for snake draft highlighting)
+  const consecutivePicks = useMemo(() => {
+    if (draftState.phase !== "uma-pick") return 1;
+    const timeline = getTimelineForPhase(draftState.phase, completedActions);
+    if (!timeline) return 1;
+    const { steps, currentIndex } = timeline;
+    if (currentIndex >= steps.length) return 1;
+    const currentTeam = steps[currentIndex].team;
+    let count = 0;
+    for (let i = currentIndex; i < steps.length; i++) {
+      if (steps[i].team === currentTeam && steps[i].label === "P") count++;
+      else break;
+    }
+    return Math.max(count, 1);
+  }, [draftState.phase, completedActions]);
+
   // Waiting room view for multiplayer lobby phase
   if (isMultiplayer && draftState.phase === "lobby") {
     // Host is already counted in firebasePlayers
@@ -1899,6 +1916,9 @@ export default function Draft5v5({
           }
           ghostSelection={
             isMultiplayer ? (pendingSelections.team1 ?? null) : null
+          }
+          consecutivePicks={
+            draftState.currentTeam === "team1" ? consecutivePicks : 1
           }
         />
       </div>
@@ -2810,6 +2830,9 @@ export default function Draft5v5({
           }
           ghostSelection={
             isMultiplayer ? (pendingSelections.team2 ?? null) : null
+          }
+          consecutivePicks={
+            draftState.currentTeam === "team2" ? consecutivePicks : 1
           }
         />
       </div>

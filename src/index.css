@@ -194,6 +194,90 @@ body {
 }
 
 /* ==========================================================================
+   Active Turn Panel Glow (stronger than spectator pulse)
+   ========================================================================== */
+
+@keyframes glow-blue {
+  0%,
+  100% {
+    border-color: rgb(59, 130, 246);
+    box-shadow:
+      0 0 12px rgba(59, 130, 246, 0.5),
+      0 0 24px rgba(59, 130, 246, 0.2),
+      inset 0 0 12px rgba(59, 130, 246, 0.05);
+  }
+  50% {
+    border-color: rgb(96, 165, 250);
+    box-shadow:
+      0 0 20px rgba(59, 130, 246, 0.8),
+      0 0 50px rgba(59, 130, 246, 0.35),
+      inset 0 0 20px rgba(59, 130, 246, 0.08);
+  }
+}
+
+@keyframes glow-red {
+  0%,
+  100% {
+    border-color: rgb(239, 68, 68);
+    box-shadow:
+      0 0 12px rgba(239, 68, 68, 0.5),
+      0 0 24px rgba(239, 68, 68, 0.2),
+      inset 0 0 12px rgba(239, 68, 68, 0.05);
+  }
+  50% {
+    border-color: rgb(248, 113, 113);
+    box-shadow:
+      0 0 20px rgba(239, 68, 68, 0.8),
+      0 0 50px rgba(239, 68, 68, 0.35),
+      inset 0 0 20px rgba(239, 68, 68, 0.08);
+  }
+}
+
+.animate-glow-blue {
+  animation: glow-blue 2s ease-in-out infinite;
+}
+
+.animate-glow-red {
+  animation: glow-red 2s ease-in-out infinite;
+}
+
+/* ==========================================================================
+   Uma Slot Pulse (for active pick slots in snake draft)
+   ========================================================================== */
+
+@keyframes slot-pulse-blue {
+  0%,
+  100% {
+    border-color: rgba(59, 130, 246, 0.35);
+    background-color: rgba(59, 130, 246, 0.05);
+  }
+  50% {
+    border-color: rgba(96, 165, 250, 0.7);
+    background-color: rgba(59, 130, 246, 0.12);
+  }
+}
+
+@keyframes slot-pulse-red {
+  0%,
+  100% {
+    border-color: rgba(239, 68, 68, 0.35);
+    background-color: rgba(239, 68, 68, 0.05);
+  }
+  50% {
+    border-color: rgba(248, 113, 113, 0.7);
+    background-color: rgba(239, 68, 68, 0.12);
+  }
+}
+
+.animate-slot-pulse-blue {
+  animation: slot-pulse-blue 1.5s ease-in-out infinite;
+}
+
+.animate-slot-pulse-red {
+  animation: slot-pulse-red 1.5s ease-in-out infinite;
+}
+
+/* ==========================================================================
    Phase Announcement Overlay
    ========================================================================== */
 
