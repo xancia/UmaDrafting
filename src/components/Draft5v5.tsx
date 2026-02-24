@@ -14,7 +14,11 @@ import {
 } from "../draftLogic";
 import { SAMPLE_MAPS } from "../data";
 import { generateTrackConditions } from "../utils/trackConditions";
-import { saveDraftSession, clearDraftSession } from "../utils/sessionStorage";
+import {
+  saveDraftSession,
+  clearDraftSession,
+  getDraftSession,
+} from "../utils/sessionStorage";
 import { formatRoomCode } from "../utils/roomCode";
 import { roomExists } from "../services/firebaseRoom";
 import DraftHeader from "./DraftHeader";
@@ -113,8 +117,11 @@ export default function Draft5v5({
 
     // Add multiplayer state if in multiplayer mode
     if (isMultiplayer && multiplayerConfig) {
-      // All multiplayer players start in lobby phase (waiting room)
-      initialState.phase = "lobby";
+      // Detect reconnection: host with existing room code, or non-host rejoining
+      const isReconnect =
+        getDraftSession() !== null && multiplayerConfig.roomCode;
+      // Fresh start → lobby (waiting room); Reconnect → reconnecting (loading spinner)
+      initialState.phase = isReconnect ? "reconnecting" : "lobby";
       initialState.multiplayer = {
         enabled: true,
         connectionType: multiplayerConfig.isHost
@@ -466,7 +473,13 @@ export default function Draft5v5({
                 result.error,
               );
               clearDraftSession();
+              // Fall through to create new room — reset phase from "reconnecting" to "lobby"
+              setDraftState((prev) => ({ ...prev, phase: "lobby" }));
             }
+          } else {
+            // Room no longer exists — reset phase and create fresh
+            clearDraftSession();
+            setDraftState((prev) => ({ ...prev, phase: "lobby" }));
           }
           // Host creates a new room (fresh start or room no longer exists)
           const result = await firebaseCreateRoom({
@@ -567,8 +580,10 @@ export default function Draft5v5({
       // causes a redundant re-render (the "stutter"). The host only needs the
       // sync effect for metadata (team names, turn duration, wildcard modal,
       // match reports) — NOT the main draft state overwrite.
+      // Exception: on reconnect (phase === "reconnecting"), host MUST apply
+      // the Firebase state once to restore where the draft left off.
       if (!multiplayerConfig?.isHost) {
-        // Non-host: apply the full synced state
+        // Non-host: always apply the full synced state
         setDraftState((prevState) => {
           const localTeam =
             prevState.multiplayer?.localTeam ||
@@ -596,6 +611,28 @@ export default function Draft5v5({
               enabled: true,
               connectionType,
               localTeam,
+              roomId:
+                syncedDraftState.multiplayer?.roomId ||
+                multiplayerConfig?.roomCode ||
+                "",
+              team1Name: syncedDraftState.multiplayer?.team1Name || "Team 1",
+              team2Name: syncedDraftState.multiplayer?.team2Name || "Team 2",
+              turnDuration:
+                syncedDraftState.multiplayer?.turnDuration ??
+                DEFAULT_TURN_DURATION,
+            },
+          };
+        });
+      } else {
+        // Host: only apply synced state when reconnecting (to restore draft)
+        setDraftState((prevState) => {
+          if (prevState.phase !== "reconnecting") return prevState; // Skip — host is authority
+          return {
+            ...syncedDraftState,
+            multiplayer: {
+              enabled: true,
+              connectionType: "host",
+              localTeam: "team1",
               roomId:
                 syncedDraftState.multiplayer?.roomId ||
                 multiplayerConfig?.roomCode ||
@@ -1802,6 +1839,54 @@ export default function Draft5v5({
     }
     return Math.max(count, 1);
   }, [draftState.phase, completedActions]);
+
+  // Reconnecting view — show loading spinner while waiting for Firebase state
+  if (isMultiplayer && draftState.phase === "reconnecting") {
+    return (
+      <div className="h-screen bg-linear-to-br from-gray-950 to-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          {joinError ? (
+            <>
+              <h2 className="text-xl font-bold text-red-400 mb-2">
+                Reconnection Failed
+              </h2>
+              <p className="text-gray-400 mb-4">{joinError}</p>
+              {onBackToMenu && (
+                <button
+                  onClick={() => {
+                    clearDraftSession();
+                    onBackToMenu();
+                  }}
+                  className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-gray-200 rounded-lg transition-colors"
+                >
+                  Back to Menu
+                </button>
+              )}
+            </>
+          ) : (
+            <>
+              <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+              <h2 className="text-xl font-bold text-gray-100 mb-2">
+                Reconnecting...
+              </h2>
+              <p className="text-gray-400">Restoring draft state</p>
+              {onBackToMenu && (
+                <button
+                  onClick={() => {
+                    clearDraftSession();
+                    onBackToMenu();
+                  }}
+                  className="mt-6 px-4 py-2 text-sm text-gray-400 hover:text-gray-200 transition-colors"
+                >
+                  Cancel &amp; Return to Menu
+                </button>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   // Waiting room view for multiplayer lobby phase
   if (isMultiplayer && draftState.phase === "lobby") {

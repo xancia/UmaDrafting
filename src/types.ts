@@ -22,6 +22,7 @@ export interface Map {
 
 export type DraftPhase =
   | "lobby"
+  | "reconnecting" // Temporary phase while loading state from Firebase on rejoin
   | "wildcard-reveal"
   | "pre-draft-pause" // Pause before starting map draft (after wildcard)
   | "uma-pick"
