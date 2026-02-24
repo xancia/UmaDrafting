@@ -380,9 +380,23 @@ export async function updateDraftState(
     return newVersion;
   });
 
+  // Strip undefined values recursively — Firebase rejects undefined
+  const sanitize = (obj: unknown): unknown => {
+    if (obj === null || obj === undefined) return null;
+    if (Array.isArray(obj)) return obj.map(sanitize);
+    if (typeof obj === "object") {
+      const out: Record<string, unknown> = {};
+      for (const [k, v] of Object.entries(obj as Record<string, unknown>)) {
+        if (v !== undefined) out[k] = sanitize(v);
+      }
+      return out;
+    }
+    return obj;
+  };
+
   // Update draft state and timestamp (version already set by transaction)
   await update(roomRef, {
-    draftState: newState,
+    draftState: sanitize(newState),
     updatedAt: Date.now(),
   });
 }

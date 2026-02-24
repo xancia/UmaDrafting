@@ -130,6 +130,7 @@ export default function Draft5v5({
         team2Name: multiplayerConfig.isHost
           ? "Team 2"
           : multiplayerConfig.playerName,
+        turnDuration: DEFAULT_TURN_DURATION,
       };
     }
 
@@ -607,7 +608,9 @@ export default function Draft5v5({
               "",
             team1Name: syncedDraftState.multiplayer?.team1Name || "Team 1",
             team2Name: syncedDraftState.multiplayer?.team2Name || "Team 2",
-            turnDuration: syncedDraftState.multiplayer?.turnDuration,
+            turnDuration:
+              syncedDraftState.multiplayer?.turnDuration ??
+              DEFAULT_TURN_DURATION,
           },
         };
       });
