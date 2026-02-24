@@ -1215,17 +1215,13 @@ export default function Draft5v5({
       syncUpdateDraftState(newState);
       setDraftState(newState);
     } else if (isMultiplayer) {
-      // Non-host sends ready action to host
+      // Non-host sends ready action to host — don't update local state
+      // Wait for Firebase sync confirmation to avoid double-render
       sendDraftAction({
         action: "ready",
         itemType: "control",
         itemId: localTeam,
       });
-      // Optimistic update
-      setDraftState((prev) => ({
-        ...prev,
-        [localTeam === "team1" ? "team1Ready" : "team2Ready"]: true,
-      }));
     }
   };
 
