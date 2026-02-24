@@ -3117,7 +3117,7 @@ export default function Draft5v5({
               <label className="block text-xs lg:text-sm font-semibold text-gray-400 mb-1.5 lg:mb-2">
                 Turn Timer
               </label>
-              <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex items-center gap-2">
                 {[30, 60, 90].map((d) => (
                   <button
                     key={d}
@@ -3132,33 +3132,23 @@ export default function Draft5v5({
                     {d}s
                   </button>
                 ))}
-                <div className="flex items-center gap-1.5">
-                  <input
-                    type="number"
-                    min={10}
-                    max={300}
-                    placeholder="Custom"
-                    value={
-                      ![30, 60, 90].includes(turnDuration) ? turnDuration : ""
-                    }
-                    onChange={(e) => {
-                      const v = parseInt(e.target.value);
-                      if (!isNaN(v))
-                        setTurnDuration(Math.min(300, Math.max(10, v)));
-                    }}
-                    onFocus={() => {
-                      if ([30, 60, 90].includes(turnDuration)) {
-                        // Clear preset highlight; keep current value in field
-                      }
-                    }}
-                    className={`w-20 px-2 py-1.5 bg-gray-700 border rounded-lg text-sm text-gray-100 text-center focus:outline-none focus:border-blue-500 ${
-                      ![30, 60, 90].includes(turnDuration)
-                        ? "border-blue-500"
-                        : "border-gray-600"
-                    }`}
-                  />
-                  <span className="text-xs text-gray-400">sec</span>
-                </div>
+                <input
+                  type="number"
+                  min={10}
+                  max={300}
+                  value={turnDuration}
+                  onChange={(e) => {
+                    const raw = e.target.value;
+                    if (raw === "") return;
+                    const v = parseInt(raw);
+                    if (!isNaN(v)) setTurnDuration(v);
+                  }}
+                  onBlur={() => {
+                    setTurnDuration(Math.min(300, Math.max(10, turnDuration)));
+                  }}
+                  className="w-20 px-2 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-gray-100 text-center focus:outline-none focus:border-blue-500 no-spinner"
+                />
+                <span className="text-xs text-gray-400">sec</span>
               </div>
             </div>
             <div className="flex justify-between">

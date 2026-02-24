@@ -1,5 +1,15 @@
 @import "tailwindcss";
 
+/* Hide number input spinners */
+.no-spinner::-webkit-outer-spin-button,
+.no-spinner::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.no-spinner {
+  -moz-appearance: textfield;
+}
+
 /* ==========================================================================
    Custom Theme - Blue-tinted dark palette
    Replaces default Tailwind grays with richer, darker blue-tinted variants.

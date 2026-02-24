@@ -59,8 +59,7 @@ export default function WaitingRoom({
   const [editingTeam1, setEditingTeam1] = useState(false);
   const [editingTeam2, setEditingTeam2] = useState(false);
   const [tempTeam1Name, setTempTeam1Name] = useState(team1Name);
-  const [showCustomTimer, setShowCustomTimer] = useState(false);
-  const [customTimerValue, setCustomTimerValue] = useState("");
+
   const [tempTeam2Name, setTempTeam2Name] = useState(team2Name);
   const canStart = playerCount >= 2;
 
@@ -235,16 +234,13 @@ export default function WaitingRoom({
             Turn Timer
           </p>
           {isHost ? (
-            <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-center gap-2">
               {[30, 60, 90].map((d) => (
                 <button
                   key={d}
-                  onClick={() => {
-                    setShowCustomTimer(false);
-                    onTurnDurationChange?.(d);
-                  }}
+                  onClick={() => onTurnDurationChange?.(d)}
                   className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors ${
-                    turnDuration === d && !showCustomTimer
+                    turnDuration === d
                       ? "bg-blue-600 text-white"
                       : "bg-gray-700 text-gray-300 hover:bg-gray-600"
                   }`}
@@ -252,54 +248,25 @@ export default function WaitingRoom({
                   {d}s
                 </button>
               ))}
-              {showCustomTimer ? (
-                <div className="flex items-center gap-1.5">
-                  <input
-                    type="number"
-                    min={10}
-                    max={300}
-                    value={customTimerValue}
-                    onChange={(e) => setCustomTimerValue(e.target.value)}
-                    onBlur={() => {
-                      const v = Math.min(
-                        300,
-                        Math.max(10, parseInt(customTimerValue) || 60),
-                      );
-                      setCustomTimerValue(String(v));
-                      onTurnDurationChange?.(v);
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        const v = Math.min(
-                          300,
-                          Math.max(10, parseInt(customTimerValue) || 60),
-                        );
-                        setCustomTimerValue(String(v));
-                        onTurnDurationChange?.(v);
-                      }
-                    }}
-                    className="w-16 px-2 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-gray-100 text-center focus:outline-none focus:border-blue-500"
-                    autoFocus
-                  />
-                  <span className="text-xs text-gray-400">sec</span>
-                </div>
-              ) : (
-                <button
-                  onClick={() => {
-                    setShowCustomTimer(true);
-                    setCustomTimerValue(String(turnDuration));
-                  }}
-                  className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors ${
-                    ![30, 60, 90].includes(turnDuration)
-                      ? "bg-blue-600 text-white"
-                      : "bg-gray-700 text-gray-300 hover:bg-gray-600"
-                  }`}
-                >
-                  {![30, 60, 90].includes(turnDuration)
-                    ? `${turnDuration}s`
-                    : "Custom"}
-                </button>
-              )}
+              <input
+                type="number"
+                min={10}
+                max={300}
+                value={turnDuration}
+                onChange={(e) => {
+                  const raw = e.target.value;
+                  if (raw === "") return;
+                  const v = parseInt(raw);
+                  if (!isNaN(v)) onTurnDurationChange?.(v);
+                }}
+                onBlur={() => {
+                  onTurnDurationChange?.(
+                    Math.min(300, Math.max(10, turnDuration)),
+                  );
+                }}
+                className="w-20 px-2 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-sm text-gray-100 text-center focus:outline-none focus:border-blue-500 no-spinner"
+              />
+              <span className="text-xs text-gray-400">sec</span>
             </div>
           ) : (
             <p className="text-sm text-gray-300">
