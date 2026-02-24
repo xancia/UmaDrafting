@@ -370,6 +370,12 @@ export async function updateDraftState(
   roomCode: string,
   newState: DraftState,
 ): Promise<void> {
+  // Never write the local-only "reconnecting" phase to Firebase
+  if ((newState as { phase?: string }).phase === "reconnecting") {
+    console.warn("Blocked writing 'reconnecting' phase to Firebase");
+    return;
+  }
+
   const roomRef = ref(db, buildPath.room(roomCode));
   const versionRef = ref(db, `${buildPath.room(roomCode)}/version`);
 

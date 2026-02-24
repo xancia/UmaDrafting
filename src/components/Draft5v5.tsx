@@ -723,6 +723,14 @@ export default function Draft5v5({
       const action = pendingAction.action;
       const senderId = pendingAction.senderId;
 
+      // Don't process actions while host is still restoring state from Firebase.
+      // Processing now would spread draftState (with phase "reconnecting") into
+      // Firebase, which corrupts the state for all other players.
+      if (draftState.phase === "reconnecting") {
+        console.log("Skipping pending action while reconnecting:", action);
+        return;
+      }
+
       console.log("Host received action from client:", action, senderId);
       console.log(
         "Current phase:",
