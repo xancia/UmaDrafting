@@ -49,6 +49,8 @@ interface UseTurnTimerResult {
   isWarning: boolean;
   /** Whether timer is in critical state (< 5 seconds) */
   isCritical: boolean;
+  /** The turn key the timer is currently tracking */
+  activeTurnKey: string;
 }
 
 /**
@@ -77,6 +79,13 @@ export function useTurnTimer({
   const turnStartTimeRef = useRef(Date.now());
   const previousIsAuthorityRef = useRef(isTimerAuthority);
 
+  // Track the turn key actively being timed so consumers can verify
+  // the timeout is for the correct turn.
+  const activeTurnKeyRef = useRef(currentTurnKey);
+
+  /** Hard minimum: never fire a timeout within this many ms of a reset */
+  const MINIMUM_ELAPSED_MS = 2000;
+
   // Keep onTimeout ref current to avoid stale closures in the interval.
   // Without this, the interval captures an old onTimeout and can fire a stale
   // callback via setTimeout after state has already changed.
@@ -95,6 +104,7 @@ export function useTurnTimer({
   useEffect(() => {
     if (previousTurnKeyRef.current !== currentTurnKey) {
       previousTurnKeyRef.current = currentTurnKey;
+      activeTurnKeyRef.current = currentTurnKey;
       turnStartTimeRef.current = Date.now();
       setTimeRemaining(duration);
       timeoutCalledRef.current = false;
@@ -107,21 +117,23 @@ export function useTurnTimer({
   // immediately computes remaining=0, causing an instant timeout.
   useEffect(() => {
     if (isTimerAuthority && !previousIsAuthorityRef.current) {
+      activeTurnKeyRef.current = currentTurnKey;
       turnStartTimeRef.current = Date.now();
       setTimeRemaining(duration);
       timeoutCalledRef.current = false;
     }
     previousIsAuthorityRef.current = isTimerAuthority;
-  }, [isTimerAuthority, duration]);
+  }, [isTimerAuthority, duration, currentTurnKey]);
 
   // Reset timer when phase changes to an active phase
   useEffect(() => {
     if (isActivePhase) {
+      activeTurnKeyRef.current = currentTurnKey;
       turnStartTimeRef.current = Date.now();
       setTimeRemaining(duration);
       timeoutCalledRef.current = false;
     }
-  }, [phase, isActivePhase, duration]);
+  }, [phase, isActivePhase, duration, currentTurnKey]);
 
   // Countdown effect - uses timestamp-based calculation to handle background tab throttling
   // Uses onTimeoutRef instead of onTimeout in deps to prevent interval churn
@@ -130,14 +142,21 @@ export function useTurnTimer({
     if (!shouldCountDown) return;
 
     const interval = setInterval(() => {
-      const elapsed = Math.floor(
-        (Date.now() - turnStartTimeRef.current) / 1000,
-      );
+      const elapsedMs = Date.now() - turnStartTimeRef.current;
+      const elapsed = Math.floor(elapsedMs / 1000);
       const remaining = Math.max(0, duration - elapsed);
 
       setTimeRemaining(remaining);
 
-      if (remaining <= 0 && !timeoutCalledRef.current && isTimerAuthority) {
+      if (
+        remaining <= 0 &&
+        !timeoutCalledRef.current &&
+        isTimerAuthority &&
+        // HARD GUARD: never fire timeout within MINIMUM_ELAPSED_MS of a reset.
+        // This prevents instant double-timeouts caused by stale intervals,
+        // React effect ordering, or network latency in multiplayer.
+        elapsedMs >= MINIMUM_ELAPSED_MS
+      ) {
         timeoutCalledRef.current = true;
         // Call latest onTimeout via ref to avoid stale closures.
         // setInterval callback is already async so no risk of calling during render.
@@ -157,10 +176,11 @@ export function useTurnTimer({
   }, []);
 
   const reset = useCallback(() => {
+    activeTurnKeyRef.current = currentTurnKey;
     turnStartTimeRef.current = Date.now();
     setTimeRemaining(duration);
     timeoutCalledRef.current = false;
-  }, [duration]);
+  }, [duration, currentTurnKey]);
 
   return {
     timeRemaining,
@@ -170,5 +190,6 @@ export function useTurnTimer({
     reset,
     isWarning: timeRemaining <= 10 && timeRemaining > 5,
     isCritical: timeRemaining <= 5,
+    activeTurnKey: activeTurnKeyRef.current,
   };
 }

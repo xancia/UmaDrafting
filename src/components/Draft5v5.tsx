@@ -281,15 +281,23 @@ export default function Draft5v5({
   const isTimerAuthority =
     !isMultiplayer || draftState.currentTeam === localTeam;
 
+  // Processing lock — prevents overlapping timeout/action processing.
+  // Set true before processing, cleared after state is committed (ref + setDraftState).
+  const processingLockRef = useRef(false);
+
   // Handle turn timeout - lock in pending selection or make random selection
   const handleTurnTimeout = useCallback(() => {
     // Read from ref to always get the latest state, even if React hasn't
     // re-rendered yet after a prior setDraftState call.
     const currentState = draftStateRef.current;
 
-    // Guard: verify this timeout is genuinely for our turn. The timer's
-    // setInterval can fire one last tick with a stale `isTimerAuthority`
-    // closure before React cleans up the old interval on a turn change.
+    // HARD GUARD 1: Processing lock — another timeout or action is mid-flight.
+    if (processingLockRef.current) {
+      console.log("Ignoring timeout — processing lock active");
+      return;
+    }
+
+    // HARD GUARD 2: verify this timeout is genuinely for our turn.
     const currentLocalTeam =
       currentState.multiplayer?.localTeam || (isHost ? "team1" : "team2");
     if (isMultiplayer && currentState.currentTeam !== currentLocalTeam) {
@@ -297,138 +305,174 @@ export default function Draft5v5({
       return;
     }
 
-    console.log("Turn timeout triggered, current phase:", currentState.phase);
+    // HARD GUARD 3: If phase is not an active pick/ban phase, ignore.
+    const activePhases = [
+      "uma-pick",
+      "uma-ban",
+      "uma-pre-ban",
+      "map-pick",
+      "map-ban",
+    ];
+    if (!activePhases.includes(currentState.phase)) {
+      console.log(
+        "Ignoring timeout — not in active phase:",
+        currentState.phase,
+      );
+      return;
+    }
 
-    // Determine if we're in a uma or map phase
-    const isUmaPhaseNow =
-      currentState.phase === "uma-pick" ||
-      currentState.phase === "uma-ban" ||
-      currentState.phase === "uma-pre-ban";
-    const isMapPhaseNow =
-      currentState.phase === "map-pick" || currentState.phase === "map-ban";
+    // Acquire processing lock — released in .finally() after React commits.
+    processingLockRef.current = true;
 
-    // Helper to handle local state update (for host or non-multiplayer)
-    const updateLocalState = (
-      newState: DraftState,
-      clearTrack: boolean = false,
-    ) => {
-      if (newState !== currentState) {
-        // Update ref synchronously BEFORE setDraftState so any Firebase
-        // callback that fires before React re-renders sees the new state.
-        draftStateRef.current = newState;
-        if (isMultiplayer && isHost) {
-          syncUpdateDraftState(newState);
+    // Wrap all processing in a Promise so .finally() guarantees lock release
+    // regardless of which code path (early return, error, normal exit).
+    // The actual state mutations are synchronous, but we await the next
+    // animation frame before releasing so React's render cycle and timer
+    // reset effects have committed — no arbitrary timeout guesses.
+    const processAction = new Promise<void>((resolve) => {
+      console.log("Turn timeout triggered, current phase:", currentState.phase);
+
+      // Determine if we're in a uma or map phase
+      const isUmaPhaseNow =
+        currentState.phase === "uma-pick" ||
+        currentState.phase === "uma-ban" ||
+        currentState.phase === "uma-pre-ban";
+      const isMapPhaseNow =
+        currentState.phase === "map-pick" || currentState.phase === "map-ban";
+
+      // Helper to handle local state update (for host or non-multiplayer)
+      const updateLocalState = (
+        newState: DraftState,
+        clearTrack: boolean = false,
+      ) => {
+        if (newState !== currentState) {
+          // Update ref synchronously BEFORE setDraftState so any Firebase
+          // callback that fires before React re-renders sees the new state.
+          draftStateRef.current = newState;
+          if (isMultiplayer && isHost) {
+            syncUpdateDraftState(newState);
+          }
+          setDraftState(newState);
+          setHistory((prev) => [...prev, newState]);
+          if (clearTrack) {
+            setSelectedTrack(null);
+          }
         }
-        setDraftState(newState);
-        setHistory((prev) => [...prev, newState]);
-        if (clearTrack) {
+      };
+
+      // Helper to send action for non-host multiplayer
+      const sendAction = (
+        itemId: string,
+        itemType: "uma" | "map",
+        action: "pick" | "ban",
+      ) => {
+        sendDraftAction({
+          action,
+          itemId,
+          itemType,
+        });
+        // Non-host: don't update local state - wait for Firebase sync
+        // Just reset track selection for map picks
+        if (itemType === "map") {
           setSelectedTrack(null);
         }
-      }
-    };
+      };
 
-    // Helper to send action for non-host multiplayer
-    const sendAction = (
-      itemId: string,
-      itemType: "uma" | "map",
-      action: "pick" | "ban",
-    ) => {
-      sendDraftAction({
-        action,
-        itemId,
-        itemType,
+      // If user has a pending selection, lock it in
+      if (pendingUma && isUmaPhaseNow) {
+        console.log("Locking in pending uma:", pendingUma.name);
+        if (isMultiplayer && !isHost) {
+          sendAction(
+            pendingUma.id.toString(),
+            "uma",
+            currentState.phase === "uma-pick" ? "pick" : "ban",
+          );
+        } else {
+          const newState = selectUma(currentState, pendingUma);
+          updateLocalState(newState);
+        }
+        setPendingUma(null);
+        setUmaSearch("");
+        resolve();
+        return;
+      }
+
+      if (pendingMap && isMapPhaseNow) {
+        console.log("Locking in pending map:", pendingMap.name);
+        if (isMultiplayer && !isHost) {
+          sendAction(
+            pendingMap.name,
+            "map",
+            currentState.phase === "map-pick" ? "pick" : "ban",
+          );
+        } else {
+          const mapWithConditions: Map = {
+            ...pendingMap,
+            conditions: pendingMap.conditions || generateTrackConditions(),
+          };
+          const newState = selectMap(currentState, mapWithConditions);
+          updateLocalState(newState, true);
+        }
+        setPendingMap(null);
+        resolve();
+        return;
+      }
+
+      // No pending selection - make random selection
+      console.log("No pending selection, making random selection");
+
+      const selection = getRandomTimeoutSelection(currentState);
+      if (!selection) {
+        console.warn("No valid random selection available for timeout");
+        resolve();
+        return;
+      }
+
+      console.log("Auto-selecting:", selection.type, selection.item);
+
+      if (selection.type === "uma") {
+        const uma = selection.item as UmaMusume;
+        if (isMultiplayer && !isHost) {
+          sendAction(
+            uma.id.toString(),
+            "uma",
+            currentState.phase === "uma-pick" ? "pick" : "ban",
+          );
+        } else {
+          const newState = selectUma(currentState, uma);
+          updateLocalState(newState);
+        }
+        setUmaSearch("");
+      } else {
+        const map = selection.item as Map;
+        if (isMultiplayer && !isHost) {
+          sendAction(
+            map.name,
+            "map",
+            currentState.phase === "map-pick" ? "pick" : "ban",
+          );
+        } else {
+          const mapWithConditions: Map = {
+            ...map,
+            conditions: map.conditions || generateTrackConditions(),
+          };
+          const newState = selectMap(currentState, mapWithConditions);
+          updateLocalState(newState, true);
+        }
+      }
+
+      resolve();
+    });
+
+    // .finally() guarantees lock release whether the promise resolved or
+    // rejected.  We wait one animation frame so React's commit phase and
+    // timer-reset effects have fired before any new timeout can acquire
+    // the lock.
+    processAction.finally(() => {
+      requestAnimationFrame(() => {
+        processingLockRef.current = false;
       });
-      // Non-host: don't update local state - wait for Firebase sync
-      // Just reset track selection for map picks
-      if (itemType === "map") {
-        setSelectedTrack(null);
-      }
-    };
-
-    // If user has a pending selection, lock it in
-    if (pendingUma && isUmaPhaseNow) {
-      console.log("Locking in pending uma:", pendingUma.name);
-      if (isMultiplayer && !isHost) {
-        // Non-host sends action to Firebase
-        sendAction(
-          pendingUma.id.toString(),
-          "uma",
-          currentState.phase === "uma-pick" ? "pick" : "ban",
-        );
-      } else {
-        const newState = selectUma(currentState, pendingUma);
-        updateLocalState(newState);
-      }
-      setPendingUma(null);
-      setUmaSearch("");
-      return;
-    }
-
-    if (pendingMap && isMapPhaseNow) {
-      console.log("Locking in pending map:", pendingMap.name);
-      if (isMultiplayer && !isHost) {
-        // Non-host sends action to Firebase
-        sendAction(
-          pendingMap.name,
-          "map",
-          currentState.phase === "map-pick" ? "pick" : "ban",
-        );
-      } else {
-        const mapWithConditions: Map = {
-          ...pendingMap,
-          conditions: pendingMap.conditions || generateTrackConditions(),
-        };
-        const newState = selectMap(currentState, mapWithConditions);
-        updateLocalState(newState, true);
-      }
-      setPendingMap(null);
-      return;
-    }
-
-    // No pending selection - make random selection
-    console.log("No pending selection, making random selection");
-
-    const selection = getRandomTimeoutSelection(currentState);
-    if (!selection) {
-      console.warn("No valid random selection available for timeout");
-      return;
-    }
-
-    console.log("Auto-selecting:", selection.type, selection.item);
-
-    if (selection.type === "uma") {
-      const uma = selection.item as UmaMusume;
-      if (isMultiplayer && !isHost) {
-        // Non-host sends action to Firebase
-        sendAction(
-          uma.id.toString(),
-          "uma",
-          currentState.phase === "uma-pick" ? "pick" : "ban",
-        );
-      } else {
-        const newState = selectUma(currentState, uma);
-        updateLocalState(newState);
-      }
-      setUmaSearch("");
-    } else {
-      const map = selection.item as Map;
-      if (isMultiplayer && !isHost) {
-        // Non-host sends action to Firebase
-        sendAction(
-          map.name,
-          "map",
-          currentState.phase === "map-pick" ? "pick" : "ban",
-        );
-      } else {
-        // Add conditions for picked maps
-        const mapWithConditions: Map = {
-          ...map,
-          conditions: map.conditions || generateTrackConditions(),
-        };
-        const newState = selectMap(currentState, mapWithConditions);
-        updateLocalState(newState, true);
-      }
-    }
+    });
   }, [
     isMultiplayer,
     isHost,
@@ -764,6 +808,17 @@ export default function Draft5v5({
       // Don't process actions while host is still restoring state from Firebase.
       if (state.phase === "reconnecting") {
         console.log("Skipping pending action while reconnecting:", action);
+        return;
+      }
+
+      // HARD GUARD: If the processing lock is held (timeout in progress),
+      // defer this action by a short delay so the timeout finishes first.
+      if (processingLockRef.current && action.itemType !== "control") {
+        console.warn(
+          "Processing lock held — deferring pending action by 300ms",
+          action,
+        );
+        setTimeout(() => handlePendingAction(pendingAction), 300);
         return;
       }
 
