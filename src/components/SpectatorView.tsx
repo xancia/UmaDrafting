@@ -6,6 +6,7 @@ import DraftHeader from "./DraftHeader";
 import TeamPanel from "./TeamPanel";
 import PhaseAnnouncement from "./PhaseAnnouncement";
 import { countDistances, countDirtTracks } from "../draftLogic";
+import { getTimelineForPhase } from "./DraftTimeline";
 
 interface SpectatorViewProps {
   /** Current draft state to display */
@@ -52,7 +53,8 @@ export default function SpectatorView({
   } = draftState;
   const [umaSearch, setUmaSearch] = useState("");
 
-  const isUmaPhase = phase === "uma-pick" || phase === "uma-ban";
+  const isUmaPhase =
+    phase === "uma-pick" || phase === "uma-ban" || phase === "uma-pre-ban";
   const isMapPhase = phase === "map-pick" || phase === "map-ban";
   const isComplete = phase === "complete";
   const isPause = phase === "pre-draft-pause" || phase === "post-map-pause";
@@ -74,13 +76,34 @@ export default function SpectatorView({
         (t1.pickedUmas?.length || 0) + (t2.pickedUmas?.length || 0);
       const totalBanned =
         (t1.bannedUmas?.length || 0) + (t2.bannedUmas?.length || 0);
-      return totalBanned > 0 ? totalPicked - totalBanned : totalPicked;
+      // Each ban removed one uma from pickedUmas and added it to bannedUmas,
+      // so total uma-pick actions ever taken = current picks + bans.
+      return totalBanned > 0 ? totalPicked + totalBanned : totalPicked;
     }
     if (phase === "uma-ban") {
       return (t1.bannedUmas?.length || 0) + (t2.bannedUmas?.length || 0);
     }
+    if (phase === "uma-pre-ban") {
+      return (t1.preBannedUmas?.length || 0) + (t2.preBannedUmas?.length || 0);
+    }
     return 0;
   }, [phase, draftState.team1, draftState.team2]);
+
+  // Compute how many consecutive picks the current team has (for snake draft highlighting)
+  const consecutivePicks = useMemo(() => {
+    if (phase !== "uma-pick") return 1;
+    const timeline = getTimelineForPhase(phase, completedActions);
+    if (!timeline) return 1;
+    const { steps, currentIndex } = timeline;
+    if (currentIndex >= steps.length) return 1;
+    const currentTeamVal = steps[currentIndex].team;
+    let count = 0;
+    for (let i = currentIndex; i < steps.length; i++) {
+      if (steps[i].team === currentTeamVal && steps[i].label === "P") count++;
+      else break;
+    }
+    return Math.max(count, 1);
+  }, [phase, completedActions]);
 
   // Filtered umas for spectator grid
   const filteredUmas = useMemo(() => {
@@ -106,12 +129,6 @@ export default function SpectatorView({
   const team1DistanceCounts = countDistances(team1.pickedMaps);
   const team2DistanceCounts = countDistances(team2.pickedMaps);
 
-  const activeSection = isMapPhase
-    ? ("maps" as const)
-    : isUmaPhase
-      ? ("umas" as const)
-      : null;
-
   return (
     <div className="h-screen bg-linear-to-br from-gray-950 to-gray-900 flex gap-2 lg:gap-4 px-2 lg:px-4 py-2 lg:py-4 overflow-hidden">
       <PhaseAnnouncement phase={phase} />
@@ -123,19 +140,22 @@ export default function SpectatorView({
           teamName={team1Name}
           pickedUmas={team1.pickedUmas}
           bannedUmas={team1.bannedUmas}
+          preBannedUmas={team1.preBannedUmas}
           pickedMaps={team1.pickedMaps}
           bannedMaps={team1.bannedMaps}
           distanceCounts={team1DistanceCounts}
           dirtCount={countDirtTracks(team1.pickedMaps)}
           isCurrentTurn={phase !== "complete" && currentTeam === "team1"}
-          activeSection={activeSection}
+          activeSection={isMapPhase ? "maps" : isUmaPhase ? "umas" : null}
           showMapOrder={
             phase === "post-map-pause" ||
             phase === "uma-pick" ||
             phase === "uma-ban" ||
+            phase === "uma-pre-ban" ||
             phase === "complete"
           }
           ghostSelection={pendingSelections.team1 ?? null}
+          consecutivePicks={currentTeam === "team1" ? consecutivePicks : 1}
         />
       </div>
 
@@ -572,19 +592,22 @@ export default function SpectatorView({
           teamName={team2Name}
           pickedUmas={team2.pickedUmas}
           bannedUmas={team2.bannedUmas}
+          preBannedUmas={team2.preBannedUmas}
           pickedMaps={team2.pickedMaps}
           bannedMaps={team2.bannedMaps}
           distanceCounts={team2DistanceCounts}
           dirtCount={countDirtTracks(team2.pickedMaps)}
           isCurrentTurn={phase !== "complete" && currentTeam === "team2"}
-          activeSection={activeSection}
+          activeSection={isMapPhase ? "maps" : isUmaPhase ? "umas" : null}
           showMapOrder={
             phase === "post-map-pause" ||
             phase === "uma-pick" ||
             phase === "uma-ban" ||
+            phase === "uma-pre-ban" ||
             phase === "complete"
           }
           ghostSelection={pendingSelections.team2 ?? null}
+          consecutivePicks={currentTeam === "team2" ? consecutivePicks : 1}
         />
       </div>
     </div>

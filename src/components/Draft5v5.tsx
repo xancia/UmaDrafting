@@ -143,6 +143,11 @@ export default function Draft5v5({
 
     return initialState;
   });
+  // Ref always holds the latest draftState — survives between React batched
+  // state updates, preventing stale-closure reads in Firebase callbacks and
+  // the turn-timeout handler that can fire before React re-renders.
+  const draftStateRef = useRef(draftState);
+  draftStateRef.current = draftState;
   const [history, setHistory] = useState<DraftState[]>([
     getInitialDraftState(),
   ]);
@@ -278,22 +283,39 @@ export default function Draft5v5({
 
   // Handle turn timeout - lock in pending selection or make random selection
   const handleTurnTimeout = useCallback(() => {
-    console.log("Turn timeout triggered, current phase:", draftState.phase);
+    // Read from ref to always get the latest state, even if React hasn't
+    // re-rendered yet after a prior setDraftState call.
+    const currentState = draftStateRef.current;
+
+    // Guard: verify this timeout is genuinely for our turn. The timer's
+    // setInterval can fire one last tick with a stale `isTimerAuthority`
+    // closure before React cleans up the old interval on a turn change.
+    const currentLocalTeam =
+      currentState.multiplayer?.localTeam || (isHost ? "team1" : "team2");
+    if (isMultiplayer && currentState.currentTeam !== currentLocalTeam) {
+      console.log("Ignoring stale timeout — not our turn anymore");
+      return;
+    }
+
+    console.log("Turn timeout triggered, current phase:", currentState.phase);
 
     // Determine if we're in a uma or map phase
     const isUmaPhaseNow =
-      draftState.phase === "uma-pick" ||
-      draftState.phase === "uma-ban" ||
-      draftState.phase === "uma-pre-ban";
+      currentState.phase === "uma-pick" ||
+      currentState.phase === "uma-ban" ||
+      currentState.phase === "uma-pre-ban";
     const isMapPhaseNow =
-      draftState.phase === "map-pick" || draftState.phase === "map-ban";
+      currentState.phase === "map-pick" || currentState.phase === "map-ban";
 
     // Helper to handle local state update (for host or non-multiplayer)
     const updateLocalState = (
       newState: DraftState,
       clearTrack: boolean = false,
     ) => {
-      if (newState !== draftState) {
+      if (newState !== currentState) {
+        // Update ref synchronously BEFORE setDraftState so any Firebase
+        // callback that fires before React re-renders sees the new state.
+        draftStateRef.current = newState;
         if (isMultiplayer && isHost) {
           syncUpdateDraftState(newState);
         }
@@ -331,10 +353,10 @@ export default function Draft5v5({
         sendAction(
           pendingUma.id.toString(),
           "uma",
-          draftState.phase === "uma-pick" ? "pick" : "ban",
+          currentState.phase === "uma-pick" ? "pick" : "ban",
         );
       } else {
-        const newState = selectUma(draftState, pendingUma);
+        const newState = selectUma(currentState, pendingUma);
         updateLocalState(newState);
       }
       setPendingUma(null);
@@ -348,14 +370,14 @@ export default function Draft5v5({
         sendAction(
           pendingMap.name,
           "map",
-          draftState.phase === "map-pick" ? "pick" : "ban",
+          currentState.phase === "map-pick" ? "pick" : "ban",
         );
       } else {
         const mapWithConditions: Map = {
           ...pendingMap,
           conditions: pendingMap.conditions || generateTrackConditions(),
         };
-        const newState = selectMap(draftState, mapWithConditions);
+        const newState = selectMap(currentState, mapWithConditions);
         updateLocalState(newState, true);
       }
       setPendingMap(null);
@@ -365,7 +387,7 @@ export default function Draft5v5({
     // No pending selection - make random selection
     console.log("No pending selection, making random selection");
 
-    const selection = getRandomTimeoutSelection(draftState);
+    const selection = getRandomTimeoutSelection(currentState);
     if (!selection) {
       console.warn("No valid random selection available for timeout");
       return;
@@ -380,10 +402,10 @@ export default function Draft5v5({
         sendAction(
           uma.id.toString(),
           "uma",
-          draftState.phase === "uma-pick" ? "pick" : "ban",
+          currentState.phase === "uma-pick" ? "pick" : "ban",
         );
       } else {
-        const newState = selectUma(draftState, uma);
+        const newState = selectUma(currentState, uma);
         updateLocalState(newState);
       }
     } else {
@@ -393,7 +415,7 @@ export default function Draft5v5({
         sendAction(
           map.name,
           "map",
-          draftState.phase === "map-pick" ? "pick" : "ban",
+          currentState.phase === "map-pick" ? "pick" : "ban",
         );
       } else {
         // Add conditions for picked maps
@@ -401,12 +423,11 @@ export default function Draft5v5({
           ...map,
           conditions: map.conditions || generateTrackConditions(),
         };
-        const newState = selectMap(draftState, mapWithConditions);
+        const newState = selectMap(currentState, mapWithConditions);
         updateLocalState(newState, true);
       }
     }
   }, [
-    draftState,
     isMultiplayer,
     isHost,
     syncUpdateDraftState,
@@ -715,18 +736,31 @@ export default function Draft5v5({
   ]);
 
   // Handle incoming draft actions from clients (host only)
+  // Uses draftStateRef to always read the latest state, avoiding stale closures
+  // when Firebase callbacks fire between setDraftState and React re-rendering.
   useEffect(() => {
     if (!isMultiplayer || !isHost) return;
+
+    // Helper: read latest state from ref, apply update, sync to Firebase,
+    // and update the ref synchronously so the next action in the same tick
+    // also sees the latest state.
+    const applyState = (newState: DraftState, addHistory = true) => {
+      draftStateRef.current = newState;
+      syncUpdateDraftState(newState);
+      setDraftState(newState);
+      if (addHistory) setHistory((prev) => [...prev, newState]);
+    };
 
     // Set up handler for pending actions from Firebase
     const handlePendingAction = (pendingAction: FirebasePendingAction) => {
       const action = pendingAction.action;
       const senderId = pendingAction.senderId;
 
+      // Always read from ref — closure may be stale after a rapid state update.
+      const state = draftStateRef.current;
+
       // Don't process actions while host is still restoring state from Firebase.
-      // Processing now would spread draftState (with phase "reconnecting") into
-      // Firebase, which corrupts the state for all other players.
-      if (draftState.phase === "reconnecting") {
+      if (state.phase === "reconnecting") {
         console.log("Skipping pending action while reconnecting:", action);
         return;
       }
@@ -734,9 +768,9 @@ export default function Draft5v5({
       console.log("Host received action from client:", action, senderId);
       console.log(
         "Current phase:",
-        draftState.phase,
+        state.phase,
         "Current team:",
-        draftState.currentTeam,
+        state.currentTeam,
       );
 
       // Handle control actions (phase transitions and ready state)
@@ -753,25 +787,24 @@ export default function Draft5v5({
           }
 
           const newState = {
-            ...draftState,
+            ...state,
             multiplayer: {
-              ...draftState.multiplayer,
+              ...state.multiplayer,
               enabled: true,
-              connectionType: draftState.multiplayer?.connectionType || "host",
-              localTeam: draftState.multiplayer?.localTeam || "team1",
-              roomId: draftState.multiplayer?.roomId || "",
+              connectionType: state.multiplayer?.connectionType || "host",
+              localTeam: state.multiplayer?.localTeam || "team1",
+              roomId: state.multiplayer?.roomId || "",
               team1Name:
                 team === "team1"
                   ? name
-                  : draftState.multiplayer?.team1Name || team1Name,
+                  : state.multiplayer?.team1Name || team1Name,
               team2Name:
                 team === "team2"
                   ? name
-                  : draftState.multiplayer?.team2Name || team2Name,
+                  : state.multiplayer?.team2Name || team2Name,
             },
           };
-          syncUpdateDraftState(newState);
-          setDraftState(newState);
+          applyState(newState, false);
           return;
         }
 
@@ -779,20 +812,17 @@ export default function Draft5v5({
         if (action.action === "ready") {
           const team = action.itemId as "team1" | "team2";
           const newState = {
-            ...draftState,
+            ...state,
             [team === "team1" ? "team1Ready" : "team2Ready"]: true,
           };
-          syncUpdateDraftState(newState);
-          setDraftState(newState);
+          applyState(newState, false);
           return;
         }
 
         // Handle match result confirmation from team 2
         if (action.action === "match-confirm") {
-          // Parse the result data sent by team 2 (no need to look up local state)
           try {
             const confirmed: RaceResult = JSON.parse(action.itemId);
-            // Deduplicate: only add if this raceIndex hasn't been recorded yet
             setMatchResults((results) => {
               if (results.some((r) => r.raceIndex === confirmed.raceIndex)) {
                 return results;
@@ -804,8 +834,6 @@ export default function Draft5v5({
           }
           setPendingReport(null);
           pendingReportRef.current = null;
-          // Clear pending report from synced state using functional updater
-          // to avoid stale draftState closure
           setDraftState((current) => {
             const cleared = {
               ...current,
@@ -821,7 +849,6 @@ export default function Draft5v5({
         if (action.action === "match-reject") {
           setPendingReport(null);
           pendingReportRef.current = null;
-          // Clear pending report from synced state
           setDraftState((current) => {
             const cleared = {
               ...current,
@@ -833,114 +860,93 @@ export default function Draft5v5({
           return;
         }
 
-        if (
-          action.phase === "map-pick" &&
-          draftState.phase === "pre-draft-pause"
-        ) {
+        if (action.phase === "map-pick" && state.phase === "pre-draft-pause") {
           const newState = {
-            ...draftState,
+            ...state,
             phase: "map-pick" as const,
             currentTeam: "team1" as const,
             team1Ready: false,
             team2Ready: false,
           };
-          syncUpdateDraftState(newState);
-          setDraftState(newState);
-          setHistory((prev) => [...prev, newState]);
+          applyState(newState);
           return;
         } else if (
           action.phase === "uma-pre-ban" &&
-          draftState.phase === "post-map-pause"
+          state.phase === "post-map-pause"
         ) {
           const newState = {
-            ...draftState,
+            ...state,
             phase: "uma-pre-ban" as const,
             currentTeam: "team1" as const,
             team1Ready: false,
             team2Ready: false,
           };
-          syncUpdateDraftState(newState);
-          setDraftState(newState);
-          setHistory((prev) => [...prev, newState]);
+          applyState(newState);
           return;
         }
       }
 
       // Process the action based on type
       if (action.itemType === "map") {
-        // Find the map - during ban phase it's in opponent's picked maps, during pick phase it's in available maps
         let map: Map | undefined;
-        if (draftState.phase === "map-ban") {
-          // During ban phase, look in the opponent's picked maps
+        if (state.phase === "map-ban") {
           const opponentTeam =
-            draftState.currentTeam === "team1" ? "team2" : "team1";
-          map = draftState[opponentTeam].pickedMaps.find(
+            state.currentTeam === "team1" ? "team2" : "team1";
+          map = state[opponentTeam].pickedMaps.find(
             (m) => m.name === action.itemId,
           );
         } else {
-          // During pick phase, look in available maps
-          map = draftState.availableMaps.find((m) => m.name === action.itemId);
+          map = state.availableMaps.find((m) => m.name === action.itemId);
         }
         console.log(
           "Looking for map:",
           action.itemId,
           "Phase:",
-          draftState.phase,
+          state.phase,
           "Found:",
           !!map,
         );
         if (map) {
-          // Apply the action
           const mapWithConditions: Map = {
             ...map,
             conditions: map.conditions || generateTrackConditions(),
           };
-          const newState = selectMap(draftState, mapWithConditions);
+          const newState = selectMap(state, mapWithConditions);
           console.log(
             "State changed:",
-            newState !== draftState,
+            newState !== state,
             "New phase:",
             newState.phase,
           );
-          if (newState !== draftState) {
-            syncUpdateDraftState(newState);
-            setDraftState(newState);
-            setHistory((prev) => [...prev, newState]);
+          if (newState !== state) {
+            applyState(newState);
           }
         } else {
-          console.error(
-            "Map not found:",
-            action.itemId,
-            "Phase:",
-            draftState.phase,
-          );
-          if (draftState.phase === "map-ban") {
+          console.error("Map not found:", action.itemId, "Phase:", state.phase);
+          if (state.phase === "map-ban") {
             const opponentTeam =
-              draftState.currentTeam === "team1" ? "team2" : "team1";
+              state.currentTeam === "team1" ? "team2" : "team1";
             console.log(
               "Opponent picked maps:",
-              draftState[opponentTeam].pickedMaps.map((m) => m.name),
+              state[opponentTeam].pickedMaps.map((m) => m.name),
             );
           } else {
             console.log(
               "Available maps:",
-              draftState.availableMaps.map((m) => m.name),
+              state.availableMaps.map((m) => m.name),
             );
           }
         }
       } else if (action.itemType === "uma") {
-        // Find the uma - during ban phase it's in opponent's picked umas, during pick phase it's in available umas
         let uma: UmaMusume | undefined;
-        if (draftState.phase === "uma-ban") {
-          // During ban phase, look in the opponent's picked umas
+        if (state.phase === "uma-ban") {
           const opponentTeam =
-            draftState.currentTeam === "team1" ? "team2" : "team1";
-          uma = draftState[opponentTeam].pickedUmas.find(
+            state.currentTeam === "team1" ? "team2" : "team1";
+          uma = state[opponentTeam].pickedUmas.find(
             (u) => u.id.toString() === action.itemId,
           );
         } else {
-          // During pick phase, look in available umas
-          uma = draftState.availableUmas.find(
+          uma = state.availableUmas.find(
             (u) => u.id.toString() === action.itemId,
           );
         }
@@ -948,42 +954,32 @@ export default function Draft5v5({
           "Looking for uma:",
           action.itemId,
           "Phase:",
-          draftState.phase,
+          state.phase,
           "Found:",
           !!uma,
         );
         if (uma) {
-          const newState = selectUma(draftState, uma);
+          const newState = selectUma(state, uma);
           console.log(
             "State changed:",
-            newState !== draftState,
+            newState !== state,
             "New phase:",
             newState.phase,
           );
-          if (newState !== draftState) {
-            syncUpdateDraftState(newState);
-            setDraftState(newState);
-            setHistory((prev) => [...prev, newState]);
+          if (newState !== state) {
+            applyState(newState);
           }
         } else {
-          console.error(
-            "Uma not found:",
-            action.itemId,
-            "Phase:",
-            draftState.phase,
-          );
-          if (draftState.phase === "uma-ban") {
+          console.error("Uma not found:", action.itemId, "Phase:", state.phase);
+          if (state.phase === "uma-ban") {
             const opponentTeam =
-              draftState.currentTeam === "team1" ? "team2" : "team1";
+              state.currentTeam === "team1" ? "team2" : "team1";
             console.log(
               "Opponent picked umas:",
-              draftState[opponentTeam].pickedUmas.map((u) => u.id),
+              state[opponentTeam].pickedUmas.map((u) => u.id),
             );
           } else {
-            console.log(
-              "Available umas count:",
-              draftState.availableUmas.length,
-            );
+            console.log("Available umas count:", state.availableUmas.length);
           }
         }
       }
@@ -994,13 +990,7 @@ export default function Draft5v5({
     return () => {
       setPendingActionHandler(null);
     };
-  }, [
-    isMultiplayer,
-    isHost,
-    setPendingActionHandler,
-    draftState,
-    syncUpdateDraftState,
-  ]);
+  }, [isMultiplayer, isHost, setPendingActionHandler, syncUpdateDraftState]);
 
   // Handle connection events (disconnections)
   useEffect(() => {
@@ -1821,8 +1811,10 @@ export default function Draft5v5({
         (t1.pickedUmas?.length || 0) + (t2.pickedUmas?.length || 0);
       const totalBanned =
         (t1.bannedUmas?.length || 0) + (t2.bannedUmas?.length || 0);
+      // Each ban removed one uma from pickedUmas and added it to bannedUmas,
+      // so total uma-pick actions ever taken = current picks + bans.
       if (totalBanned > 0) {
-        return totalPicked - totalBanned;
+        return totalPicked + totalBanned;
       }
       return totalPicked;
     }
