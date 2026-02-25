@@ -69,7 +69,7 @@ interface SupportCardData {
 
 // Helper function to map support card type number to type string
 function mapSupportCardType(
-  typeName: string
+  typeName: string,
 ): "speed" | "stamina" | "power" | "guts" | "wit" | "friend" | undefined {
   const typeMap: Record<
     string,
@@ -95,7 +95,7 @@ function mapRarity(rarityDisplay: string): "SSR" | "SR" | "R" {
 // Generate Uma Musume data from JSON
 // Each entry in the JSON represents a unique trainable card (charaId + cardId combination)
 // Portrait path: ./uma/chara_stand_{charaId}_{iconCardId}.webp
-const characterData = characterDataJson.value as CharacterData[];
+const characterData = characterDataJson as CharacterData[];
 
 export const SAMPLE_UMAS: UmaMusume[] = characterData.map((char) => {
   const iconCardId = getIconCardId(char.cardId);
@@ -108,7 +108,7 @@ export const SAMPLE_UMAS: UmaMusume[] = characterData.map((char) => {
 
 // Generate Support Card data from JSON
 // Portrait path: ./card/tex_support_card_{supportCardId}.webp
-const supportCardData = supportCardDataJson.value as SupportCardData[];
+const supportCardData = supportCardDataJson as SupportCardData[];
 
 export const SAMPLE_CARDS: Card[] = supportCardData.map((card) => ({
   id: `${card.supportCardId}`,
