@@ -285,6 +285,13 @@ export default function Draft5v5({
   // Set true before processing, cleared after state is committed (ref + setDraftState).
   const processingLockRef = useRef(false);
 
+  // Per-turn action-committed guard.  Records the turnKey for which an
+  // action (manual lock-in OR timeout) has already been sent.  Prevents
+  // the classic race where a lock-in click and a timeout fire back-to-back
+  // in the same JS task, each sending a Firebase action for the same turn.
+  // Cleared automatically when the turnKey advances (see useEffect below).
+  const actionCommittedForKeyRef = useRef<string | null>(null);
+
   // Handle turn timeout - lock in pending selection or make random selection
   const handleTurnTimeout = useCallback(() => {
     // Read from ref to always get the latest state, even if React hasn't
@@ -321,8 +328,34 @@ export default function Draft5v5({
       return;
     }
 
+    // HARD GUARD 4: If we already committed an action for this turn
+    // (e.g. user clicked lock-in right before timer fired), bail out.
+    const turnKey = `${currentState.phase}-${currentState.currentTeam}-${
+      currentState.phase === "uma-pick" ||
+      currentState.phase === "uma-ban" ||
+      currentState.phase === "uma-pre-ban"
+        ? (currentState.team1?.pickedUmas?.length || 0) +
+          (currentState.team2?.pickedUmas?.length || 0) +
+          (currentState.team1?.bannedUmas?.length || 0) +
+          (currentState.team2?.bannedUmas?.length || 0) +
+          (currentState.team1?.preBannedUmas?.length || 0) +
+          (currentState.team2?.preBannedUmas?.length || 0)
+        : (currentState.team1?.pickedMaps?.length || 0) +
+          (currentState.team2?.pickedMaps?.length || 0) +
+          (currentState.team1?.bannedMaps?.length || 0) +
+          (currentState.team2?.bannedMaps?.length || 0)
+    }`;
+    if (actionCommittedForKeyRef.current === turnKey) {
+      console.log(
+        "Ignoring timeout — action already committed for turn:",
+        turnKey,
+      );
+      return;
+    }
+
     // Acquire processing lock — released in .finally() after React commits.
     processingLockRef.current = true;
+    actionCommittedForKeyRef.current = turnKey;
 
     // Wrap all processing in a Promise so .finally() guarantees lock release
     // regardless of which code path (early return, error, normal exit).
@@ -469,9 +502,16 @@ export default function Draft5v5({
     // timer-reset effects have fired before any new timeout can acquire
     // the lock.
     processAction.finally(() => {
-      requestAnimationFrame(() => {
+      // Use rAF so React's commit + effect cycle finishes first.  Add a
+      // setTimeout fallback (50ms) in case rAF is frozen (background tab).
+      let released = false;
+      const release = () => {
+        if (released) return;
+        released = true;
         processingLockRef.current = false;
-      });
+      };
+      requestAnimationFrame(release);
+      setTimeout(release, 50);
     });
   }, [
     isMultiplayer,
@@ -499,13 +539,22 @@ export default function Draft5v5({
         (draftState.team1?.bannedMaps?.length || 0) +
         (draftState.team2?.bannedMaps?.length || 0);
 
+  // Stable turn key used by the timer AND the action-committed guard
+  const currentTurnKey = `${draftState.phase}-${draftState.currentTeam}-${totalPicks}`;
+
+  // Clear the action-committed flag whenever the turn key advances so the
+  // new turn can accept actions again.
+  useEffect(() => {
+    actionCommittedForKeyRef.current = null;
+  }, [currentTurnKey]);
+
   // Turn timer hook
   const { timeRemaining } = useTurnTimer({
     duration: turnDuration,
     enabled: true,
     onTimeout: handleTurnTimeout,
     phase: draftState.phase,
-    currentTurnKey: `${draftState.phase}-${draftState.currentTeam}-${totalPicks}`,
+    currentTurnKey,
     isTimerAuthority,
   });
 
@@ -1077,6 +1126,26 @@ export default function Draft5v5({
 
   // Confirm and lock in the pending selection
   const handleLockIn = () => {
+    // GUARD: If a timeout is mid-flight, don't also send a lock-in.
+    if (processingLockRef.current) {
+      console.log("Lock-in blocked — timeout processing in progress");
+      return;
+    }
+
+    // GUARD: If we already committed an action for this turn (timeout just
+    // fired), block the redundant lock-in.  Uses the same turnKey format as
+    // the timer so they share a single gate.
+    const turnKey = `${draftState.phase}-${draftState.currentTeam}-${totalPicks}`;
+    if (actionCommittedForKeyRef.current === turnKey) {
+      console.log(
+        "Lock-in blocked — action already committed for turn:",
+        turnKey,
+      );
+      return;
+    }
+    // Mark this turn as committed so a racing timeout is blocked.
+    actionCommittedForKeyRef.current = turnKey;
+
     if (pendingUma) {
       confirmUmaSelect(pendingUma);
       setPendingUma(null);
