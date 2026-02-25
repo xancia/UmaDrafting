@@ -360,6 +360,7 @@ export default function Draft5v5({
         updateLocalState(newState);
       }
       setPendingUma(null);
+      setUmaSearch("");
       return;
     }
 
@@ -408,6 +409,7 @@ export default function Draft5v5({
         const newState = selectUma(currentState, uma);
         updateLocalState(newState);
       }
+      setUmaSearch("");
     } else {
       const map = selection.item as Map;
       if (isMultiplayer && !isHost) {
@@ -1101,6 +1103,7 @@ export default function Draft5v5({
     // Only update if state changed (permission check passed)
     if (newState !== draftState) {
       console.log("Selection allowed, updating state");
+      setUmaSearch("");
       if (isMultiplayer && isHost) {
         // Host broadcasts state to all peers and updates local state
         syncUpdateDraftState(newState);
