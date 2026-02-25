@@ -2858,6 +2858,11 @@ export default function Draft5v5({
                         <span className="text-gray-200 font-medium">
                           {s.map.track}
                         </span>
+                        {s.map.variant && (
+                          <span className="text-gray-400 text-xs">
+                            ({s.map.variant})
+                          </span>
+                        )}
                         <span className="text-gray-500">{s.map.distance}m</span>
                         <span
                           className={`text-xs px-1.5 py-0.5 rounded ${s.map.surface?.toLowerCase() === "turf" ? "bg-green-900/40 text-green-400" : "bg-amber-900/40 text-amber-400"}`}
@@ -2898,6 +2903,11 @@ export default function Draft5v5({
                     <span className="text-white font-bold text-sm">
                       {draftState.wildcardMap.track}
                     </span>
+                    {draftState.wildcardMap.variant && (
+                      <span className="text-gray-400 text-xs ml-1">
+                        ({draftState.wildcardMap.variant})
+                      </span>
+                    )}
                     <span className="text-gray-400 text-xs ml-2">
                       {draftState.wildcardMap.distance}m
                     </span>
@@ -2943,19 +2953,22 @@ export default function Draft5v5({
                       m.conditions
                         ? ` [${m.conditions.season} / ${m.conditions.weather} / ${m.conditions.ground}]`
                         : "";
+                    const formatVariant = (m: Map) =>
+                      m.variant ? ` (${m.variant})` : "";
                     const maps = [
                       ...draftState.team1.pickedMaps,
                       ...draftState.team2.pickedMaps,
                     ]
                       .map(
                         (m, i) =>
-                          `${i + 1}. ${m.track} ${m.distance}m (${m.surface})${formatConditions(m)}`,
+                          `${i + 1}. ${m.track}${formatVariant(m)} ${m.distance}m (${m.surface})${formatConditions(m)}`,
                       )
                       .join("\n");
                     const wcConditions = formatConditions(
                       draftState.wildcardMap,
                     );
-                    const text = `=== DRAFT RESULTS ===\n\n${team1Name}: ${t1Umas}\nPre-Banned: ${t1PreBans || "None"}\nBanned: ${t1Bans || "None"}\n\n${team2Name}: ${t2Umas}\nPre-Banned: ${t2PreBans || "None"}\nBanned: ${t2Bans || "None"}\n\nMap Schedule:\n${maps}\n\nTiebreaker: ${draftState.wildcardMap.track} ${draftState.wildcardMap.distance}m (${draftState.wildcardMap.surface})${wcConditions}`;
+                    const wc = draftState.wildcardMap;
+                    const text = `=== DRAFT RESULTS ===\n\n${team1Name}: ${t1Umas}\nPre-Banned: ${t1PreBans || "None"}\nBanned: ${t1Bans || "None"}\n\n${team2Name}: ${t2Umas}\nPre-Banned: ${t2PreBans || "None"}\nBanned: ${t2Bans || "None"}\n\nMap Schedule:\n${maps}\n\nTiebreaker: ${wc.track}${formatVariant(wc)} ${wc.distance}m (${wc.surface})${wcConditions}`;
                     navigator.clipboard.writeText(text);
                   }}
                   className="bg-gray-700/80 hover:bg-gray-600 text-gray-200 font-semibold py-2 px-6 rounded-lg transition-colors border border-gray-600/50 text-sm"
