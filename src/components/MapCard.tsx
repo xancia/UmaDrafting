@@ -41,8 +41,27 @@ export default function MapCard({
       </p>
       {map.conditions && (
         <p className="text-xs text-gray-400 text-center mt-1">
-          {map.conditions.season} • {map.conditions.ground} •{" "}
+          {map.direction === "right"
+            ? "Right"
+            : map.direction === "left"
+              ? "Left"
+              : "Straight"}{" "}
+          • {map.conditions.season} • {map.conditions.ground} •{" "}
           {map.conditions.weather}
+        </p>
+      )}
+      {!map.conditions && (
+        <p className="text-xs text-gray-400 text-center mt-1">
+          {map.direction === "right"
+            ? "Right"
+            : map.direction === "left"
+              ? "Left"
+              : "Straight"}{" "}
+          {map.direction === "right"
+            ? "Right"
+            : map.direction === "left"
+              ? "Left"
+              : "Straight"}
         </p>
       )}
     </button>

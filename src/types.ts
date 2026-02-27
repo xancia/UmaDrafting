@@ -15,6 +15,7 @@ export interface Map {
   track: string;
   distance: number;
   surface: "Turf" | "Dirt";
+  direction: "right" | "left" | "straight";
   variant?: string;
   conditions?: TrackConditions;
   name: string; // computed: "Track - Distance Surface (Variant)"

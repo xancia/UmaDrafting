@@ -128,6 +128,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Sapporo",
     distance: 1200,
     surface: "Turf",
+    direction: "right",
     name: "Sapporo - 1200m Turf",
   },
   {
@@ -135,6 +136,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Sapporo",
     distance: 1500,
     surface: "Turf",
+    direction: "right",
     name: "Sapporo - 1500m Turf",
   },
   {
@@ -142,6 +144,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Sapporo",
     distance: 1800,
     surface: "Turf",
+    direction: "right",
     name: "Sapporo - 1800m Turf",
   },
   {
@@ -149,6 +152,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Sapporo",
     distance: 2000,
     surface: "Turf",
+    direction: "right",
     name: "Sapporo - 2000m Turf",
   },
   {
@@ -156,6 +160,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Sapporo",
     distance: 2600,
     surface: "Turf",
+    direction: "right",
     name: "Sapporo - 2600m Turf",
   },
   // {
@@ -170,6 +175,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Sapporo",
     distance: 1700,
     surface: "Dirt",
+    direction: "right",
     name: "Sapporo - 1700m Dirt",
   },
   // {
@@ -186,6 +192,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Hakodate",
     distance: 1000,
     surface: "Turf",
+    direction: "right",
     name: "Hakodate - 1000m Turf",
   },
   {
@@ -193,6 +200,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Hakodate",
     distance: 1200,
     surface: "Turf",
+    direction: "right",
     name: "Hakodate - 1200m Turf",
   },
   {
@@ -200,6 +208,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Hakodate",
     distance: 1800,
     surface: "Turf",
+    direction: "right",
     name: "Hakodate - 1800m Turf",
   },
   {
@@ -207,6 +216,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Hakodate",
     distance: 2000,
     surface: "Turf",
+    direction: "right",
     name: "Hakodate - 2000m Turf",
   },
   {
@@ -214,6 +224,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Hakodate",
     distance: 2600,
     surface: "Turf",
+    direction: "right",
     name: "Hakodate - 2600m Turf",
   },
   // {
@@ -228,6 +239,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Hakodate",
     distance: 1700,
     surface: "Dirt",
+    direction: "right",
     name: "Hakodate - 1700m Dirt",
   },
   // {
@@ -244,6 +256,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Niigata",
     distance: 1000,
     surface: "Turf",
+    direction: "straight",
     name: "Niigata - 1000m Turf",
   },
   {
@@ -251,6 +264,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Niigata",
     distance: 1200,
     surface: "Turf",
+    direction: "left",
     variant: "Inner",
     name: "Niigata - 1200m Turf (Inner)",
   },
@@ -259,6 +273,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Niigata",
     distance: 1400,
     surface: "Turf",
+    direction: "left",
     variant: "Inner",
     name: "Niigata - 1400m Turf (Inner)",
   },
@@ -267,6 +282,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Niigata",
     distance: 1600,
     surface: "Turf",
+    direction: "left",
     variant: "Outer",
     name: "Niigata - 1600m Turf (Outer)",
   },
@@ -275,6 +291,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Niigata",
     distance: 1800,
     surface: "Turf",
+    direction: "left",
     variant: "Outer",
     name: "Niigata - 1800m Turf (Outer)",
   },
@@ -283,6 +300,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Niigata",
     distance: 2000,
     surface: "Turf",
+    direction: "left",
     variant: "Inner",
     name: "Niigata - 2000m Turf (Inner)",
   },
@@ -291,6 +309,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Niigata",
     distance: 2000,
     surface: "Turf",
+    direction: "left",
     variant: "Outer",
     name: "Niigata - 2000m Turf (Outer)",
   },
@@ -299,6 +318,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Niigata",
     distance: 2200,
     surface: "Turf",
+    direction: "left",
     variant: "Inner",
     name: "Niigata - 2200m Turf (Inner)",
   },
@@ -307,6 +327,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Niigata",
     distance: 2400,
     surface: "Turf",
+    direction: "left",
     variant: "Inner",
     name: "Niigata - 2400m Turf (Inner)",
   },
@@ -315,6 +336,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Niigata",
     distance: 1200,
     surface: "Dirt",
+    direction: "left",
     name: "Niigata - 1200m Dirt",
   },
   {
@@ -322,6 +344,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Niigata",
     distance: 1800,
     surface: "Dirt",
+    direction: "left",
     name: "Niigata - 1800m Dirt",
   },
   // {
@@ -338,6 +361,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Fukushima",
     distance: 1200,
     surface: "Turf",
+    direction: "right",
     name: "Fukushima - 1200m Turf",
   },
   {
@@ -345,6 +369,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Fukushima",
     distance: 1800,
     surface: "Turf",
+    direction: "right",
     name: "Fukushima - 1800m Turf",
   },
   {
@@ -352,6 +377,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Fukushima",
     distance: 2000,
     surface: "Turf",
+    direction: "right",
     name: "Fukushima - 2000m Turf",
   },
   {
@@ -359,6 +385,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Fukushima",
     distance: 2600,
     surface: "Turf",
+    direction: "right",
     name: "Fukushima - 2600m Turf",
   },
   {
@@ -366,6 +393,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Fukushima",
     distance: 1150,
     surface: "Dirt",
+    direction: "right",
     name: "Fukushima - 1150m Dirt",
   },
   {
@@ -373,6 +401,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Fukushima",
     distance: 1700,
     surface: "Dirt",
+    direction: "right",
     name: "Fukushima - 1700m Dirt",
   },
   // {
@@ -389,6 +418,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Nakayama",
     distance: 1200,
     surface: "Turf",
+    direction: "right",
     variant: "Outer",
     name: "Nakayama - 1200m Turf (Outer)",
   },
@@ -397,6 +427,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Nakayama",
     distance: 1600,
     surface: "Turf",
+    direction: "right",
     variant: "Outer",
     name: "Nakayama - 1600m Turf (Outer)",
   },
@@ -405,6 +436,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Nakayama",
     distance: 1800,
     surface: "Turf",
+    direction: "right",
     variant: "Inner",
     name: "Nakayama - 1800m Turf (Inner)",
   },
@@ -413,6 +445,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Nakayama",
     distance: 2000,
     surface: "Turf",
+    direction: "right",
     variant: "Inner",
     name: "Nakayama - 2000m Turf (Inner)",
   },
@@ -421,6 +454,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Nakayama",
     distance: 2200,
     surface: "Turf",
+    direction: "right",
     variant: "Outer",
     name: "Nakayama - 2200m Turf (Outer)",
   },
@@ -429,6 +463,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Nakayama",
     distance: 2500,
     surface: "Turf",
+    direction: "right",
     variant: "Inner",
     name: "Nakayama - 2500m Turf (Inner)",
   },
@@ -437,6 +472,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Nakayama",
     distance: 3600,
     surface: "Turf",
+    direction: "right",
     variant: "Inner",
     name: "Nakayama - 3600m Turf (Inner)",
   },
@@ -445,6 +481,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Nakayama",
     distance: 1200,
     surface: "Dirt",
+    direction: "right",
     name: "Nakayama - 1200m Dirt",
   },
   {
@@ -452,6 +489,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Nakayama",
     distance: 1800,
     surface: "Dirt",
+    direction: "right",
     name: "Nakayama - 1800m Dirt",
   },
   // {
@@ -475,6 +513,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Tokyo",
     distance: 1400,
     surface: "Turf",
+    direction: "left",
     name: "Tokyo - 1400m Turf",
   },
   {
@@ -482,6 +521,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Tokyo",
     distance: 1600,
     surface: "Turf",
+    direction: "left",
     name: "Tokyo - 1600m Turf",
   },
   {
@@ -489,6 +529,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Tokyo",
     distance: 1800,
     surface: "Turf",
+    direction: "left",
     name: "Tokyo - 1800m Turf",
   },
   {
@@ -496,6 +537,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Tokyo",
     distance: 2000,
     surface: "Turf",
+    direction: "left",
     name: "Tokyo - 2000m Turf",
   },
   {
@@ -503,6 +545,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Tokyo",
     distance: 2300,
     surface: "Turf",
+    direction: "left",
     name: "Tokyo - 2300m Turf",
   },
   {
@@ -510,6 +553,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Tokyo",
     distance: 2400,
     surface: "Turf",
+    direction: "left",
     name: "Tokyo - 2400m Turf",
   },
   {
@@ -517,6 +561,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Tokyo",
     distance: 2500,
     surface: "Turf",
+    direction: "left",
     name: "Tokyo - 2500m Turf",
   },
   {
@@ -524,6 +569,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Tokyo",
     distance: 3400,
     surface: "Turf",
+    direction: "left",
     name: "Tokyo - 3400m Turf",
   },
   {
@@ -531,6 +577,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Tokyo",
     distance: 1300,
     surface: "Dirt",
+    direction: "left",
     name: "Tokyo - 1300m Dirt",
   },
   {
@@ -538,6 +585,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Tokyo",
     distance: 1400,
     surface: "Dirt",
+    direction: "left",
     name: "Tokyo - 1400m Dirt",
   },
   {
@@ -545,6 +593,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Tokyo",
     distance: 1600,
     surface: "Dirt",
+    direction: "left",
     name: "Tokyo - 1600m Dirt",
   },
   {
@@ -552,6 +601,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Tokyo",
     distance: 2100,
     surface: "Dirt",
+    direction: "left",
     name: "Tokyo - 2100m Dirt",
   },
   // {
@@ -568,6 +618,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Chukyo",
     distance: 1200,
     surface: "Turf",
+    direction: "left",
     name: "Chukyo - 1200m Turf",
   },
   {
@@ -575,6 +626,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Chukyo",
     distance: 1400,
     surface: "Turf",
+    direction: "left",
     name: "Chukyo - 1400m Turf",
   },
   {
@@ -582,6 +634,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Chukyo",
     distance: 1600,
     surface: "Turf",
+    direction: "left",
     name: "Chukyo - 1600m Turf",
   },
   {
@@ -589,6 +642,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Chukyo",
     distance: 2000,
     surface: "Turf",
+    direction: "left",
     name: "Chukyo - 2000m Turf",
   },
   {
@@ -596,6 +650,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Chukyo",
     distance: 2200,
     surface: "Turf",
+    direction: "left",
     name: "Chukyo - 2200m Turf",
   },
   // {
@@ -610,6 +665,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Chukyo",
     distance: 1400,
     surface: "Dirt",
+    direction: "left",
     name: "Chukyo - 1400m Dirt",
   },
   {
@@ -617,6 +673,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Chukyo",
     distance: 1800,
     surface: "Dirt",
+    direction: "left",
     name: "Chukyo - 1800m Dirt",
   },
   // {
@@ -633,6 +690,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Kyoto",
     distance: 1200,
     surface: "Turf",
+    direction: "right",
     variant: "Inner",
     name: "Kyoto - 1200m Turf (Inner)",
   },
@@ -641,6 +699,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Kyoto",
     distance: 1400,
     surface: "Turf",
+    direction: "right",
     variant: "Inner",
     name: "Kyoto - 1400m Turf (Inner)",
   },
@@ -649,6 +708,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Kyoto",
     distance: 1400,
     surface: "Turf",
+    direction: "right",
     variant: "Outer",
     name: "Kyoto - 1400m Turf (Outer)",
   },
@@ -657,6 +717,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Kyoto",
     distance: 1600,
     surface: "Turf",
+    direction: "right",
     variant: "Inner",
     name: "Kyoto - 1600m Turf (Inner)",
   },
@@ -665,6 +726,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Kyoto",
     distance: 1600,
     surface: "Turf",
+    direction: "right",
     variant: "Outer",
     name: "Kyoto - 1600m Turf (Outer)",
   },
@@ -673,6 +735,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Kyoto",
     distance: 1800,
     surface: "Turf",
+    direction: "right",
     variant: "Outer",
     name: "Kyoto - 1800m Turf (Outer)",
   },
@@ -681,6 +744,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Kyoto",
     distance: 2000,
     surface: "Turf",
+    direction: "right",
     variant: "Inner",
     name: "Kyoto - 2000m Turf (Inner)",
   },
@@ -689,6 +753,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Kyoto",
     distance: 2200,
     surface: "Turf",
+    direction: "right",
     variant: "Outer",
     name: "Kyoto - 2200m Turf (Outer)",
   },
@@ -697,6 +762,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Kyoto",
     distance: 2400,
     surface: "Turf",
+    direction: "right",
     variant: "Outer",
     name: "Kyoto - 2400m Turf (Outer)",
   },
@@ -705,6 +771,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Kyoto",
     distance: 3000,
     surface: "Turf",
+    direction: "right",
     variant: "Outer",
     name: "Kyoto - 3000m Turf (Outer)",
   },
@@ -713,6 +780,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Kyoto",
     distance: 3200,
     surface: "Turf",
+    direction: "right",
     variant: "Outer",
     name: "Kyoto - 3200m Turf (Outer)",
   },
@@ -721,6 +789,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Kyoto",
     distance: 1200,
     surface: "Dirt",
+    direction: "right",
     name: "Kyoto - 1200m Dirt",
   },
   {
@@ -728,6 +797,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Kyoto",
     distance: 1400,
     surface: "Dirt",
+    direction: "right",
     name: "Kyoto - 1400m Dirt",
   },
   {
@@ -735,6 +805,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Kyoto",
     distance: 1800,
     surface: "Dirt",
+    direction: "right",
     name: "Kyoto - 1800m Dirt",
   },
   {
@@ -742,6 +813,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Kyoto",
     distance: 1900,
     surface: "Dirt",
+    direction: "right",
     name: "Kyoto - 1900m Dirt",
   },
 
@@ -751,6 +823,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Hanshin",
     distance: 1200,
     surface: "Turf",
+    direction: "right",
     variant: "Inner",
     name: "Hanshin - 1200m Turf (Inner)",
   },
@@ -759,6 +832,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Hanshin",
     distance: 1400,
     surface: "Turf",
+    direction: "right",
     variant: "Inner",
     name: "Hanshin - 1400m Turf (Inner)",
   },
@@ -767,6 +841,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Hanshin",
     distance: 1600,
     surface: "Turf",
+    direction: "right",
     variant: "Outer",
     name: "Hanshin - 1600m Turf (Outer)",
   },
@@ -775,6 +850,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Hanshin",
     distance: 1800,
     surface: "Turf",
+    direction: "right",
     variant: "Outer",
     name: "Hanshin - 1800m Turf (Outer)",
   },
@@ -783,6 +859,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Hanshin",
     distance: 2000,
     surface: "Turf",
+    direction: "right",
     variant: "Inner",
     name: "Hanshin - 2000m Turf (Inner)",
   },
@@ -791,6 +868,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Hanshin",
     distance: 2200,
     surface: "Turf",
+    direction: "right",
     variant: "Inner",
     name: "Hanshin - 2200m Turf (Inner)",
   },
@@ -799,6 +877,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Hanshin",
     distance: 2400,
     surface: "Turf",
+    direction: "right",
     variant: "Outer",
     name: "Hanshin - 2400m Turf (Outer)",
   },
@@ -807,6 +886,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Hanshin",
     distance: 2600,
     surface: "Turf",
+    direction: "right",
     variant: "Outer",
     name: "Hanshin - 2600m Turf (Outer)",
   },
@@ -815,6 +895,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Hanshin",
     distance: 3000,
     surface: "Turf",
+    direction: "right",
     variant: "Inner",
     name: "Hanshin - 3000m Turf (Inner)",
   },
@@ -823,6 +904,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Hanshin",
     distance: 3200,
     surface: "Turf",
+    direction: "right",
     variant: "Outer to Inner",
     name: "Hanshin - 3200m Turf (Outer to Inner)",
   },
@@ -838,6 +920,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Hanshin",
     distance: 1400,
     surface: "Dirt",
+    direction: "right",
     name: "Hanshin - 1400m Dirt",
   },
   {
@@ -845,6 +928,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Hanshin",
     distance: 1800,
     surface: "Dirt",
+    direction: "right",
     name: "Hanshin - 1800m Dirt",
   },
   {
@@ -852,6 +936,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Hanshin",
     distance: 2000,
     surface: "Dirt",
+    direction: "right",
     name: "Hanshin - 2000m Dirt",
   },
 
@@ -861,6 +946,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Kokura",
     distance: 1200,
     surface: "Turf",
+    direction: "right",
     name: "Kokura - 1200m Turf",
   },
   {
@@ -868,6 +954,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Kokura",
     distance: 1800,
     surface: "Turf",
+    direction: "right",
     name: "Kokura - 1800m Turf",
   },
   {
@@ -875,6 +962,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Kokura",
     distance: 2000,
     surface: "Turf",
+    direction: "right",
     name: "Kokura - 2000m Turf",
   },
   {
@@ -882,6 +970,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Kokura",
     distance: 2600,
     surface: "Turf",
+    direction: "right",
     name: "Kokura - 2600m Turf",
   },
   // {
@@ -896,6 +985,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Kokura",
     distance: 1700,
     surface: "Dirt",
+    direction: "right",
     name: "Kokura - 1700m Dirt",
   },
   // {
@@ -912,6 +1002,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Ooi",
     distance: 1200,
     surface: "Dirt",
+    direction: "right",
     name: "Ooi - 1200m Dirt",
   },
   {
@@ -919,6 +1010,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Ooi",
     distance: 1800,
     surface: "Dirt",
+    direction: "right",
     name: "Ooi - 1800m Dirt",
   },
   {
@@ -926,6 +1018,7 @@ export const SAMPLE_MAPS: Map[] = [
     track: "Ooi",
     distance: 2000,
     surface: "Dirt",
+    direction: "right",
     name: "Ooi - 2000m Dirt",
   },
 
