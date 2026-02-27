@@ -39,6 +39,7 @@ export function subscribeToLeaderboard(
   const leaderboardRef = ref(db, buildPath.leaderboard());
 
   return onValue(leaderboardRef, (snapshot) => {
+    console.log("[Leaderboard] snapshot received, exists:", snapshot.exists());
     if (!snapshot.exists()) {
       callback([]);
       return;
@@ -57,5 +58,7 @@ export function subscribeToLeaderboard(
 
     entries.sort((a, b) => conservativeScore(b) - conservativeScore(a));
     callback(entries);
+  }, (error) => {
+    console.error("[Leaderboard] Firebase read error:", error);
   });
 }
