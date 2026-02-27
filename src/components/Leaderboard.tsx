@@ -80,6 +80,11 @@ export default function Leaderboard({ onBack }: LeaderboardProps) {
             </table>
           </div>
         )}
+
+        <p className="text-sm text-gray-400 mt-4">
+          Want to set up match reporting in your Discord server? Contact{" "}
+          <span className="text-indigo-400 font-medium">Terumi</span> on Discord.
+        </p>
       </div>
     </div>
   );
