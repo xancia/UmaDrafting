@@ -3,6 +3,7 @@ import FormatSelection from "./components/FormatSelection";
 import Draft5v5 from "./components/Draft5v5";
 import Draft3v3v3 from "./components/Draft3v3v3";
 import UnifiedTopBar from "./components/UnifiedTopBar";
+import Leaderboard from "./components/Leaderboard";
 import {
   getDraftSession,
   clearDraftSession,
@@ -20,6 +21,7 @@ interface MultiplayerConfig {
 
 function App() {
   const [selectedFormat, setSelectedFormat] = useState<DraftFormat>(null);
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [multiplayerConfig, setMultiplayerConfig] = useState<
     MultiplayerConfig | undefined
   >(undefined);
@@ -68,6 +70,7 @@ function App() {
   const handleBackToMenu = () => {
     setSelectedFormat(null);
     setMultiplayerConfig(undefined);
+    setShowLeaderboard(false);
   };
 
   if (selectedFormat === "5v5") {
@@ -85,6 +88,15 @@ function App() {
         onBackToMenu={handleBackToMenu}
         multiplayerConfig={multiplayerConfig}
       />
+    );
+  }
+
+  if (showLeaderboard) {
+    return (
+      <div className="h-screen flex flex-col overflow-hidden">
+        <UnifiedTopBar currentApp="drafter" />
+        <Leaderboard onBack={handleBackToMenu} />
+      </div>
     );
   }
 
@@ -135,7 +147,10 @@ function App() {
           </div>
         </div>
       )}
-      <FormatSelection onSelectFormat={handleSelectFormat} />
+      <FormatSelection
+        onSelectFormat={handleSelectFormat}
+        onViewLeaderboard={() => setShowLeaderboard(true)}
+      />
     </div>
   );
 }

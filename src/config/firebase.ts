@@ -83,6 +83,8 @@ export const auth: Auth = getAuth(app);
 export const DB_PATHS = {
   /** Root path for all rooms */
   ROOMS: "rooms",
+  /** Root path for global leaderboard entries */
+  LEADERBOARD: "leaderboard",
   /** Path to room's draft state (relative to room) */
   DRAFT_STATE: "draftState",
   /** Path to room's players (relative to room) */
@@ -101,6 +103,11 @@ export const DB_PATHS = {
 export const buildPath = {
   /** Get path to a specific room */
   room: (roomId: string) => `${DB_PATHS.ROOMS}/${roomId}`,
+  /** Get path to global leaderboard root */
+  leaderboard: () => DB_PATHS.LEADERBOARD,
+  /** Get path to a specific leaderboard player entry */
+  leaderboardEntry: (discordUserId: string) =>
+    `${DB_PATHS.LEADERBOARD}/${discordUserId}`,
   /** Get path to room's draft state */
   draftState: (roomId: string) =>
     `${DB_PATHS.ROOMS}/${roomId}/${DB_PATHS.DRAFT_STATE}`,

@@ -11,10 +11,12 @@ interface FormatSelectionProps {
       isSpectator: boolean;
     },
   ) => void;
+  onViewLeaderboard: () => void;
 }
 
 export default function FormatSelection({
   onSelectFormat,
+  onViewLeaderboard,
 }: FormatSelectionProps) {
   const [showRoomSetup, setShowRoomSetup] = useState(false);
   const [showHowToPlay, setShowHowToPlay] = useState(false);
@@ -114,7 +116,19 @@ export default function FormatSelection({
           </button>
         </div>
 
-        <div className="mt-4 lg:mt-6">
+        <div className="mt-4 lg:mt-6 space-y-3">
+          <button
+            onClick={onViewLeaderboard}
+            className="w-full group bg-purple-900/40 hover:bg-purple-900/60 border-2 border-purple-700 hover:border-purple-500 rounded-xl p-3 lg:p-4 transition-all shadow-lg"
+          >
+            <div className="text-lg lg:text-xl font-bold text-purple-300 mb-0.5 lg:mb-1">
+              Leaderboard
+            </div>
+            <p className="text-purple-200/70 text-xs lg:text-sm">
+              View live ELO standings
+            </p>
+          </button>
+
           <button
             onClick={() => setShowHowToPlay(true)}
             className="w-full group bg-gray-700/50 hover:bg-gray-700 border-2 border-gray-600 hover:border-gray-500 rounded-xl p-3 lg:p-4 transition-all shadow-lg"
