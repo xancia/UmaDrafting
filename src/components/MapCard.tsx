@@ -56,11 +56,6 @@ export default function MapCard({
             ? "Right"
             : map.direction === "left"
               ? "Left"
-              : "Straight"}{" "}
-          {map.direction === "right"
-            ? "Right"
-            : map.direction === "left"
-              ? "Left"
               : "Straight"}
         </p>
       )}

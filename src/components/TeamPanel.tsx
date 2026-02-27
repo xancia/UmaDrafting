@@ -173,7 +173,12 @@ export default function TeamPanel({
                       isBanned ? "text-gray-500 line-through" : "text-gray-100"
                     }`}
                   >
-                    {map.distance} • {map.surface}
+                    {map.distance} • {map.surface} •{" "}
+                    {map.direction === "right"
+                      ? "Right"
+                      : map.direction === "left"
+                        ? "Left"
+                        : "Straight"}
                     {map.variant && ` • ${map.variant}`}
                   </div>
                   {map.conditions && (

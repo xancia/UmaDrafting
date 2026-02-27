@@ -2869,20 +2869,15 @@ export default function Draft5v5({
                         >
                           {s.map.surface}
                         </span>
-                        <span className="text-xs text-gray-400">
+                        <span className="text-gray-500 text-xs ml-auto">
                           {s.map.direction === "right"
                             ? "Right"
                             : s.map.direction === "left"
                               ? "Left"
                               : "Straight"}
+                          {s.map.conditions &&
+                            ` / ${s.map.conditions.season} / ${s.map.conditions.ground} / ${s.map.conditions.weather}`}
                         </span>
-                        {s.map.conditions && (
-                          <span className="text-gray-500 text-xs ml-auto">
-                            {s.map.conditions.season} /{" "}
-                            {s.map.conditions.ground} /{" "}
-                            {s.map.conditions.weather}
-                          </span>
-                        )}
                       </div>
                     ));
                   })()}
