@@ -3020,7 +3020,41 @@ export default function Draft5v5({
                       draftState.wildcardMap,
                     );
                     const wc = draftState.wildcardMap;
-                    const text = `=== DRAFT RESULTS ===\n\n${team1Name}: ${t1Umas}\nPre-Banned: ${t1PreBans || "None"}\nBanned: ${t1Bans || "None"}\n\n${team2Name}: ${t2Umas}\nPre-Banned: ${t2PreBans || "None"}\nBanned: ${t2Bans || "None"}\n\nMap Schedule:\n${maps}\n\nTiebreaker: ${wc.track}${formatVariant(wc)} ${wc.distance}m (${wc.surface})${wcConditions}`;
+                    let text = `=== DRAFT RESULTS ===\n\n${team1Name}: ${t1Umas}\nPre-Banned: ${t1PreBans || "None"}\nBanned: ${t1Bans || "None"}\n\n${team2Name}: ${t2Umas}\nPre-Banned: ${t2PreBans || "None"}\nBanned: ${t2Bans || "None"}\n\nMap Schedule:\n${maps}\n\nTiebreaker: ${wc.track}${formatVariant(wc)} ${wc.distance}m (${wc.surface})${wcConditions}`;
+
+                    if (matchResults.length > 0) {
+                      const schedule = getMapSchedule();
+                      let t1Total = 0;
+                      let t2Total = 0;
+                      const raceLines = matchResults
+                        .slice()
+                        .sort((a, b) => a.raceIndex - b.raceIndex)
+                        .map((result) => {
+                          const raceMap = schedule[result.raceIndex];
+                          const mapLabel = raceMap
+                            ? `${raceMap.map.track} ${raceMap.map.distance}m`
+                            : `Race ${result.raceIndex + 1}`;
+                          const placements = result.placements
+                            .map((p) => {
+                              const pos = p.position === 1 ? "1st" : p.position === 2 ? "2nd" : "3rd";
+                              const title = p.umaTitle ? ` ${p.umaTitle}` : "";
+                              return `${pos}: ${p.umaName}${title}`;
+                            })
+                            .join(", ");
+                          const raceT1 = result.placements
+                            .filter((p) => p.team === "team1")
+                            .reduce((s, p) => s + (POINT_VALUES[p.position] || 0), 0);
+                          const raceT2 = result.placements
+                            .filter((p) => p.team === "team2")
+                            .reduce((s, p) => s + (POINT_VALUES[p.position] || 0), 0);
+                          t1Total += raceT1;
+                          t2Total += raceT2;
+                          return `${result.raceIndex + 1}. ${mapLabel} — ${placements} (${raceT1}-${raceT2})`;
+                        })
+                        .join("\n");
+                      text += `\n\n=== MATCH RESULTS ===\n${raceLines}\n\nScore: ${team1Name} ${t1Total} - ${t2Total} ${team2Name}`;
+                    }
+
                     navigator.clipboard.writeText(text);
                   }}
                   className="bg-gray-700/80 hover:bg-gray-600 text-gray-200 font-semibold py-2 px-6 rounded-lg transition-colors border border-gray-600/50 text-sm"
