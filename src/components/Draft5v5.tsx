@@ -48,6 +48,33 @@ const POINTS_TO_WIN = 25;
 // In "wins" mode, how many race wins to win the series
 const WINS_TO_WIN = 4;
 
+/** Check if the match series is over (winner determined) */
+function isMatchSeriesOver(results: RaceResult[]): boolean {
+  let team1Points = 0;
+  let team2Points = 0;
+  let team1Wins = 0;
+  let team2Wins = 0;
+
+  for (const result of results) {
+    let raceT1 = 0;
+    let raceT2 = 0;
+    for (const p of result.placements) {
+      const pts = POINT_VALUES[p.position as keyof typeof POINT_VALUES] || 0;
+      if (p.team === "team1") raceT1 += pts;
+      else raceT2 += pts;
+    }
+    team1Points += raceT1;
+    team2Points += raceT2;
+    if (raceT1 > raceT2) team1Wins++;
+    else if (raceT2 > raceT1) team2Wins++;
+  }
+
+  if (SCORING_MODE === "points") {
+    return team1Points >= POINTS_TO_WIN || team2Points >= POINTS_TO_WIN;
+  }
+  return team1Wins >= WINS_TO_WIN || team2Wins >= WINS_TO_WIN;
+}
+
 // ─── Match Result Types ──────────────────────────────────────────────
 interface RacePlacement {
   position: 1 | 2 | 3;
@@ -214,12 +241,13 @@ export default function Draft5v5({
     draftState.phase === "uma-pre-ban";
   const isComplete = draftState.phase === "complete";
 
-  // Clear session when draft completes
+  // Clear session only when the match series is fully over (not just draft complete)
+  const seriesOver = isComplete && isMatchSeriesOver(matchResults);
   useEffect(() => {
-    if (isComplete && isMultiplayer) {
+    if (seriesOver && isMultiplayer) {
       clearDraftSession();
     }
-  }, [isComplete, isMultiplayer]);
+  }, [seriesOver, isMultiplayer]);
 
   // Clear pending selection when phase or turn changes
   useEffect(() => {
@@ -795,14 +823,26 @@ export default function Draft5v5({
         setWildcardAcknowledged(true);
       }
 
-      // Sync pending match report from host to team 2
+      // Sync pending match report and confirmed results from Firebase
       const synced = syncedDraftState as DraftState & {
         pendingMatchReport?: {
           raceIndex: number;
           placements: RacePlacement[];
           submissionId?: number;
         };
+        confirmedMatchResults?: RaceResult[];
       };
+
+      // Restore confirmed match results (e.g. on reconnect)
+      if (synced.confirmedMatchResults && synced.confirmedMatchResults.length > 0) {
+        setMatchResults((prev) => {
+          // Only update if Firebase has more results than local state
+          if (synced.confirmedMatchResults!.length > prev.length) {
+            return synced.confirmedMatchResults!;
+          }
+          return prev;
+        });
+      }
       if (synced.pendingMatchReport && !multiplayerConfig?.isHost) {
         // Only set if team 2 hasn't already responded to this exact submission
         const subId =
@@ -933,21 +973,25 @@ export default function Draft5v5({
               if (results.some((r) => r.raceIndex === confirmed.raceIndex)) {
                 return results;
               }
-              return [...results, confirmed];
+              const updated = [...results, confirmed];
+              // Persist confirmed results to Firebase so both players can
+              // restore them on reconnect
+              setDraftState((current) => {
+                const synced = {
+                  ...current,
+                  pendingMatchReport: null,
+                  confirmedMatchResults: updated,
+                } as DraftState;
+                syncUpdateDraftState(synced);
+                return current;
+              });
+              return updated;
             });
           } catch (e) {
             console.error("Failed to parse match-confirm data:", e);
           }
           setPendingReport(null);
           pendingReportRef.current = null;
-          setDraftState((current) => {
-            const cleared = {
-              ...current,
-              pendingMatchReport: null,
-            } as DraftState;
-            syncUpdateDraftState(cleared);
-            return current;
-          });
           return;
         }
 
