@@ -80,6 +80,7 @@ interface RacePlacement {
   position: 1 | 2 | 3;
   umaId: string;
   umaName: string;
+  umaTitle?: string;
   team: "team1" | "team2";
 }
 
@@ -1753,18 +1754,21 @@ export default function Draft5v5({
         position: 1,
         umaId: first.id.toString(),
         umaName: first.name,
+        umaTitle: first.title,
         team: first.team,
       },
       {
         position: 2,
         umaId: second.id.toString(),
         umaName: second.name,
+        umaTitle: second.title,
         team: second.team,
       },
       {
         position: 3,
         umaId: third.id.toString(),
         umaName: third.name,
+        umaTitle: third.title,
         team: third.team,
       },
     ];
@@ -2672,7 +2676,7 @@ export default function Draft5v5({
                                   : p.position === 2
                                     ? "2nd "
                                     : "3rd "}
-                                {p.umaName}
+                                {p.umaName}{p.umaTitle ? ` ${p.umaTitle}` : ""}
                               </span>
                             ))}
                           </span>
@@ -2714,7 +2718,7 @@ export default function Draft5v5({
                             : p.position === 2
                               ? "2nd"
                               : "3rd"}
-                          : {p.umaName}
+                          : {p.umaName}{p.umaTitle ? ` ${p.umaTitle}` : ""}
                           <span
                             className={`ml-1 text-xs ${p.team === "team1" ? "text-blue-400" : "text-red-400"}`}
                           >
@@ -2977,23 +2981,25 @@ export default function Draft5v5({
               <div className="mt-4 flex justify-center gap-3">
                 <button
                   onClick={() => {
+                    const umaLabel = (u: { name: string; title?: string }) =>
+                      u.title ? `${u.name} ${u.title}` : u.name;
                     const t1Umas = draftState.team1.pickedUmas
-                      .map((u) => u.name)
+                      .map(umaLabel)
                       .join(", ");
                     const t2Umas = draftState.team2.pickedUmas
-                      .map((u) => u.name)
+                      .map(umaLabel)
                       .join(", ");
                     const t1PreBans = (draftState.team1.preBannedUmas || [])
-                      .map((u) => u.name)
+                      .map(umaLabel)
                       .join(", ");
                     const t2PreBans = (draftState.team2.preBannedUmas || [])
-                      .map((u) => u.name)
+                      .map(umaLabel)
                       .join(", ");
                     const t1Bans = draftState.team1.bannedUmas
-                      .map((u) => u.name)
+                      .map(umaLabel)
                       .join(", ");
                     const t2Bans = draftState.team2.bannedUmas
-                      .map((u) => u.name)
+                      .map(umaLabel)
                       .join(", ");
                     const formatConditions = (m: Map) =>
                       m.conditions
@@ -3511,7 +3517,7 @@ export default function Draft5v5({
                         .filter((u) => !selectedIds.includes(u.id.toString()))
                         .map((u) => (
                           <option key={u.id} value={u.id.toString()}>
-                            {u.name} (
+                            {u.name}{u.title ? ` ${u.title}` : ""} (
                             {u.team === "team1" ? team1Name : team2Name})
                           </option>
                         ))}

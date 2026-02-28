@@ -102,6 +102,7 @@ export const SAMPLE_UMAS: UmaMusume[] = characterData.map((char) => {
   return {
     id: `${char.cardId}`,
     name: char.charaName,
+    title: char.cardTitle,
     imageUrl: `./uma/chara_stand_${char.charaId}_${iconCardId}.webp`,
   };
 });
