@@ -59,7 +59,7 @@ export function UnifiedTopBar({ currentApp = 'tools' }: UnifiedTopBarProps) {
       <div className="topbar-inner">
         {/* Brand */}
         <a href="https://uma.guide" className="topbar-brand">
-          
+          <img src="/icon/umaguide_logo.svg" alt="uma.guide" className="brand-icon" />
           <span className="brand-text">uma.guide</span>
         </a>
 
