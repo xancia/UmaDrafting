@@ -1,12 +1,9 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   subscribeToLeaderboard,
   type LeaderboardEntry,
 } from "../services/leaderboard";
-
-interface LeaderboardProps {
-  onBack: () => void;
-}
 
 function winRate(entry: LeaderboardEntry): string {
   const games = entry.wins + entry.losses;
@@ -16,7 +13,8 @@ function winRate(entry: LeaderboardEntry): string {
   return `${((entry.wins / games) * 100).toFixed(1)}%`;
 }
 
-export default function Leaderboard({ onBack }: LeaderboardProps) {
+export default function Leaderboard() {
+  const navigate = useNavigate();
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -30,12 +28,12 @@ export default function Leaderboard({ onBack }: LeaderboardProps) {
   }, []);
 
   return (
-    <div className="flex-1 overflow-auto bg-gray-950 text-gray-100 p-4 md:p-6">
+    <div className="flex-1 overflow-auto custom-scrollbar bg-gray-950 text-gray-100 p-4 md:p-6">
       <div className="max-w-5xl mx-auto">
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-2xl font-bold">Leaderboard</h1>
           <button
-            onClick={onBack}
+            onClick={() => navigate("/")}
             className="px-4 py-2 rounded-md bg-gray-800 hover:bg-gray-700 transition-colors"
           >
             Back

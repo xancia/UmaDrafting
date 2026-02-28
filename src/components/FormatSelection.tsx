@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import RoomSetup from "./RoomSetup";
 
 interface FormatSelectionProps {
@@ -11,13 +12,12 @@ interface FormatSelectionProps {
       isSpectator: boolean;
     },
   ) => void;
-  onViewLeaderboard: () => void;
 }
 
 export default function FormatSelection({
   onSelectFormat,
-  onViewLeaderboard,
 }: FormatSelectionProps) {
+  const navigate = useNavigate();
   const [showRoomSetup, setShowRoomSetup] = useState(false);
   const [showHowToPlay, setShowHowToPlay] = useState(false);
   const [selectedFormat, setSelectedFormat] = useState<"5v5" | "3v3v3" | null>(
@@ -118,7 +118,7 @@ export default function FormatSelection({
 
         <div className="mt-4 lg:mt-6 space-y-3">
           <button
-            onClick={onViewLeaderboard}
+            onClick={() => navigate("/leaderboard")}
             className="w-full group bg-purple-900/40 hover:bg-purple-900/60 border-2 border-purple-700 hover:border-purple-500 rounded-xl p-3 lg:p-4 transition-all shadow-lg"
           >
             <div className="text-lg lg:text-xl font-bold text-purple-300 mb-0.5 lg:mb-1">
