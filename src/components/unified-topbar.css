@@ -23,7 +23,7 @@
   align-items: center;
   gap: 0.625rem;
   text-decoration: none;
-  color: var(--topbar-text, #f3f4f6);
+  color: var(--topbar-text, #ffffff);
   font-weight: 700;
   font-size: 1.125rem;
   transition: opacity 0.2s ease;
@@ -35,8 +35,8 @@
 }
 
 .brand-icon {
-  width: 24px;
-  height: 24px;
+  width: 32px;
+  height: 32px;
   color: #c16a5f;
 }
 
