@@ -345,12 +345,15 @@ export default function TeamPanel({
 
         {/* Vetoed row */}
         {bannedUmas.length > 0 && (
-          <div className="mt-1.5 border-t border-gray-700/50">
-            <div className="grid grid-cols-3 gap-1 lg:gap-1.5">
+          <div className="mt-1.5 pt-1.5 border-t border-gray-700/50">
+            <p className="text-[10px] text-red-300/80 uppercase tracking-wider font-semibold mb-1">
+              Vetoed by Enemy Team:
+            </p>
+            <div className="grid grid-cols-6 gap-1">
               {bannedUmas.map((uma) => (
                 <div
                   key={`veto-${uma.id}`}
-                  className="aspect-square rounded-lg border-2 border-red-500/50 bg-gray-600 shadow-lg overflow-hidden relative"
+                  className="aspect-square rounded-md border border-red-500/50 bg-gray-600/90 shadow-md overflow-hidden relative"
                 >
                   <div className="relative w-full h-full group">
                     <img
@@ -361,17 +364,17 @@ export default function TeamPanel({
                         (e.target as HTMLImageElement).style.display = "none";
                       }}
                     />
-                    <div className="absolute inset-0 flex items-center justify-center text-red-500 text-3xl font-bold drop-shadow-lg">
+                    <div className="absolute inset-0 flex items-center justify-center text-red-500 text-xl font-bold drop-shadow-lg">
                       X
                     </div>
                     <div className="absolute inset-0 bg-black/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center p-1">
-                      <span className="text-xs font-semibold text-center whitespace-pre-line leading-tight break-words text-white">
+                      <span className="text-[10px] font-semibold text-center whitespace-pre-line leading-tight break-words text-white">
                         {uma.name}
                       </span>
                     </div>
                   </div>
                   <div className="absolute bottom-0 inset-x-0 bg-red-900/80 py-px">
-                    <span className="text-[7px] text-red-300 font-bold uppercase text-center block tracking-wider">
+                    <span className="text-[6px] text-red-300 font-bold uppercase text-center block tracking-wider">
                       Vetoed
                     </span>
                   </div>
