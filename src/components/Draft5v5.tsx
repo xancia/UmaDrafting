@@ -287,6 +287,7 @@ export default function Draft5v5({
   // the turn-timeout handler that can fire before React re-renders.
   const draftStateRef = useRef(draftState);
   draftStateRef.current = draftState;
+  const previousSyncedStateRef = useRef<DraftState | null>(null);
   const [history, setHistory] = useState<DraftState[]>([
     getInitialDraftState(),
   ]);
@@ -545,6 +546,49 @@ export default function Draft5v5({
     },
     [sfxVolume],
   );
+
+  useEffect(() => {
+    if (!isMultiplayer || !syncedDraftState) return;
+    if (multiplayerConfig?.isSpectator) {
+      previousSyncedStateRef.current = syncedDraftState;
+      return;
+    }
+
+    const prevSynced = previousSyncedStateRef.current;
+    if (!prevSynced) {
+      previousSyncedStateRef.current = syncedDraftState;
+      return;
+    }
+
+    const myTeam =
+      draftState.multiplayer?.localTeam ||
+      (multiplayerConfig?.isHost ? "team1" : "team2");
+    const enemyTeam = myTeam === "team1" ? "team2" : "team1";
+
+    const newEnemyPicks = syncedDraftState[enemyTeam].pickedUmas.slice(
+      prevSynced[enemyTeam].pickedUmas.length,
+    );
+    const newEnemyBans = syncedDraftState[enemyTeam].bannedUmas.slice(
+      prevSynced[enemyTeam].bannedUmas.length,
+    );
+    const newEnemyPreBans = syncedDraftState[enemyTeam].preBannedUmas.slice(
+      prevSynced[enemyTeam].preBannedUmas.length,
+    );
+
+    newEnemyPicks.forEach((uma) => playUmaVoiceline(uma, "picked"));
+    [...newEnemyBans, ...newEnemyPreBans].forEach((uma) =>
+      playUmaVoiceline(uma, "banned"),
+    );
+
+    previousSyncedStateRef.current = syncedDraftState;
+  }, [
+    isMultiplayer,
+    syncedDraftState,
+    multiplayerConfig?.isSpectator,
+    multiplayerConfig?.isHost,
+    draftState.multiplayer?.localTeam,
+    playUmaVoiceline,
+  ]);
 
   // Timer authority: you control timer when it's your turn (or always in local mode)
   const isTimerAuthority =
