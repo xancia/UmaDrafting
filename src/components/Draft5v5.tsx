@@ -214,6 +214,7 @@ export default function Draft5v5({
   const [isRetryingJoin, setIsRetryingJoin] = useState<boolean>(false);
 
   // Match reporting state
+  const [roomCodes, setRoomCodes] = useState<Record<string, string>>({});
   const [matchResults, setMatchResults] = useState<RaceResult[]>([]);
   const [showMatchReporting, setShowMatchReporting] = useState<boolean>(false);
   const [pendingReport, setPendingReport] = useState<PendingReport | null>(
@@ -835,7 +836,10 @@ export default function Draft5v5({
       };
 
       // Restore confirmed match results (e.g. on reconnect)
-      if (synced.confirmedMatchResults && synced.confirmedMatchResults.length > 0) {
+      if (
+        synced.confirmedMatchResults &&
+        synced.confirmedMatchResults.length > 0
+      ) {
         setMatchResults((prev) => {
           // Only update if Firebase has more results than local state
           if (synced.confirmedMatchResults!.length > prev.length) {
@@ -2676,7 +2680,8 @@ export default function Draft5v5({
                                   : p.position === 2
                                     ? "2nd "
                                     : "3rd "}
-                                {p.umaName}{p.umaTitle ? ` ${p.umaTitle}` : ""}
+                                {p.umaName}
+                                {p.umaTitle ? ` ${p.umaTitle}` : ""}
                               </span>
                             ))}
                           </span>
@@ -2718,7 +2723,8 @@ export default function Draft5v5({
                             : p.position === 2
                               ? "2nd"
                               : "3rd"}
-                          : {p.umaName}{p.umaTitle ? ` ${p.umaTitle}` : ""}
+                          : {p.umaName}
+                          {p.umaTitle ? ` ${p.umaTitle}` : ""}
                           <span
                             className={`ml-1 text-xs ${p.team === "team1" ? "text-blue-400" : "text-red-400"}`}
                           >
@@ -2798,7 +2804,7 @@ export default function Draft5v5({
                   {draftState.team1.bannedUmas.length > 0 && (
                     <div className="mt-1 pt-1 border-t border-gray-700/50">
                       <span className="text-[9px] text-red-400/70 uppercase">
-                        Banned:{" "}
+                        Vetoed:{" "}
                       </span>
                       <span className="text-[9px] text-gray-500">
                         {draftState.team1.bannedUmas
@@ -2850,7 +2856,7 @@ export default function Draft5v5({
                   {draftState.team2.bannedUmas.length > 0 && (
                     <div className="mt-1 pt-1 border-t border-gray-700/50">
                       <span className="text-[9px] text-red-400/70 uppercase">
-                        Banned:{" "}
+                        Vetoed:{" "}
                       </span>
                       <span className="text-[9px] text-gray-500">
                         {draftState.team2.bannedUmas
@@ -2926,6 +2932,24 @@ export default function Draft5v5({
                           {s.map.conditions &&
                             ` / ${s.map.conditions.season} / ${s.map.conditions.ground} / ${s.map.conditions.weather}`}
                         </span>
+                        <div className="flex items-center gap-1 ml-2">
+                          <input
+                            type="text"
+                            placeholder="Room code"
+                            value={roomCodes[`map-${s.index}`] || ""}
+                            onChange={(e) => setRoomCodes((prev) => ({ ...prev, [`map-${s.index}`]: e.target.value }))}
+                            className="w-24 px-2 py-0.5 text-xs bg-gray-800 border border-gray-600 rounded text-gray-200 placeholder-gray-600 focus:border-gray-400 focus:outline-none"
+                          />
+                          {roomCodes[`map-${s.index}`] && (
+                            <button
+                              onClick={() => navigator.clipboard.writeText(roomCodes[`map-${s.index}`])}
+                              className="text-[10px] px-1.5 py-0.5 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded transition-colors"
+                              title="Copy room code"
+                            >
+                              Copy
+                            </button>
+                          )}
+                        </div>
                       </div>
                     ));
                   })()}
@@ -2974,6 +2998,24 @@ export default function Draft5v5({
                       </span>
                     )}
                   </div>
+                  <div className="flex items-center gap-1 ml-4">
+                    <input
+                      type="text"
+                      placeholder="Room code"
+                      value={roomCodes["tiebreaker"] || ""}
+                      onChange={(e) => setRoomCodes((prev) => ({ ...prev, tiebreaker: e.target.value }))}
+                      className="w-24 px-2 py-0.5 text-xs bg-gray-800 border border-gray-600 rounded text-gray-200 placeholder-gray-600 focus:border-gray-400 focus:outline-none"
+                    />
+                    {roomCodes["tiebreaker"] && (
+                      <button
+                        onClick={() => navigator.clipboard.writeText(roomCodes["tiebreaker"])}
+                        className="text-[10px] px-1.5 py-0.5 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded transition-colors"
+                        title="Copy room code"
+                      >
+                        Copy
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -3020,7 +3062,8 @@ export default function Draft5v5({
                       draftState.wildcardMap,
                     );
                     const wc = draftState.wildcardMap;
-                    let text = `=== DRAFT RESULTS ===\n\n${team1Name}: ${t1Umas}\nPre-Banned: ${t1PreBans || "None"}\nBanned: ${t1Bans || "None"}\n\n${team2Name}: ${t2Umas}\nPre-Banned: ${t2PreBans || "None"}\nBanned: ${t2Bans || "None"}\n\nMap Schedule:\n${maps}\n\nTiebreaker: ${wc.track}${formatVariant(wc)} ${wc.distance}m (${wc.surface})${wcConditions}`;
+
+                    let text = `=== DRAFT RESULTS ===\n\n${team1Name}: ${t1Umas}\nPre-Banned: ${t1PreBans || "None"}\nVetoed: ${t1Bans || "None"}\n\n${team2Name}: ${t2Umas}\nPre-Banned: ${t2PreBans || "None"}\nVetoed: ${t2Bans || "None"}\n\nMap Schedule:\n${maps}\n\nTiebreaker: ${wc.track}${formatVariant(wc)} ${wc.distance}m (${wc.surface})${wcConditions}`;
 
                     if (matchResults.length > 0) {
                       const schedule = getMapSchedule();
@@ -3036,17 +3079,28 @@ export default function Draft5v5({
                             : `Race ${result.raceIndex + 1}`;
                           const placements = result.placements
                             .map((p) => {
-                              const pos = p.position === 1 ? "1st" : p.position === 2 ? "2nd" : "3rd";
+                              const pos =
+                                p.position === 1
+                                  ? "1st"
+                                  : p.position === 2
+                                    ? "2nd"
+                                    : "3rd";
                               const title = p.umaTitle ? ` ${p.umaTitle}` : "";
                               return `${pos}: ${p.umaName}${title}`;
                             })
                             .join(", ");
                           const raceT1 = result.placements
                             .filter((p) => p.team === "team1")
-                            .reduce((s, p) => s + (POINT_VALUES[p.position] || 0), 0);
+                            .reduce(
+                              (s, p) => s + (POINT_VALUES[p.position] || 0),
+                              0,
+                            );
                           const raceT2 = result.placements
                             .filter((p) => p.team === "team2")
-                            .reduce((s, p) => s + (POINT_VALUES[p.position] || 0), 0);
+                            .reduce(
+                              (s, p) => s + (POINT_VALUES[p.position] || 0),
+                              0,
+                            );
                           t1Total += raceT1;
                           t2Total += raceT2;
                           return `${result.raceIndex + 1}. ${mapLabel} — ${placements} (${raceT1}-${raceT2})`;
@@ -3060,6 +3114,73 @@ export default function Draft5v5({
                   className="bg-gray-700/80 hover:bg-gray-600 text-gray-200 font-semibold py-2 px-6 rounded-lg transition-colors border border-gray-600/50 text-sm"
                 >
                   Copy Draft Results
+                </button>
+                <button
+                  onClick={() => {
+                    const umaLabel = (u: { name: string; title?: string }) =>
+                      u.title ? `${u.name} ${u.title}` : u.name;
+                    const formatVariant = (m: { variant?: string }) =>
+                      m.variant ? ` (${m.variant})` : "";
+                    const pickOrder: string[] = [];
+                    for (let i = 1; i < history.length; i++) {
+                      const prev = history[i - 1];
+                      const curr = history[i];
+                      const t1n = team1Name || "Team 1";
+                      const t2n = team2Name || "Team 2";
+                      // Pre-bans
+                      if ((curr.team1.preBannedUmas?.length || 0) > (prev.team1.preBannedUmas?.length || 0)) {
+                        const newBans = curr.team1.preBannedUmas.slice(prev.team1.preBannedUmas?.length || 0);
+                        newBans.forEach((u) => pickOrder.push(`${t1n} pre-ban: ${umaLabel(u)}`));
+                      }
+                      if ((curr.team2.preBannedUmas?.length || 0) > (prev.team2.preBannedUmas?.length || 0)) {
+                        const newBans = curr.team2.preBannedUmas.slice(prev.team2.preBannedUmas?.length || 0);
+                        newBans.forEach((u) => pickOrder.push(`${t2n} pre-ban: ${umaLabel(u)}`));
+                      }
+                      // Uma picks
+                      if (curr.team1.pickedUmas.length > prev.team1.pickedUmas.length) {
+                        const newPicks = curr.team1.pickedUmas.slice(prev.team1.pickedUmas.length);
+                        newPicks.forEach((u) => pickOrder.push(`${t1n} pick: ${umaLabel(u)}`));
+                      }
+                      if (curr.team2.pickedUmas.length > prev.team2.pickedUmas.length) {
+                        const newPicks = curr.team2.pickedUmas.slice(prev.team2.pickedUmas.length);
+                        newPicks.forEach((u) => pickOrder.push(`${t2n} pick: ${umaLabel(u)}`));
+                      }
+                      // Uma bans (veto) - opposing team performs the veto
+                      if (curr.team1.bannedUmas.length > prev.team1.bannedUmas.length) {
+                        const newBans = curr.team1.bannedUmas.slice(prev.team1.bannedUmas.length);
+                        newBans.forEach((u) => pickOrder.push(`${t2n} veto: ${umaLabel(u)}`));
+                      }
+                      if (curr.team2.bannedUmas.length > prev.team2.bannedUmas.length) {
+                        const newBans = curr.team2.bannedUmas.slice(prev.team2.bannedUmas.length);
+                        newBans.forEach((u) => pickOrder.push(`${t1n} veto: ${umaLabel(u)}`));
+                      }
+                      // Map picks
+                      if (curr.team1.pickedMaps.length > prev.team1.pickedMaps.length) {
+                        const newPicks = curr.team1.pickedMaps.slice(prev.team1.pickedMaps.length);
+                        newPicks.forEach((m) => pickOrder.push(`${t1n} map pick: ${m.track}${formatVariant(m)} ${m.distance}m`));
+                      }
+                      if (curr.team2.pickedMaps.length > prev.team2.pickedMaps.length) {
+                        const newPicks = curr.team2.pickedMaps.slice(prev.team2.pickedMaps.length);
+                        newPicks.forEach((m) => pickOrder.push(`${t2n} map pick: ${m.track}${formatVariant(m)} ${m.distance}m`));
+                      }
+                      // Map bans - opposing team performs the ban
+                      if (curr.team1.bannedMaps.length > prev.team1.bannedMaps.length) {
+                        const newBans = curr.team1.bannedMaps.slice(prev.team1.bannedMaps.length);
+                        newBans.forEach((m) => pickOrder.push(`${t2n} map ban: ${m.track}${formatVariant(m)} ${m.distance}m`));
+                      }
+                      if (curr.team2.bannedMaps.length > prev.team2.bannedMaps.length) {
+                        const newBans = curr.team2.bannedMaps.slice(prev.team2.bannedMaps.length);
+                        newBans.forEach((m) => pickOrder.push(`${t1n} map ban: ${m.track}${formatVariant(m)} ${m.distance}m`));
+                      }
+                    }
+                    const text = pickOrder.length > 0
+                      ? `=== PICK ORDER ===\n\n${pickOrder.map((s, i) => `${i + 1}. ${s}`).join("\n")}`
+                      : "No pick order history available.";
+                    navigator.clipboard.writeText(text);
+                  }}
+                  className="bg-gray-700/80 hover:bg-gray-600 text-gray-200 font-semibold py-2 px-6 rounded-lg transition-colors border border-gray-600/50 text-sm"
+                >
+                  Copy Pick Order
                 </button>
                 {(!isMultiplayer || isHost) && !pendingReport && (
                   <button
@@ -3551,7 +3672,8 @@ export default function Draft5v5({
                         .filter((u) => !selectedIds.includes(u.id.toString()))
                         .map((u) => (
                           <option key={u.id} value={u.id.toString()}>
-                            {u.name}{u.title ? ` ${u.title}` : ""} (
+                            {u.name}
+                            {u.title ? ` ${u.title}` : ""} (
                             {u.team === "team1" ? team1Name : team2Name})
                           </option>
                         ))}
