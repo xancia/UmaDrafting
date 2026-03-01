@@ -2808,7 +2808,7 @@ export default function Draft5v5({
                       </span>
                       <span className="text-[9px] text-gray-500">
                         {draftState.team1.preBannedUmas
-                          .map((u) => u.name)
+                          .map((u) => u.title ? `${u.name} ${u.title}` : u.name)
                           .join(", ")}
                       </span>
                     </div>
@@ -2820,7 +2820,7 @@ export default function Draft5v5({
                       </span>
                       <span className="text-[9px] text-gray-500">
                         {draftState.team1.bannedUmas
-                          .map((u) => u.name)
+                          .map((u) => u.title ? `${u.name} ${u.title}` : u.name)
                           .join(", ")}
                       </span>
                     </div>
@@ -2860,7 +2860,7 @@ export default function Draft5v5({
                       </span>
                       <span className="text-[9px] text-gray-500">
                         {draftState.team2.preBannedUmas
-                          .map((u) => u.name)
+                          .map((u) => u.title ? `${u.name} ${u.title}` : u.name)
                           .join(", ")}
                       </span>
                     </div>
@@ -2872,7 +2872,7 @@ export default function Draft5v5({
                       </span>
                       <span className="text-[9px] text-gray-500">
                         {draftState.team2.bannedUmas
-                          .map((u) => u.name)
+                          .map((u) => u.title ? `${u.name} ${u.title}` : u.name)
                           .join(", ")}
                       </span>
                     </div>
@@ -3620,111 +3620,241 @@ export default function Draft5v5({
       )}
 
       {/* Match Reporting Modal */}
-      {showMatchReporting && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-800 rounded-xl shadow-2xl p-4 lg:p-6 xl:p-8 border-2 border-gray-700 max-w-lg w-full">
-            <h2 className="text-xl lg:text-2xl font-bold text-gray-100 mb-1 lg:mb-2">
-              Report Race {reportRaceIndex + 1}
-            </h2>
-            {(() => {
-              const schedule = getMapSchedule();
-              const raceMap = schedule[reportRaceIndex];
-              if (!raceMap) return null;
-              return (
-                <p className="text-sm text-gray-400 mb-4">
-                  {raceMap.map.track} {raceMap.map.distance}m (
-                  {raceMap.map.surface})
-                  {raceMap.map.conditions && (
-                    <span className="ml-1 text-gray-500">
-                      — {raceMap.map.conditions.season} /{" "}
-                      {raceMap.map.conditions.ground} /{" "}
-                      {raceMap.map.conditions.weather}
-                    </span>
-                  )}
-                </p>
-              );
-            })()}
+      {showMatchReporting && (() => {
+        const schedule = getMapSchedule();
+        const raceMap = schedule[reportRaceIndex];
+        const positionSlots = [
+          { key: "first" as const, label: "1st Place", points: POINT_VALUES[1], color: "text-yellow-400", ring: "ring-yellow-500", bg: "bg-yellow-500/20" },
+          { key: "second" as const, label: "2nd Place", points: POINT_VALUES[2], color: "text-gray-300", ring: "ring-gray-400", bg: "bg-gray-400/20" },
+          { key: "third" as const, label: "3rd Place", points: POINT_VALUES[3], color: "text-amber-600", ring: "ring-amber-600", bg: "bg-amber-600/20" },
+        ];
+        const selectedIds = [reportPlacements.first, reportPlacements.second, reportPlacements.third].filter(Boolean);
 
-            <div className="space-y-3 mb-6">
-              {[
-                {
-                  label: "1st Place",
-                  key: "first" as const,
-                  points: POINT_VALUES[1],
-                },
-                {
-                  label: "2nd Place",
-                  key: "second" as const,
-                  points: POINT_VALUES[2],
-                },
-                {
-                  label: "3rd Place",
-                  key: "third" as const,
-                  points: POINT_VALUES[3],
-                },
-              ].map(({ label, key, points }) => {
-                // Filter out already-selected umas from other positions
-                const selectedIds = Object.entries(reportPlacements)
-                  .filter(([k]) => k !== key)
-                  .map(([, v]) => v)
-                  .filter(Boolean);
+        const handleUmaClick = (umaId: string) => {
+          const id = umaId;
+          // If already selected somewhere, remove it
+          if (reportPlacements.first === id) {
+            setReportPlacements((prev) => ({ ...prev, first: "" }));
+            return;
+          }
+          if (reportPlacements.second === id) {
+            setReportPlacements((prev) => ({ ...prev, second: "" }));
+            return;
+          }
+          if (reportPlacements.third === id) {
+            setReportPlacements((prev) => ({ ...prev, third: "" }));
+            return;
+          }
+          // Place in first empty slot
+          if (!reportPlacements.first) {
+            setReportPlacements((prev) => ({ ...prev, first: id }));
+          } else if (!reportPlacements.second) {
+            setReportPlacements((prev) => ({ ...prev, second: id }));
+          } else if (!reportPlacements.third) {
+            setReportPlacements((prev) => ({ ...prev, third: id }));
+          }
+        };
 
-                return (
-                  <div key={key}>
-                    <label className="block text-xs font-semibold text-gray-300 mb-1">
-                      {label}{" "}
-                      {SCORING_MODE === "points" && (
-                        <span className="text-gray-500">({points} pts)</span>
-                      )}
-                    </label>
-                    <select
-                      value={reportPlacements[key]}
-                      onChange={(e) =>
-                        setReportPlacements((prev) => ({
-                          ...prev,
-                          [key]: e.target.value,
-                        }))
-                      }
-                      className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-sm text-gray-100 focus:outline-none focus:border-purple-500"
+        const getSlotForUma = (umaId: string): number | null => {
+          if (reportPlacements.first === umaId) return 1;
+          if (reportPlacements.second === umaId) return 2;
+          if (reportPlacements.third === umaId) return 3;
+          return null;
+        };
+
+        const slotColors: Record<number, string> = {
+          1: "ring-yellow-500 bg-yellow-500/20",
+          2: "ring-gray-400 bg-gray-400/20",
+          3: "ring-amber-600 bg-amber-600/20",
+        };
+
+        const slotBadgeColors: Record<number, string> = {
+          1: "bg-yellow-500 text-black",
+          2: "bg-gray-400 text-black",
+          3: "bg-amber-600 text-white",
+        };
+
+        return (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-gray-800 rounded-xl shadow-2xl p-5 lg:p-7 border-2 border-gray-700 max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+              {/* Header */}
+              <div className="mb-4">
+                <h2 className="text-xl lg:text-2xl font-bold text-gray-100 mb-1">
+                  Report Race {reportRaceIndex + 1}
+                </h2>
+                {raceMap && (
+                  <p className="text-sm text-gray-400">
+                    {raceMap.map.track} {raceMap.map.distance}m ({raceMap.map.surface})
+                    {raceMap.map.conditions && (
+                      <span className="ml-1 text-gray-500">
+                        — {raceMap.map.conditions.season} / {raceMap.map.conditions.ground} / {raceMap.map.conditions.weather}
+                      </span>
+                    )}
+                  </p>
+                )}
+              </div>
+
+              {/* Placement Slots */}
+              <div className="flex gap-3 mb-5">
+                {positionSlots.map(({ key, label, points, color, bg }) => {
+                  const selectedUma = reportPlacements[key]
+                    ? allDraftedUmas.find((u) => u.id.toString() === reportPlacements[key])
+                    : null;
+                  return (
+                    <div
+                      key={key}
+                      className={`flex-1 rounded-lg border-2 border-dashed p-2 text-center transition-all ${
+                        selectedUma
+                          ? `border-solid ${key === "first" ? "border-yellow-500/60" : key === "second" ? "border-gray-400/60" : "border-amber-600/60"} bg-gray-700/60`
+                          : "border-gray-600/40 bg-gray-900/30"
+                      }`}
                     >
-                      <option value="">Select Uma...</option>
-                      {allDraftedUmas
-                        .filter((u) => !selectedIds.includes(u.id.toString()))
-                        .map((u) => (
-                          <option key={u.id} value={u.id.toString()}>
-                            {u.name}
-                            {u.title ? ` ${u.title}` : ""} (
-                            {u.team === "team1" ? team1Name : team2Name})
-                          </option>
-                        ))}
-                    </select>
-                  </div>
-                );
-              })}
-            </div>
+                      <div className={`text-xs font-bold ${color} mb-1`}>
+                        {label}
+                        {SCORING_MODE === "points" && (
+                          <span className="text-gray-500 font-normal ml-1">({points} pts)</span>
+                        )}
+                      </div>
+                      {selectedUma ? (
+                        <div className="flex flex-col items-center gap-1">
+                          <div className="w-10 h-10 rounded-lg overflow-hidden border border-gray-600 bg-gray-700">
+                            {selectedUma.imageUrl && (
+                              <img src={selectedUma.imageUrl} alt={selectedUma.name} className="w-full h-full object-cover" />
+                            )}
+                          </div>
+                          <span className="text-[10px] text-gray-200 leading-tight text-center">
+                            {selectedUma.name}
+                          </span>
+                          <span className={`text-[9px] ${selectedUma.team === "team1" ? "text-blue-400" : "text-red-400"}`}>
+                            {selectedUma.team === "team1" ? team1Name : team2Name}
+                          </span>
+                        </div>
+                      ) : (
+                        <div className={`w-10 h-10 mx-auto rounded-lg border-2 border-dashed border-gray-600/40 ${bg} flex items-center justify-center`}>
+                          <span className="text-gray-600 text-lg">?</span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
 
-            <div className="flex gap-3 justify-end">
-              <button
-                onClick={() => setShowMatchReporting(false)}
-                className="bg-gray-700 hover:bg-gray-600 text-gray-100 font-semibold py-1.5 px-6 rounded-lg transition-colors border border-gray-600 text-sm"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={submitRaceReport}
-                disabled={
-                  !reportPlacements.first ||
-                  !reportPlacements.second ||
-                  !reportPlacements.third
-                }
-                className="bg-purple-600 hover:bg-purple-700 disabled:bg-gray-700 disabled:text-gray-500 text-white font-semibold py-1.5 px-6 rounded-lg transition-colors text-sm"
-              >
-                {isMultiplayer ? "Submit for Confirmation" : "Confirm Result"}
-              </button>
+              {/* Instruction */}
+              <p className="text-xs text-gray-500 text-center mb-3">
+                Click a character to assign them to the next open placement slot. Click again to remove.
+              </p>
+
+              {/* Team Grids */}
+              <div className="grid grid-cols-2 gap-4 mb-6">
+                {/* Team 1 */}
+                <div className="bg-gray-900/60 rounded-lg p-3 border border-blue-500/20">
+                  <h3 className="text-blue-400 font-bold text-xs uppercase tracking-wider mb-2 text-center">
+                    {team1Name}
+                  </h3>
+                  <div className="grid grid-cols-3 gap-2">
+                    {draftState.team1.pickedUmas.map((uma) => {
+                      const slot = getSlotForUma(uma.id.toString());
+                      const isSelected = slot !== null;
+                      return (
+                        <button
+                          key={uma.id}
+                          onClick={() => handleUmaClick(uma.id.toString())}
+                          className={`relative flex flex-col items-center gap-1 p-1.5 rounded-lg transition-all cursor-pointer ${
+                            isSelected
+                              ? `ring-2 ${slotColors[slot!]}`
+                              : "hover:bg-gray-700/60 bg-gray-800/40"
+                          }`}
+                        >
+                          {isSelected && (
+                            <div className={`absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full ${slotBadgeColors[slot!]} text-[10px] font-bold flex items-center justify-center z-10`}>
+                              {slot}
+                            </div>
+                          )}
+                          <div className={`w-12 h-12 lg:w-14 lg:h-14 rounded-lg overflow-hidden border-2 bg-gray-700 transition-all ${
+                            isSelected ? "border-blue-400/60" : "border-blue-500/30"
+                          } ${!isSelected && selectedIds.length >= 3 ? "opacity-40" : ""}`}>
+                            {uma.imageUrl ? (
+                              <img src={uma.imageUrl} alt={uma.name} className="w-full h-full object-cover" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-gray-500">?</div>
+                            )}
+                          </div>
+                          <span className="text-[9px] lg:text-[10px] text-gray-300 text-center leading-tight">
+                            {uma.name}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Team 2 */}
+                <div className="bg-gray-900/60 rounded-lg p-3 border border-red-500/20">
+                  <h3 className="text-red-400 font-bold text-xs uppercase tracking-wider mb-2 text-center">
+                    {team2Name}
+                  </h3>
+                  <div className="grid grid-cols-3 gap-2">
+                    {draftState.team2.pickedUmas.map((uma) => {
+                      const slot = getSlotForUma(uma.id.toString());
+                      const isSelected = slot !== null;
+                      return (
+                        <button
+                          key={uma.id}
+                          onClick={() => handleUmaClick(uma.id.toString())}
+                          className={`relative flex flex-col items-center gap-1 p-1.5 rounded-lg transition-all cursor-pointer ${
+                            isSelected
+                              ? `ring-2 ${slotColors[slot!]}`
+                              : "hover:bg-gray-700/60 bg-gray-800/40"
+                          }`}
+                        >
+                          {isSelected && (
+                            <div className={`absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full ${slotBadgeColors[slot!]} text-[10px] font-bold flex items-center justify-center z-10`}>
+                              {slot}
+                            </div>
+                          )}
+                          <div className={`w-12 h-12 lg:w-14 lg:h-14 rounded-lg overflow-hidden border-2 bg-gray-700 transition-all ${
+                            isSelected ? "border-red-400/60" : "border-red-500/30"
+                          } ${!isSelected && selectedIds.length >= 3 ? "opacity-40" : ""}`}>
+                            {uma.imageUrl ? (
+                              <img src={uma.imageUrl} alt={uma.name} className="w-full h-full object-cover" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-gray-500">?</div>
+                            )}
+                          </div>
+                          <span className="text-[9px] lg:text-[10px] text-gray-300 text-center leading-tight">
+                            {uma.name}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3 justify-end">
+                <button
+                  onClick={() => setShowMatchReporting(false)}
+                  className="bg-gray-700 hover:bg-gray-600 text-gray-100 font-semibold py-2 px-6 rounded-lg transition-colors border border-gray-600 text-sm"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={submitRaceReport}
+                  disabled={
+                    !reportPlacements.first ||
+                    !reportPlacements.second ||
+                    !reportPlacements.third
+                  }
+                  className="bg-purple-600 hover:bg-purple-700 disabled:bg-gray-700 disabled:text-gray-500 text-white font-semibold py-2 px-6 rounded-lg transition-colors text-sm"
+                >
+                  {isMultiplayer ? "Submit for Confirmation" : "Confirm Result"}
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
     </div>
   );
 }
