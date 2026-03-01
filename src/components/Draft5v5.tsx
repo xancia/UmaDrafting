@@ -75,6 +75,98 @@ function isMatchSeriesOver(results: RaceResult[]): boolean {
   return team1Wins >= WINS_TO_WIN || team2Wins >= WINS_TO_WIN;
 }
 
+function buildPickOrderHistoryText(
+  history: DraftState[],
+  team1Name: string,
+  team2Name: string,
+): string {
+  const umaLabel = (u: { name: string; title?: string }) =>
+    u.title ? `${u.name} ${u.title}` : u.name;
+  const formatVariant = (m: { variant?: string }) =>
+    m.variant ? ` (${m.variant})` : "";
+
+  const t1n = team1Name || "Team 1";
+  const t2n = team2Name || "Team 2";
+  const pickOrder: string[] = [];
+
+  for (let i = 1; i < history.length; i++) {
+    const prev = history[i - 1];
+    const curr = history[i];
+
+    // Pre-bans
+    if (
+      (curr.team1.preBannedUmas?.length || 0) >
+      (prev.team1.preBannedUmas?.length || 0)
+    ) {
+      const newBans = curr.team1.preBannedUmas.slice(
+        prev.team1.preBannedUmas?.length || 0,
+      );
+      newBans.forEach((u) => pickOrder.push(`${t1n} pre-ban: ${umaLabel(u)}`));
+    }
+    if (
+      (curr.team2.preBannedUmas?.length || 0) >
+      (prev.team2.preBannedUmas?.length || 0)
+    ) {
+      const newBans = curr.team2.preBannedUmas.slice(
+        prev.team2.preBannedUmas?.length || 0,
+      );
+      newBans.forEach((u) => pickOrder.push(`${t2n} pre-ban: ${umaLabel(u)}`));
+    }
+
+    // Uma picks
+    if (curr.team1.pickedUmas.length > prev.team1.pickedUmas.length) {
+      const newPicks = curr.team1.pickedUmas.slice(prev.team1.pickedUmas.length);
+      newPicks.forEach((u) => pickOrder.push(`${t1n} pick: ${umaLabel(u)}`));
+    }
+    if (curr.team2.pickedUmas.length > prev.team2.pickedUmas.length) {
+      const newPicks = curr.team2.pickedUmas.slice(prev.team2.pickedUmas.length);
+      newPicks.forEach((u) => pickOrder.push(`${t2n} pick: ${umaLabel(u)}`));
+    }
+
+    // Uma bans (veto) - opposing team performs the veto
+    if (curr.team1.bannedUmas.length > prev.team1.bannedUmas.length) {
+      const newBans = curr.team1.bannedUmas.slice(prev.team1.bannedUmas.length);
+      newBans.forEach((u) => pickOrder.push(`${t2n} veto: ${umaLabel(u)}`));
+    }
+    if (curr.team2.bannedUmas.length > prev.team2.bannedUmas.length) {
+      const newBans = curr.team2.bannedUmas.slice(prev.team2.bannedUmas.length);
+      newBans.forEach((u) => pickOrder.push(`${t1n} veto: ${umaLabel(u)}`));
+    }
+
+    // Map picks
+    if (curr.team1.pickedMaps.length > prev.team1.pickedMaps.length) {
+      const newPicks = curr.team1.pickedMaps.slice(prev.team1.pickedMaps.length);
+      newPicks.forEach((m) =>
+        pickOrder.push(`${t1n} map pick: ${m.track}${formatVariant(m)} ${m.distance}m`),
+      );
+    }
+    if (curr.team2.pickedMaps.length > prev.team2.pickedMaps.length) {
+      const newPicks = curr.team2.pickedMaps.slice(prev.team2.pickedMaps.length);
+      newPicks.forEach((m) =>
+        pickOrder.push(`${t2n} map pick: ${m.track}${formatVariant(m)} ${m.distance}m`),
+      );
+    }
+
+    // Map bans - opposing team performs the ban
+    if (curr.team1.bannedMaps.length > prev.team1.bannedMaps.length) {
+      const newBans = curr.team1.bannedMaps.slice(prev.team1.bannedMaps.length);
+      newBans.forEach((m) =>
+        pickOrder.push(`${t2n} map ban: ${m.track}${formatVariant(m)} ${m.distance}m`),
+      );
+    }
+    if (curr.team2.bannedMaps.length > prev.team2.bannedMaps.length) {
+      const newBans = curr.team2.bannedMaps.slice(prev.team2.bannedMaps.length);
+      newBans.forEach((m) =>
+        pickOrder.push(`${t1n} map ban: ${m.track}${formatVariant(m)} ${m.distance}m`),
+      );
+    }
+  }
+
+  return pickOrder.length > 0
+    ? `=== PICK ORDER ===\n\n${pickOrder.map((s, i) => `${i + 1}. ${s}`).join("\n")}`
+    : "No pick order history available.";
+}
+
 // ─── Match Result Types ──────────────────────────────────────────────
 interface RacePlacement {
   position: 1 | 2 | 3;
@@ -261,6 +353,38 @@ export default function Draft5v5({
       clearDraftSession();
     }
   }, [seriesOver, isMultiplayer]);
+
+  // Host emits finalized pick-order text exactly once when draft completes.
+  useEffect(() => {
+    if (!isMultiplayer || !isHost || draftState.phase !== "complete") return;
+    if (draftState.pickOrderHistoryText) return;
+
+    const draftHistory =
+      history[history.length - 1] === draftState
+        ? history
+        : [...history, draftState];
+    const pickOrderHistoryText = buildPickOrderHistoryText(
+      draftHistory,
+      team1Name,
+      team2Name,
+    );
+    const newState: DraftState = {
+      ...draftState,
+      pickOrderHistoryText,
+    };
+
+    draftStateRef.current = newState;
+    setDraftState(newState);
+    syncUpdateDraftState(newState);
+  }, [
+    isMultiplayer,
+    isHost,
+    draftState,
+    history,
+    team1Name,
+    team2Name,
+    syncUpdateDraftState,
+  ]);
 
   // Clear pending selection when phase or turn changes
   useEffect(() => {
@@ -3137,65 +3261,15 @@ export default function Draft5v5({
                 </button>
                 <button
                   onClick={() => {
-                    const umaLabel = (u: { name: string; title?: string }) =>
-                      u.title ? `${u.name} ${u.title}` : u.name;
-                    const formatVariant = (m: { variant?: string }) =>
-                      m.variant ? ` (${m.variant})` : "";
-                    const pickOrder: string[] = [];
-                    for (let i = 1; i < history.length; i++) {
-                      const prev = history[i - 1];
-                      const curr = history[i];
-                      const t1n = team1Name || "Team 1";
-                      const t2n = team2Name || "Team 2";
-                      // Pre-bans
-                      if ((curr.team1.preBannedUmas?.length || 0) > (prev.team1.preBannedUmas?.length || 0)) {
-                        const newBans = curr.team1.preBannedUmas.slice(prev.team1.preBannedUmas?.length || 0);
-                        newBans.forEach((u) => pickOrder.push(`${t1n} pre-ban: ${umaLabel(u)}`));
-                      }
-                      if ((curr.team2.preBannedUmas?.length || 0) > (prev.team2.preBannedUmas?.length || 0)) {
-                        const newBans = curr.team2.preBannedUmas.slice(prev.team2.preBannedUmas?.length || 0);
-                        newBans.forEach((u) => pickOrder.push(`${t2n} pre-ban: ${umaLabel(u)}`));
-                      }
-                      // Uma picks
-                      if (curr.team1.pickedUmas.length > prev.team1.pickedUmas.length) {
-                        const newPicks = curr.team1.pickedUmas.slice(prev.team1.pickedUmas.length);
-                        newPicks.forEach((u) => pickOrder.push(`${t1n} pick: ${umaLabel(u)}`));
-                      }
-                      if (curr.team2.pickedUmas.length > prev.team2.pickedUmas.length) {
-                        const newPicks = curr.team2.pickedUmas.slice(prev.team2.pickedUmas.length);
-                        newPicks.forEach((u) => pickOrder.push(`${t2n} pick: ${umaLabel(u)}`));
-                      }
-                      // Uma bans (veto) - opposing team performs the veto
-                      if (curr.team1.bannedUmas.length > prev.team1.bannedUmas.length) {
-                        const newBans = curr.team1.bannedUmas.slice(prev.team1.bannedUmas.length);
-                        newBans.forEach((u) => pickOrder.push(`${t2n} veto: ${umaLabel(u)}`));
-                      }
-                      if (curr.team2.bannedUmas.length > prev.team2.bannedUmas.length) {
-                        const newBans = curr.team2.bannedUmas.slice(prev.team2.bannedUmas.length);
-                        newBans.forEach((u) => pickOrder.push(`${t1n} veto: ${umaLabel(u)}`));
-                      }
-                      // Map picks
-                      if (curr.team1.pickedMaps.length > prev.team1.pickedMaps.length) {
-                        const newPicks = curr.team1.pickedMaps.slice(prev.team1.pickedMaps.length);
-                        newPicks.forEach((m) => pickOrder.push(`${t1n} map pick: ${m.track}${formatVariant(m)} ${m.distance}m`));
-                      }
-                      if (curr.team2.pickedMaps.length > prev.team2.pickedMaps.length) {
-                        const newPicks = curr.team2.pickedMaps.slice(prev.team2.pickedMaps.length);
-                        newPicks.forEach((m) => pickOrder.push(`${t2n} map pick: ${m.track}${formatVariant(m)} ${m.distance}m`));
-                      }
-                      // Map bans - opposing team performs the ban
-                      if (curr.team1.bannedMaps.length > prev.team1.bannedMaps.length) {
-                        const newBans = curr.team1.bannedMaps.slice(prev.team1.bannedMaps.length);
-                        newBans.forEach((m) => pickOrder.push(`${t2n} map ban: ${m.track}${formatVariant(m)} ${m.distance}m`));
-                      }
-                      if (curr.team2.bannedMaps.length > prev.team2.bannedMaps.length) {
-                        const newBans = curr.team2.bannedMaps.slice(prev.team2.bannedMaps.length);
-                        newBans.forEach((m) => pickOrder.push(`${t1n} map ban: ${m.track}${formatVariant(m)} ${m.distance}m`));
-                      }
-                    }
-                    const text = pickOrder.length > 0
-                      ? `=== PICK ORDER ===\n\n${pickOrder.map((s, i) => `${i + 1}. ${s}`).join("\n")}`
-                      : "No pick order history available.";
+                    const text =
+                      draftState.pickOrderHistoryText ||
+                      buildPickOrderHistoryText(
+                        history[history.length - 1] === draftState
+                          ? history
+                          : [...history, draftState],
+                        team1Name,
+                        team2Name,
+                      );
                     navigator.clipboard.writeText(text);
                   }}
                   className="bg-gray-700/80 hover:bg-gray-600 text-gray-200 font-semibold py-2 px-6 rounded-lg transition-colors border border-gray-600/50 text-sm"

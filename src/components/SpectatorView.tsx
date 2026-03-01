@@ -64,6 +64,7 @@ export default function SpectatorView({
   const isPause = phase === "pre-draft-pause" || phase === "post-map-pause";
   const isWildcard = phase === "wildcard-reveal";
   const isLobby = phase === "lobby";
+  const hasPickOrderHistory = Boolean(draftState.pickOrderHistoryText?.trim());
 
   // Compute completed actions for timeline
   const completedActions = useMemo(() => {
@@ -665,6 +666,29 @@ export default function SpectatorView({
                     className="bg-gray-700/80 hover:bg-gray-600 text-gray-200 font-semibold py-2 px-6 rounded-lg transition-colors border border-gray-600/50 text-sm"
                   >
                     Copy Draft Results
+                  </button>
+                  <button
+                    onClick={() => {
+                      const text =
+                        draftState.pickOrderHistoryText ||
+                        "No pick order history available.";
+                      navigator.clipboard.writeText(text);
+                    }}
+                    disabled={!hasPickOrderHistory}
+                    title={
+                      hasPickOrderHistory
+                        ? "Copy pick order"
+                        : "Waiting for host to finalize pick order"
+                    }
+                    className={`font-semibold py-2 px-6 rounded-lg transition-colors border text-sm ${
+                      hasPickOrderHistory
+                        ? "bg-gray-700/80 hover:bg-gray-600 text-gray-200 border-gray-600/50"
+                        : "bg-gray-700/50 text-gray-500 border-gray-700 cursor-not-allowed"
+                    }`}
+                  >
+                    {hasPickOrderHistory
+                      ? "Copy Pick Order"
+                      : "Copy Pick Order (Waiting...)"}
                   </button>
                 </div>
               </div>
