@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import type { DraftState, Map } from "../types";
 import type { ConnectionStatus } from "../types/multiplayer";
 import type { PendingSelections } from "../types/firebase";
@@ -56,6 +56,22 @@ export default function SpectatorView({
   } = draftState;
   const [umaSearch, setUmaSearch] = useState("");
   const [copiedRoomCodeKey, setCopiedRoomCodeKey] = useState<string | null>(null);
+  const previousDraftStateRef = useRef<DraftState | null>(null);
+
+  const playUmaVoiceline = useCallback((umaId: string, type: "picked" | "banned") => {
+    const audio = new Audio(
+      `${import.meta.env.BASE_URL}Voicelines/${umaId}/${umaId}-${type}.wav`,
+    );
+    const saved = localStorage.getItem("draft5v5SfxVolume");
+    const parsed = saved ? Number(saved) : 70;
+    const volume = Number.isNaN(parsed)
+      ? 70
+      : Math.min(100, Math.max(0, parsed));
+    audio.volume = 0.9 * (volume / 100);
+    void audio.play().catch(() => {
+      // Missing files are expected while voiceline library is in progress.
+    });
+  }, []);
 
   const isUmaPhase =
     phase === "uma-pick" || phase === "uma-ban" || phase === "uma-pre-ban";
@@ -139,6 +155,42 @@ export default function SpectatorView({
     setCopiedRoomCodeKey(key);
     setTimeout(() => setCopiedRoomCodeKey(null), 2000);
   };
+
+  useEffect(() => {
+    const prev = previousDraftStateRef.current;
+    if (!prev) {
+      previousDraftStateRef.current = draftState;
+      return;
+    }
+
+    const newTeam1Picks = draftState.team1.pickedUmas.slice(
+      prev.team1.pickedUmas.length,
+    );
+    const newTeam2Picks = draftState.team2.pickedUmas.slice(
+      prev.team2.pickedUmas.length,
+    );
+    const newTeam1Bans = draftState.team1.bannedUmas.slice(
+      prev.team1.bannedUmas.length,
+    );
+    const newTeam2Bans = draftState.team2.bannedUmas.slice(
+      prev.team2.bannedUmas.length,
+    );
+    const newTeam1PreBans = draftState.team1.preBannedUmas.slice(
+      prev.team1.preBannedUmas.length,
+    );
+    const newTeam2PreBans = draftState.team2.preBannedUmas.slice(
+      prev.team2.preBannedUmas.length,
+    );
+
+    [...newTeam1Picks, ...newTeam2Picks].forEach((uma) =>
+      playUmaVoiceline(uma.id.toString(), "picked"),
+    );
+    [...newTeam1Bans, ...newTeam2Bans, ...newTeam1PreBans, ...newTeam2PreBans].forEach(
+      (uma) => playUmaVoiceline(uma.id.toString(), "banned"),
+    );
+
+    previousDraftStateRef.current = draftState;
+  }, [draftState, playUmaVoiceline]);
 
   return (
     <div className="h-screen bg-linear-to-br from-gray-950 to-gray-900 flex gap-2 lg:gap-4 px-2 lg:px-4 py-2 lg:py-4 overflow-hidden">
