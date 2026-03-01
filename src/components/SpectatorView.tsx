@@ -163,24 +163,25 @@ export default function SpectatorView({
       return;
     }
 
-    const newTeam1Picks = draftState.team1.pickedUmas.slice(
-      prev.team1.pickedUmas.length,
-    );
-    const newTeam2Picks = draftState.team2.pickedUmas.slice(
-      prev.team2.pickedUmas.length,
-    );
-    const newTeam1Bans = draftState.team1.bannedUmas.slice(
-      prev.team1.bannedUmas.length,
-    );
-    const newTeam2Bans = draftState.team2.bannedUmas.slice(
-      prev.team2.bannedUmas.length,
-    );
-    const newTeam1PreBans = draftState.team1.preBannedUmas.slice(
-      prev.team1.preBannedUmas.length,
-    );
-    const newTeam2PreBans = draftState.team2.preBannedUmas.slice(
-      prev.team2.preBannedUmas.length,
-    );
+    const currentTeam1Picks = draftState.team1.pickedUmas || [];
+    const prevTeam1Picks = prev.team1.pickedUmas || [];
+    const currentTeam2Picks = draftState.team2.pickedUmas || [];
+    const prevTeam2Picks = prev.team2.pickedUmas || [];
+    const currentTeam1Bans = draftState.team1.bannedUmas || [];
+    const prevTeam1Bans = prev.team1.bannedUmas || [];
+    const currentTeam2Bans = draftState.team2.bannedUmas || [];
+    const prevTeam2Bans = prev.team2.bannedUmas || [];
+    const currentTeam1PreBans = draftState.team1.preBannedUmas || [];
+    const prevTeam1PreBans = prev.team1.preBannedUmas || [];
+    const currentTeam2PreBans = draftState.team2.preBannedUmas || [];
+    const prevTeam2PreBans = prev.team2.preBannedUmas || [];
+
+    const newTeam1Picks = currentTeam1Picks.slice(prevTeam1Picks.length);
+    const newTeam2Picks = currentTeam2Picks.slice(prevTeam2Picks.length);
+    const newTeam1Bans = currentTeam1Bans.slice(prevTeam1Bans.length);
+    const newTeam2Bans = currentTeam2Bans.slice(prevTeam2Bans.length);
+    const newTeam1PreBans = currentTeam1PreBans.slice(prevTeam1PreBans.length);
+    const newTeam2PreBans = currentTeam2PreBans.slice(prevTeam2PreBans.length);
 
     [...newTeam1Picks, ...newTeam2Picks].forEach((uma) =>
       playUmaVoiceline(uma.id.toString(), "picked"),

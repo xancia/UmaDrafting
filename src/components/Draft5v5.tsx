@@ -98,7 +98,7 @@ function buildPickOrderHistoryText(
       (curr.team1.preBannedUmas?.length || 0) >
       (prev.team1.preBannedUmas?.length || 0)
     ) {
-      const newBans = curr.team1.preBannedUmas.slice(
+      const newBans = (curr.team1.preBannedUmas || []).slice(
         prev.team1.preBannedUmas?.length || 0,
       );
       newBans.forEach((u) => pickOrder.push(`${t1n} pre-ban: ${umaLabel(u)}`));
@@ -107,7 +107,7 @@ function buildPickOrderHistoryText(
       (curr.team2.preBannedUmas?.length || 0) >
       (prev.team2.preBannedUmas?.length || 0)
     ) {
-      const newBans = curr.team2.preBannedUmas.slice(
+      const newBans = (curr.team2.preBannedUmas || []).slice(
         prev.team2.preBannedUmas?.length || 0,
       );
       newBans.forEach((u) => pickOrder.push(`${t2n} pre-ban: ${umaLabel(u)}`));
@@ -565,15 +565,16 @@ export default function Draft5v5({
       (multiplayerConfig?.isHost ? "team1" : "team2");
     const enemyTeam = myTeam === "team1" ? "team2" : "team1";
 
-    const newEnemyPicks = syncedDraftState[enemyTeam].pickedUmas.slice(
-      prevSynced[enemyTeam].pickedUmas.length,
-    );
-    const newEnemyBans = syncedDraftState[enemyTeam].bannedUmas.slice(
-      prevSynced[enemyTeam].bannedUmas.length,
-    );
-    const newEnemyPreBans = syncedDraftState[enemyTeam].preBannedUmas.slice(
-      prevSynced[enemyTeam].preBannedUmas.length,
-    );
+    const syncedEnemyPicks = syncedDraftState[enemyTeam].pickedUmas || [];
+    const prevEnemyPicks = prevSynced[enemyTeam].pickedUmas || [];
+    const syncedEnemyBans = syncedDraftState[enemyTeam].bannedUmas || [];
+    const prevEnemyBans = prevSynced[enemyTeam].bannedUmas || [];
+    const syncedEnemyPreBans = syncedDraftState[enemyTeam].preBannedUmas || [];
+    const prevEnemyPreBans = prevSynced[enemyTeam].preBannedUmas || [];
+
+    const newEnemyPicks = syncedEnemyPicks.slice(prevEnemyPicks.length);
+    const newEnemyBans = syncedEnemyBans.slice(prevEnemyBans.length);
+    const newEnemyPreBans = syncedEnemyPreBans.slice(prevEnemyPreBans.length);
 
     newEnemyPicks.forEach((uma) => playUmaVoiceline(uma, "picked"));
     [...newEnemyBans, ...newEnemyPreBans].forEach((uma) =>
