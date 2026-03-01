@@ -532,6 +532,20 @@ export default function Draft5v5({
     });
   }, []);
 
+  const playUmaVoiceline = useCallback(
+    (uma: UmaMusume, type: "picked" | "banned") => {
+      const umaId = uma.id.toString();
+      const audio = new Audio(
+        `${import.meta.env.BASE_URL}Voicelines/${umaId}/${umaId}-${type}.wav`,
+      );
+      audio.volume = 0.9 * (sfxVolume / 100);
+      void audio.play().catch(() => {
+        // File may not exist yet for all cards, or playback may be blocked.
+      });
+    },
+    [sfxVolume],
+  );
+
   // Timer authority: you control timer when it's your turn (or always in local mode)
   const isTimerAuthority =
     !isMultiplayer || draftState.currentTeam === localTeam;
@@ -676,6 +690,10 @@ export default function Draft5v5({
       if (pendingUma && isUmaPhaseNow) {
         console.log("Locking in pending uma:", pendingUma.name);
         playSfx(timeoutClickSfxKey);
+        playUmaVoiceline(
+          pendingUma,
+          currentState.phase === "uma-pick" ? "picked" : "banned",
+        );
         if (isMultiplayer && !isHost) {
           sendAction(
             pendingUma.id.toString(),
@@ -729,6 +747,10 @@ export default function Draft5v5({
 
       if (selection.type === "uma") {
         const uma = selection.item as UmaMusume;
+        playUmaVoiceline(
+          uma,
+          currentState.phase === "uma-pick" ? "picked" : "banned",
+        );
         if (isMultiplayer && !isHost) {
           sendAction(
             uma.id.toString(),
@@ -785,6 +807,7 @@ export default function Draft5v5({
     pendingUma,
     pendingMap,
     playSfx,
+    playUmaVoiceline,
   ]);
 
   // Calculate total picks for turn key - ensures timer resets after each pick in double-pick scenarios
@@ -1539,6 +1562,7 @@ export default function Draft5v5({
     // Only update if state changed (permission check passed)
     if (newState !== draftState) {
       console.log("Selection allowed, updating state");
+      playUmaVoiceline(uma, draftState.phase === "uma-pick" ? "picked" : "banned");
       setUmaSearch("");
       if (isMultiplayer && isHost) {
         // Host broadcasts state to all peers and updates local state
