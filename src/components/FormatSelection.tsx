@@ -327,6 +327,15 @@ export default function FormatSelection({
                     <span className="text-green-400">•</span>
                     <span>If racing on stream, wait for spectator to join</span>
                   </li>
+                  <li className="flex gap-2">
+                    <span className="text-green-400">•</span>
+                    <span>
+                      <strong>Same 10 uma in every race:</strong> Each player
+                      must use the same uma across all races. If you finished
+                      multiple careers, whichever uma you use in the first race
+                      is the one you must use for the entire set.
+                    </span>
+                  </li>
                 </ul>
               </div>
 
