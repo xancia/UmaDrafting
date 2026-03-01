@@ -617,8 +617,8 @@ export default function SpectatorView({
                   </div>
                 </div>
 
-                {/* Copy Results */}
-                <div className="flex justify-center">
+                {/* Copy Results & Copy Pick Order */}
+                <div className="flex justify-center gap-3">
                   <button
                     onClick={() => {
                       const umaLabel = (u: { name: string; title?: string }) =>
@@ -641,13 +641,25 @@ export default function SpectatorView({
                       const t2Bans = team2.bannedUmas
                         .map(umaLabel)
                         .join(", ");
-                      const maps = [...team1.pickedMaps, ...team2.pickedMaps]
+                      const formatConditions = (m: Map) =>
+                        m.conditions
+                          ? ` [${m.conditions.season} / ${m.conditions.weather} / ${m.conditions.ground}]`
+                          : "";
+                      const formatVariant = (m: Map) =>
+                        m.variant ? ` (${m.variant})` : "";
+                      const maps = [
+                        ...team1.pickedMaps,
+                        ...team2.pickedMaps,
+                      ]
                         .map(
                           (m, i) =>
-                            `${i + 1}. ${m.track} ${m.distance}m (${m.surface})`,
+                            `${i + 1}. ${m.track}${formatVariant(m)} ${m.distance}m (${m.surface})${formatConditions(m)}`,
                         )
                         .join("\n");
-                      const text = `=== DRAFT RESULTS ===\n\n${team1Name}: ${t1Umas}\nPre-banned: ${t1PreBans || "None"}\nBanned: ${t1Bans || "None"}\n\n${team2Name}: ${t2Umas}\nPre-banned: ${t2PreBans || "None"}\nBanned: ${t2Bans || "None"}\n\nMap Schedule:\n${maps}\n\nTiebreaker: ${wildcardMap.track} ${wildcardMap.distance}m (${wildcardMap.surface})`;
+                      const wcConditions = formatConditions(wildcardMap);
+                      const wc = wildcardMap;
+
+                      const text = `=== DRAFT RESULTS ===\n\n${team1Name}: ${t1Umas}\nPre-Banned: ${t1PreBans || "None"}\nVetoed: ${t1Bans || "None"}\n\n${team2Name}: ${t2Umas}\nPre-Banned: ${t2PreBans || "None"}\nVetoed: ${t2Bans || "None"}\n\nMap Schedule:\n${maps}\n\nTiebreaker: ${wc.track}${formatVariant(wc)} ${wc.distance}m (${wc.surface})${wcConditions}`;
                       navigator.clipboard.writeText(text);
                     }}
                     className="bg-gray-700/80 hover:bg-gray-600 text-gray-200 font-semibold py-2 px-6 rounded-lg transition-colors border border-gray-600/50 text-sm"
