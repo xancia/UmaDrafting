@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import type { DraftPhase, Team, Map } from "../types";
 import type { ConnectionStatus } from "../types/multiplayer";
 import { formatRoomCode } from "../utils/roomCode";
@@ -25,6 +26,9 @@ interface DraftHeaderProps {
   timerEnabled?: boolean;
   // Timeline props
   completedActions?: number;
+  // SFX volume controls
+  sfxVolume?: number;
+  onSfxVolumeChange?: (volume: number) => void;
 }
 
 export default function DraftHeader({
@@ -46,7 +50,35 @@ export default function DraftHeader({
   timeRemaining,
   timerEnabled = true,
   completedActions = 0,
+  sfxVolume = 70,
+  onSfxVolumeChange,
 }: DraftHeaderProps) {
+  const [showSfxSlider, setShowSfxSlider] = useState(false);
+  const sfxPopoverRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!showSfxSlider) return;
+
+    const handleOutsideClick = (e: MouseEvent) => {
+      if (!sfxPopoverRef.current?.contains(e.target as Node)) {
+        setShowSfxSlider(false);
+      }
+    };
+
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setShowSfxSlider(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleOutsideClick);
+    document.addEventListener("keydown", handleEscape);
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [showSfxSlider]);
+
   // Timer display helpers
   const isTimerActive =
     timerEnabled &&
@@ -163,7 +195,7 @@ export default function DraftHeader({
           </div>
         )}
 
-        {/* Right: buttons + multiplayer info */}
+        {/* Right: action buttons */}
         <div className="flex-1 flex justify-end items-center gap-2 lg:gap-3">
           {!isSpectator && (
             <>
@@ -181,6 +213,54 @@ export default function DraftHeader({
                 Reset
               </button>
             </>
+          )}
+          {onSfxVolumeChange && (
+            <div className="relative hidden md:block" ref={sfxPopoverRef}>
+              <button
+                type="button"
+                onClick={() => setShowSfxSlider((prev) => !prev)}
+                className="bg-gray-700/80 text-gray-100 font-semibold py-1.5 px-2.5 rounded-lg hover:bg-gray-600 transition-colors border border-gray-600/50"
+                aria-label="Sound effects volume"
+                aria-expanded={showSfxSlider}
+                title={`SFX Volume: ${sfxVolume}%`}
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+                  <path d="M15.5 8.5a5 5 0 0 1 0 7" />
+                  <path d="M18.5 5.5a9 9 0 0 1 0 13" />
+                </svg>
+              </button>
+              {showSfxSlider && (
+                <div className="absolute right-0 mt-2 z-20 bg-gray-800 border border-gray-600/60 rounded-lg px-3 py-2 shadow-xl">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] lg:text-xs text-gray-400 font-semibold">
+                      SFX
+                    </span>
+                    <input
+                      type="range"
+                      min={0}
+                      max={100}
+                      step={1}
+                      value={sfxVolume}
+                      onChange={(e) => onSfxVolumeChange(Number(e.target.value))}
+                      className="w-24 lg:w-28 accent-blue-500"
+                      aria-label="Sound effects volume slider"
+                    />
+                    <span className="text-[10px] lg:text-xs text-gray-300 font-mono w-9 text-right">
+                      {sfxVolume}%
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
           )}
           <button
             onClick={onBackToMenu}

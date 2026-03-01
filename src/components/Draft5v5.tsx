@@ -201,6 +201,23 @@ interface Draft5v5Props {
   multiplayerConfig?: MultiplayerConfig;
 }
 
+type SfxKey =
+  | "banButtonHover"
+  | "banButtonClick"
+  | "lockInButtonHover"
+  | "lockInButtonClick"
+  | "timerTickSmall"
+  | "timerTick";
+
+const SFX_BASE_VOLUMES: Record<SfxKey, number> = {
+  banButtonHover: 0.7,
+  banButtonClick: 0.8,
+  lockInButtonHover: 0.7,
+  lockInButtonClick: 0.8,
+  timerTickSmall: 0.65,
+  timerTick: 0.75,
+};
+
 export default function Draft5v5({
   onBackToMenu,
   multiplayerConfig,
@@ -299,6 +316,13 @@ export default function Draft5v5({
   // Pending selection state for lock-in system
   const [pendingUma, setPendingUma] = useState<UmaMusume | null>(null);
   const [pendingMap, setPendingMap] = useState<Map | null>(null);
+  const [sfxVolume, setSfxVolume] = useState<number>(() => {
+    const saved = localStorage.getItem("draft5v5SfxVolume");
+    if (!saved) return 70;
+    const parsed = Number(saved);
+    if (Number.isNaN(parsed)) return 70;
+    return Math.min(100, Math.max(0, parsed));
+  });
 
   // Ready-up timer (5 minutes = 300 seconds)
   const [readyUpTime, setReadyUpTime] = useState<number>(300);
@@ -442,6 +466,72 @@ export default function Draft5v5({
     draftState.multiplayer?.localTeam ||
     (multiplayerConfig?.isHost ? "team1" : "team2");
 
+  const sfxRefs = useRef<Record<SfxKey, HTMLAudioElement | null>>({
+    banButtonHover: null,
+    banButtonClick: null,
+    lockInButtonHover: null,
+    lockInButtonClick: null,
+    timerTickSmall: null,
+    timerTick: null,
+  });
+  const lastTimerSecondSfxRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    const buildSfx = (filename: string, volume: number) => {
+      const audio = new Audio(
+        `${import.meta.env.BASE_URL}sound-effects/${filename}`,
+      );
+      audio.preload = "auto";
+      audio.volume = volume;
+      return audio;
+    };
+
+    sfxRefs.current.banButtonHover = buildSfx(
+      "sfx-ban-button-hover.ogg",
+      0.7,
+    );
+    sfxRefs.current.banButtonClick = buildSfx(
+      "sfx-ban-button-click.ogg",
+      0.8,
+    );
+    sfxRefs.current.lockInButtonHover = buildSfx(
+      "sfx-lockin-button-hover.ogg",
+      0.7,
+    );
+    sfxRefs.current.lockInButtonClick = buildSfx(
+      "sfx-lockin-button-click.ogg",
+      0.8,
+    );
+    sfxRefs.current.timerTickSmall = buildSfx("sfx-timer-tick-small.ogg", 0.65);
+    sfxRefs.current.timerTick = buildSfx("sfx-timer-tick.ogg", 0.75);
+
+    return () => {
+      Object.values(sfxRefs.current).forEach((audio) => {
+        if (!audio) return;
+        audio.pause();
+        audio.src = "";
+      });
+    };
+  }, []);
+
+  useEffect(() => {
+    Object.entries(sfxRefs.current).forEach(([key, audio]) => {
+      if (!audio) return;
+      const sfxKey = key as SfxKey;
+      audio.volume = SFX_BASE_VOLUMES[sfxKey] * (sfxVolume / 100);
+    });
+    localStorage.setItem("draft5v5SfxVolume", String(sfxVolume));
+  }, [sfxVolume]);
+
+  const playSfx = useCallback((key: SfxKey) => {
+    const audio = sfxRefs.current[key];
+    if (!audio) return;
+    audio.currentTime = 0;
+    void audio.play().catch(() => {
+      // Ignore browser autoplay restrictions or decode errors.
+    });
+  }, []);
+
   // Timer authority: you control timer when it's your turn (or always in local mode)
   const isTimerAuthority =
     !isMultiplayer || draftState.currentTeam === localTeam;
@@ -529,6 +619,12 @@ export default function Draft5v5({
     // reset effects have committed — no arbitrary timeout guesses.
     const processAction = new Promise<void>((resolve) => {
       console.log("Turn timeout triggered, current phase:", currentState.phase);
+      const timeoutClickSfxKey: SfxKey =
+        currentState.phase === "uma-ban" ||
+        currentState.phase === "uma-pre-ban" ||
+        currentState.phase === "map-ban"
+          ? "banButtonClick"
+          : "lockInButtonClick";
 
       // Determine if we're in a uma or map phase
       const isUmaPhaseNow =
@@ -579,6 +675,7 @@ export default function Draft5v5({
       // If user has a pending selection, lock it in
       if (pendingUma && isUmaPhaseNow) {
         console.log("Locking in pending uma:", pendingUma.name);
+        playSfx(timeoutClickSfxKey);
         if (isMultiplayer && !isHost) {
           sendAction(
             pendingUma.id.toString(),
@@ -597,6 +694,7 @@ export default function Draft5v5({
 
       if (pendingMap && isMapPhaseNow) {
         console.log("Locking in pending map:", pendingMap.name);
+        playSfx(timeoutClickSfxKey);
         if (isMultiplayer && !isHost) {
           sendAction(
             pendingMap.name,
@@ -627,6 +725,7 @@ export default function Draft5v5({
       }
 
       console.log("Auto-selecting:", selection.type, selection.item);
+      playSfx(timeoutClickSfxKey);
 
       if (selection.type === "uma") {
         const uma = selection.item as UmaMusume;
@@ -685,6 +784,7 @@ export default function Draft5v5({
     sendDraftAction,
     pendingUma,
     pendingMap,
+    playSfx,
   ]);
 
   // Calculate total picks for turn key - ensures timer resets after each pick in double-pick scenarios
@@ -722,6 +822,34 @@ export default function Draft5v5({
     currentTurnKey,
     isTimerAuthority,
   });
+
+  useEffect(() => {
+    const isActiveDraftPhase =
+      draftState.phase === "map-pick" ||
+      draftState.phase === "map-ban" ||
+      draftState.phase === "uma-pick" ||
+      draftState.phase === "uma-ban" ||
+      draftState.phase === "uma-pre-ban";
+
+    if (!isActiveDraftPhase || !isTimerAuthority) {
+      lastTimerSecondSfxRef.current = null;
+      return;
+    }
+
+    if (timeRemaining <= 0 || timeRemaining > 10) {
+      lastTimerSecondSfxRef.current = null;
+      return;
+    }
+
+    if (lastTimerSecondSfxRef.current === timeRemaining) return;
+    lastTimerSecondSfxRef.current = timeRemaining;
+
+    if (timeRemaining >= 6) {
+      playSfx("timerTickSmall");
+    } else {
+      playSfx("timerTick");
+    }
+  }, [timeRemaining, draftState.phase, isTimerAuthority, playSfx]);
 
   // Initialize Firebase room (create or join)
   useEffect(() => {
@@ -2377,6 +2505,8 @@ export default function Draft5v5({
             timeRemaining={timeRemaining}
             timerEnabled={true}
             completedActions={completedActions}
+            sfxVolume={sfxVolume}
+            onSfxVolumeChange={setSfxVolume}
           />
         </div>
 
@@ -3331,7 +3461,24 @@ export default function Draft5v5({
                     return (
                       <>
                         <button
-                          onClick={isMyTurn ? handleLockIn : undefined}
+                          onMouseEnter={() => {
+                            if (!isMyTurn) return;
+                            playSfx(
+                              isBanPhase ? "banButtonHover" : "lockInButtonHover",
+                            );
+                          }}
+                          onClick={
+                            isMyTurn
+                              ? () => {
+                                  playSfx(
+                                    isBanPhase
+                                      ? "banButtonClick"
+                                      : "lockInButtonClick",
+                                  );
+                                  handleLockIn();
+                                }
+                              : undefined
+                          }
                           disabled={!isMyTurn}
                           className={`${
                             !isMyTurn
