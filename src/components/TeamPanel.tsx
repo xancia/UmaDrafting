@@ -236,21 +236,9 @@ export default function TeamPanel({
       </div>
 
       <div className="mt-0.5 lg:mt-1 shrink-0">
-        <div className="flex items-baseline justify-between mb-1 lg:mb-2">
-          <h3 className="text-sm lg:text-base xl:text-lg font-bold text-gray-300 uppercase tracking-wider">
-            Umamusume <span className="text-sm">({pickedUmas.length}/6)</span>
-          </h3>
-          {preBannedUmas.length > 0 && (
-            <span className="text-[10px] text-orange-400/80">
-              <span className="uppercase font-semibold tracking-wider">
-                Ban:
-              </span>{" "}
-              <span className="text-orange-300/70 line-through">
-                {preBannedUmas.map((u) => u.name).join(", ")}
-              </span>
-            </span>
-          )}
-        </div>
+        <h3 className="text-sm lg:text-base xl:text-lg font-bold text-gray-300 uppercase tracking-wider mb-1 lg:mb-2">
+          Umamusume <span className="text-sm">({pickedUmas.length}/6)</span>
+        </h3>
 
         <div className="grid grid-cols-3 gap-1 lg:gap-1.5">
           {[...Array(6)].map((_, index) => {
@@ -343,46 +331,93 @@ export default function TeamPanel({
           })}
         </div>
 
-        {/* Vetoed row */}
-        {bannedUmas.length > 0 && (
-          <div className="mt-1.5 pt-1.5 border-t border-gray-700/50">
-            <p className="text-[10px] text-red-300/80 uppercase tracking-wider font-semibold mb-1">
-              Vetoed by Enemy Team:
-            </p>
-            <div className="grid grid-cols-6 gap-1">
-              {bannedUmas.map((uma) => (
-                <div
-                  key={`veto-${uma.id}`}
-                  className="aspect-square rounded-md border border-red-500/50 bg-gray-600/90 shadow-md overflow-hidden relative"
-                >
-                  <div className="relative w-full h-full group">
-                    <img
-                      src={uma.imageUrl}
-                      alt={uma.name}
-                      className="w-full h-full object-cover grayscale opacity-50"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).style.display = "none";
-                      }}
-                    />
-                    <div className="absolute inset-0 flex items-center justify-center text-red-500 text-xl font-bold drop-shadow-lg">
-                      X
+        {/* Banned & Vetoed row */}
+        {(preBannedUmas.length > 0 || bannedUmas.length > 0) && (
+          <div className="mt-1.5 pt-1.5 border-t border-gray-700/50 flex justify-between gap-2">
+            {/* Pre-banned (left) */}
+            {preBannedUmas.length > 0 ? (
+              <div>
+                <p className="text-[10px] text-orange-300/80 uppercase tracking-wider font-semibold mb-1">
+                  Banned:
+                </p>
+                <div className="flex gap-1">
+                  {preBannedUmas.map((uma) => (
+                    <div
+                      key={`preban-${uma.id}`}
+                      className="w-[60px] h-[60px] rounded-md border border-orange-500/50 bg-gray-600/90 shadow-md overflow-hidden relative shrink-0"
+                    >
+                      <div className="relative w-full h-full group">
+                        <img
+                          src={uma.imageUrl}
+                          alt={uma.name}
+                          className="w-full h-full object-cover grayscale opacity-50"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).style.display = "none";
+                          }}
+                        />
+                        <div className="absolute inset-0 flex items-center justify-center text-orange-500 text-xl font-bold drop-shadow-lg">
+                          X
+                        </div>
+                        <div className="absolute inset-0 bg-black/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center p-1">
+                          <span className="text-[10px] font-semibold text-center whitespace-pre-line leading-tight break-words text-white">
+                            {uma.name}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="absolute bottom-0 inset-x-0 bg-orange-900/80 py-px">
+                        <span className="text-[6px] text-orange-300 font-bold uppercase text-center block tracking-wider">
+                          Banned
+                        </span>
+                      </div>
                     </div>
-                    <div className="absolute inset-0 bg-black/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center p-1">
-                      <span className="text-[10px] font-semibold text-center whitespace-pre-line leading-tight break-words text-white">
-                        {uma.name}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="absolute bottom-0 inset-x-0 bg-red-900/80 py-px">
-                    <span className="text-[6px] text-red-300 font-bold uppercase text-center block tracking-wider">
-                      Vetoed
-                    </span>
-                  </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              </div>
+            ) : <div />}
+
+            {/* Vetoed (right) */}
+            {bannedUmas.length > 0 ? (
+              <div className="ml-auto">
+                <p className="text-[10px] text-red-300/80 uppercase tracking-wider font-semibold mb-1 text-right">
+                  Vetoed by Enemy Team:
+                </p>
+                <div className="flex gap-1 justify-end">
+                  {bannedUmas.map((uma) => (
+                    <div
+                      key={`veto-${uma.id}`}
+                      className="w-[60px] h-[60px] rounded-md border border-red-500/50 bg-gray-600/90 shadow-md overflow-hidden relative shrink-0"
+                    >
+                      <div className="relative w-full h-full group">
+                        <img
+                          src={uma.imageUrl}
+                          alt={uma.name}
+                          className="w-full h-full object-cover grayscale opacity-50"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).style.display = "none";
+                          }}
+                        />
+                        <div className="absolute inset-0 flex items-center justify-center text-red-500 text-xl font-bold drop-shadow-lg">
+                          X
+                        </div>
+                        <div className="absolute inset-0 bg-black/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center p-1">
+                          <span className="text-[10px] font-semibold text-center whitespace-pre-line leading-tight break-words text-white">
+                            {uma.name}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="absolute bottom-0 inset-x-0 bg-red-900/80 py-px">
+                        <span className="text-[6px] text-red-300 font-bold uppercase text-center block tracking-wider">
+                          Vetoed
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : <div />}
           </div>
         )}
+
       </div>
     </div>
   );
