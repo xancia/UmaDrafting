@@ -592,3 +592,33 @@ export function subscribeToPendingSelections(
     callback(val ?? {});
   });
 }
+
+// ---------------------------------------------------------------------------
+// Per-race Room Codes
+// ---------------------------------------------------------------------------
+
+/**
+ * Updates per-race room codes for the room.
+ * Both host and player 2 can call this — keys are per-race so they don't conflict.
+ */
+export async function updateRoomCodes(
+  roomCode: string,
+  codes: Record<string, string>,
+): Promise<void> {
+  await set(ref(db, buildPath.roomCodes(roomCode)), codes);
+}
+
+/**
+ * Subscribe to per-race room codes.
+ * Fires whenever any room code is added or changed.
+ */
+export function subscribeToRoomCodes(
+  roomCode: string,
+  callback: (codes: Record<string, string>) => void,
+): Unsubscribe {
+  const codesRef = ref(db, buildPath.roomCodes(roomCode));
+  return onValue(codesRef, (snapshot) => {
+    const val = snapshot.val() as Record<string, string> | null;
+    callback(val ?? {});
+  });
+}

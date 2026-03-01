@@ -132,6 +132,8 @@ export default function Draft5v5({
     setPendingActionHandler,
     updatePendingSelection,
     pendingSelections,
+    firebaseRoomCodes,
+    updateRoomCodes: firebaseUpdateRoomCodes,
   } = useFirebaseRoom();
 
   // Use Firebase room code, or fallback to config for joiners
@@ -214,7 +216,16 @@ export default function Draft5v5({
   const [isRetryingJoin, setIsRetryingJoin] = useState<boolean>(false);
 
   // Match reporting state
-  const [roomCodes, setRoomCodes] = useState<Record<string, string>>({});
+  // In multiplayer, room codes are synced via Firebase; in local mode, use local state
+  const [localRoomCodes, setLocalRoomCodes] = useState<Record<string, string>>({});
+  const roomCodes = isMultiplayer ? firebaseRoomCodes : localRoomCodes;
+  const setRoomCodes = isMultiplayer
+    ? (updater: Record<string, string> | ((prev: Record<string, string>) => Record<string, string>)) => {
+        const newCodes = typeof updater === "function" ? updater(firebaseRoomCodes) : updater;
+        firebaseUpdateRoomCodes(newCodes);
+      }
+    : setLocalRoomCodes;
+  const [copiedRoomCodeKey, setCopiedRoomCodeKey] = useState<string | null>(null);
   const [matchResults, setMatchResults] = useState<RaceResult[]>([]);
   const [showMatchReporting, setShowMatchReporting] = useState<boolean>(false);
   const [pendingReport, setPendingReport] = useState<PendingReport | null>(
@@ -2172,6 +2183,7 @@ export default function Draft5v5({
         onBackToMenu={onBackToMenu}
         timeRemaining={timeRemaining}
         pendingSelections={pendingSelections}
+        roomCodes={roomCodes}
       />
     );
   }
@@ -2942,11 +2954,15 @@ export default function Draft5v5({
                           />
                           {roomCodes[`map-${s.index}`] && (
                             <button
-                              onClick={() => navigator.clipboard.writeText(roomCodes[`map-${s.index}`])}
-                              className="text-[10px] px-1.5 py-0.5 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded transition-colors"
+                              onClick={() => {
+                                navigator.clipboard.writeText(roomCodes[`map-${s.index}`]);
+                                setCopiedRoomCodeKey(`map-${s.index}`);
+                                setTimeout(() => setCopiedRoomCodeKey(null), 2000);
+                              }}
+                              className={`text-[10px] px-1.5 py-0.5 rounded transition-colors ${copiedRoomCodeKey === `map-${s.index}` ? "bg-green-700 text-green-200" : "bg-gray-700 hover:bg-gray-600 text-gray-300"}`}
                               title="Copy room code"
                             >
-                              Copy
+                              {copiedRoomCodeKey === `map-${s.index}` ? "Copied!" : "Copy"}
                             </button>
                           )}
                         </div>
@@ -3008,11 +3024,15 @@ export default function Draft5v5({
                     />
                     {roomCodes["tiebreaker"] && (
                       <button
-                        onClick={() => navigator.clipboard.writeText(roomCodes["tiebreaker"])}
-                        className="text-[10px] px-1.5 py-0.5 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded transition-colors"
+                        onClick={() => {
+                          navigator.clipboard.writeText(roomCodes["tiebreaker"]);
+                          setCopiedRoomCodeKey("tiebreaker");
+                          setTimeout(() => setCopiedRoomCodeKey(null), 2000);
+                        }}
+                        className={`text-[10px] px-1.5 py-0.5 rounded transition-colors ${copiedRoomCodeKey === "tiebreaker" ? "bg-green-700 text-green-200" : "bg-gray-700 hover:bg-gray-600 text-gray-300"}`}
                         title="Copy room code"
                       >
-                        Copy
+                        {copiedRoomCodeKey === "tiebreaker" ? "Copied!" : "Copy"}
                       </button>
                     )}
                   </div>

@@ -95,6 +95,8 @@ export const DB_PATHS = {
   PENDING_ACTIONS: "pendingActions",
   /** Path to pending selections (what players are hovering) */
   PENDING_SELECTIONS: "pendingSelections",
+  /** Path to per-race room codes (relative to room) */
+  ROOM_CODES: "roomCodes",
 } as const;
 
 /**
@@ -126,4 +128,7 @@ export const buildPath = {
   /** Get path to pending selections */
   pendingSelections: (roomId: string) =>
     `${DB_PATHS.ROOMS}/${roomId}/${DB_PATHS.PENDING_SELECTIONS}`,
+  /** Get path to per-race room codes */
+  roomCodes: (roomId: string) =>
+    `${DB_PATHS.ROOMS}/${roomId}/${DB_PATHS.ROOM_CODES}`,
 } as const;

@@ -24,6 +24,8 @@ interface SpectatorViewProps {
   timeRemaining?: number;
   /** Ghost pending selections from both teams */
   pendingSelections?: PendingSelections;
+  /** Per-race room codes synced from Firebase */
+  roomCodes?: Record<string, string>;
 }
 
 /**
@@ -41,6 +43,7 @@ export default function SpectatorView({
   onBackToMenu,
   timeRemaining,
   pendingSelections = {},
+  roomCodes = {},
 }: SpectatorViewProps) {
   const {
     phase,
@@ -52,6 +55,7 @@ export default function SpectatorView({
     availableMaps,
   } = draftState;
   const [umaSearch, setUmaSearch] = useState("");
+  const [copiedRoomCodeKey, setCopiedRoomCodeKey] = useState<string | null>(null);
 
   const isUmaPhase =
     phase === "uma-pick" || phase === "uma-ban" || phase === "uma-pre-ban";
@@ -128,6 +132,12 @@ export default function SpectatorView({
   // Distance/dirt constraint indicators
   const team1DistanceCounts = countDistances(team1.pickedMaps);
   const team2DistanceCounts = countDistances(team2.pickedMaps);
+
+  const handleCopyRoomCode = (key: string, value: string) => {
+    navigator.clipboard.writeText(value);
+    setCopiedRoomCodeKey(key);
+    setTimeout(() => setCopiedRoomCodeKey(null), 2000);
+  };
 
   return (
     <div className="h-screen bg-linear-to-br from-gray-950 to-gray-900 flex gap-2 lg:gap-4 px-2 lg:px-4 py-2 lg:py-4 overflow-hidden">
@@ -395,6 +405,16 @@ export default function SpectatorView({
                         </div>
                       ))}
                     </div>
+                    {(team1.preBannedUmas?.length ?? 0) > 0 && (
+                      <div className="mt-1 pt-1 border-t border-gray-700/50">
+                        <span className="text-[9px] text-orange-400/70 uppercase">
+                          Pre-banned:{" "}
+                        </span>
+                        <span className="text-[9px] text-gray-500">
+                          {team1.preBannedUmas!.map((u) => u.name).join(", ")}
+                        </span>
+                      </div>
+                    )}
                     {team1.bannedUmas.length > 0 && (
                       <div className="mt-1 pt-1 border-t border-gray-700/50">
                         <span className="text-[9px] text-red-400/70 uppercase">
@@ -433,6 +453,16 @@ export default function SpectatorView({
                         </div>
                       ))}
                     </div>
+                    {(team2.preBannedUmas?.length ?? 0) > 0 && (
+                      <div className="mt-1 pt-1 border-t border-gray-700/50">
+                        <span className="text-[9px] text-orange-400/70 uppercase">
+                          Pre-banned:{" "}
+                        </span>
+                        <span className="text-[9px] text-gray-500">
+                          {team2.preBannedUmas!.map((u) => u.name).join(", ")}
+                        </span>
+                      </div>
+                    )}
                     {team2.bannedUmas.length > 0 && (
                       <div className="mt-1 pt-1 border-t border-gray-700/50">
                         <span className="text-[9px] text-red-400/70 uppercase">
@@ -489,20 +519,39 @@ export default function SpectatorView({
                           <span className="text-gray-200 font-medium">
                             {s.map.track}
                           </span>
-                          <span className="text-gray-500">
-                            {s.map.distance}m
-                          </span>
+                          {s.map.variant && (
+                            <span className="text-gray-400 text-xs">
+                              ({s.map.variant})
+                            </span>
+                          )}
+                          <span className="text-gray-500">{s.map.distance}m</span>
                           <span
                             className={`text-xs px-1.5 py-0.5 rounded ${s.map.surface?.toLowerCase() === "turf" ? "bg-green-900/40 text-green-400" : "bg-amber-900/40 text-amber-400"}`}
                           >
                             {s.map.surface}
                           </span>
-                          {s.map.conditions && (
-                            <span className="text-gray-500 text-xs ml-auto">
-                              {s.map.conditions.season} /{" "}
-                              {s.map.conditions.ground} /{" "}
-                              {s.map.conditions.weather}
-                            </span>
+                          <span className="text-gray-500 text-xs ml-auto">
+                            {s.map.direction === "right"
+                              ? "Right"
+                              : s.map.direction === "left"
+                                ? "Left"
+                                : "Straight"}
+                            {s.map.conditions &&
+                              ` / ${s.map.conditions.season} / ${s.map.conditions.ground} / ${s.map.conditions.weather}`}
+                          </span>
+                          {roomCodes[`map-${s.index}`] && (
+                            <div className="flex items-center gap-1 ml-2">
+                              <span className="text-xs text-gray-300 font-mono bg-gray-800 px-2 py-0.5 rounded border border-gray-600">
+                                {roomCodes[`map-${s.index}`]}
+                              </span>
+                              <button
+                                onClick={() => handleCopyRoomCode(`map-${s.index}`, roomCodes[`map-${s.index}`])}
+                                className={`text-[10px] px-1.5 py-0.5 rounded transition-colors ${copiedRoomCodeKey === `map-${s.index}` ? "bg-green-700 text-green-200" : "bg-gray-700 hover:bg-gray-600 text-gray-300"}`}
+                                title="Copy room code"
+                              >
+                                {copiedRoomCodeKey === `map-${s.index}` ? "Copied!" : "Copy"}
+                              </button>
+                            </div>
                           )}
                         </div>
                       ));
@@ -530,6 +579,11 @@ export default function SpectatorView({
                       <span className="text-white font-bold text-sm">
                         {wildcardMap.track}
                       </span>
+                      {wildcardMap.variant && (
+                        <span className="text-gray-400 text-xs ml-1">
+                          ({wildcardMap.variant})
+                        </span>
+                      )}
                       <span className="text-gray-400 text-xs ml-2">
                         {wildcardMap.distance}m
                       </span>
@@ -546,6 +600,20 @@ export default function SpectatorView({
                         </span>
                       )}
                     </div>
+                    {roomCodes["tiebreaker"] && (
+                      <div className="flex items-center gap-1 ml-4">
+                        <span className="text-xs text-gray-300 font-mono bg-gray-800 px-2 py-0.5 rounded border border-gray-600">
+                          {roomCodes["tiebreaker"]}
+                        </span>
+                        <button
+                          onClick={() => handleCopyRoomCode("tiebreaker", roomCodes["tiebreaker"])}
+                          className={`text-[10px] px-1.5 py-0.5 rounded transition-colors ${copiedRoomCodeKey === "tiebreaker" ? "bg-green-700 text-green-200" : "bg-gray-700 hover:bg-gray-600 text-gray-300"}`}
+                          title="Copy room code"
+                        >
+                          {copiedRoomCodeKey === "tiebreaker" ? "Copied!" : "Copy"}
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -553,17 +621,25 @@ export default function SpectatorView({
                 <div className="flex justify-center">
                   <button
                     onClick={() => {
+                      const umaLabel = (u: { name: string; title?: string }) =>
+                        u.title ? `${u.name} ${u.title}` : u.name;
                       const t1Umas = team1.pickedUmas
-                        .map((u) => u.name)
+                        .map(umaLabel)
                         .join(", ");
                       const t2Umas = team2.pickedUmas
-                        .map((u) => u.name)
+                        .map(umaLabel)
+                        .join(", ");
+                      const t1PreBans = (team1.preBannedUmas || [])
+                        .map(umaLabel)
+                        .join(", ");
+                      const t2PreBans = (team2.preBannedUmas || [])
+                        .map(umaLabel)
                         .join(", ");
                       const t1Bans = team1.bannedUmas
-                        .map((u) => u.name)
+                        .map(umaLabel)
                         .join(", ");
                       const t2Bans = team2.bannedUmas
-                        .map((u) => u.name)
+                        .map(umaLabel)
                         .join(", ");
                       const maps = [...team1.pickedMaps, ...team2.pickedMaps]
                         .map(
@@ -571,7 +647,7 @@ export default function SpectatorView({
                             `${i + 1}. ${m.track} ${m.distance}m (${m.surface})`,
                         )
                         .join("\n");
-                      const text = `=== DRAFT RESULTS ===\n\n${team1Name}: ${t1Umas}\nBanned: ${t1Bans || "None"}\n\n${team2Name}: ${t2Umas}\nBanned: ${t2Bans || "None"}\n\nMap Schedule:\n${maps}\n\nTiebreaker: ${wildcardMap.track} ${wildcardMap.distance}m (${wildcardMap.surface})`;
+                      const text = `=== DRAFT RESULTS ===\n\n${team1Name}: ${t1Umas}\nPre-banned: ${t1PreBans || "None"}\nBanned: ${t1Bans || "None"}\n\n${team2Name}: ${t2Umas}\nPre-banned: ${t2PreBans || "None"}\nBanned: ${t2Bans || "None"}\n\nMap Schedule:\n${maps}\n\nTiebreaker: ${wildcardMap.track} ${wildcardMap.distance}m (${wildcardMap.surface})`;
                       navigator.clipboard.writeText(text);
                     }}
                     className="bg-gray-700/80 hover:bg-gray-600 text-gray-200 font-semibold py-2 px-6 rounded-lg transition-colors border border-gray-600/50 text-sm"

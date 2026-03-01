@@ -205,4 +205,8 @@ export interface UseFirebaseRoomReturn {
   ) => Promise<void>;
   /** Current pending (ghost) selections from both teams */
   pendingSelections: PendingSelections;
+  /** Per-race room codes synced via Firebase */
+  firebaseRoomCodes: Record<string, string>;
+  /** Update per-race room codes in Firebase */
+  updateRoomCodes: (codes: Record<string, string>) => Promise<void>;
 }

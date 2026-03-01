@@ -81,6 +81,10 @@ export function useFirebaseRoom(): UseFirebaseRoomReturn {
     {},
   );
 
+  // Per-race room codes
+  const [firebaseRoomCodes, setFirebaseRoomCodes] = useState<Record<string, string>>({});
+  const unsubscribeRoomCodesRef = useRef<Unsubscribe | null>(null);
+
   // Derived state
   const userId = user?.uid ?? null;
   const isHost = room?.hostId === userId;
@@ -130,6 +134,7 @@ export function useFirebaseRoom(): UseFirebaseRoomReturn {
       unsubscribeRoomRef.current?.();
       unsubscribeActionsRef.current?.();
       unsubscribeSelectionsRef.current?.();
+      unsubscribeRoomCodesRef.current?.();
     };
   }, []);
 
@@ -248,6 +253,10 @@ export function useFirebaseRoom(): UseFirebaseRoomReturn {
             result.data,
             setPendingSelections,
           );
+
+        // Subscribe to per-race room codes
+        unsubscribeRoomCodesRef.current =
+          firebaseRoom.subscribeToRoomCodes(result.data, setFirebaseRoomCodes);
       } else {
         setError(new Error(result.error ?? "Failed to create room"));
       }
@@ -296,6 +305,10 @@ export function useFirebaseRoom(): UseFirebaseRoomReturn {
             setPendingSelections,
           );
 
+        // Subscribe to per-race room codes
+        unsubscribeRoomCodesRef.current =
+          firebaseRoom.subscribeToRoomCodes(data.roomCode, setFirebaseRoomCodes);
+
         // Host also subscribes to pending actions (important for reconnection)
         if (data.connectionType === "host") {
           console.log(
@@ -329,15 +342,18 @@ export function useFirebaseRoom(): UseFirebaseRoomReturn {
     unsubscribeRoomRef.current?.();
     unsubscribeActionsRef.current?.();
     unsubscribeSelectionsRef.current?.();
+    unsubscribeRoomCodesRef.current?.();
     unsubscribeRoomRef.current = null;
     unsubscribeActionsRef.current = null;
     unsubscribeSelectionsRef.current = null;
+    unsubscribeRoomCodesRef.current = null;
 
     // Reset state
     setRoom(null);
     setRoomCode(null);
     setError(null);
     setPendingSelections({});
+    setFirebaseRoomCodes({});
   }, [roomCode]);
 
   /**
@@ -407,6 +423,21 @@ export function useFirebaseRoom(): UseFirebaseRoomReturn {
     [roomCode],
   );
 
+  /**
+   * Updates per-race room codes in Firebase (both host and player 2 can call)
+   */
+  const updateRoomCodes = useCallback(
+    async (codes: Record<string, string>): Promise<void> => {
+      if (!roomCode) return;
+      try {
+        await firebaseRoom.updateRoomCodes(roomCode, codes);
+      } catch (err) {
+        console.error("Error updating room codes:", err);
+      }
+    },
+    [roomCode],
+  );
+
   return {
     // Room management
     createRoom,
@@ -433,6 +464,8 @@ export function useFirebaseRoom(): UseFirebaseRoomReturn {
     setPendingActionHandler,
     updatePendingSelection,
     pendingSelections,
+    firebaseRoomCodes,
+    updateRoomCodes,
   };
 }
 
