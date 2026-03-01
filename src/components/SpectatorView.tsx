@@ -26,6 +26,15 @@ interface SpectatorViewProps {
   pendingSelections?: PendingSelections;
   /** Per-race room codes synced from Firebase */
   roomCodes?: Record<string, string>;
+  /** Live match scores */
+  scores?: { team1Points: number; team2Points: number; team1Wins: number; team2Wins: number };
+  /** Number of races reported so far */
+  racesReported?: number;
+  /** Per-race results for breakdown display */
+  raceResults?: {
+    raceIndex: number;
+    placements: { position: number; umaName: string; umaTitle?: string; team: "team1" | "team2" }[];
+  }[];
 }
 
 /**
@@ -44,6 +53,9 @@ export default function SpectatorView({
   timeRemaining,
   pendingSelections = {},
   roomCodes = {},
+  scores,
+  racesReported = 0,
+  raceResults = [],
 }: SpectatorViewProps) {
   const {
     phase,
@@ -479,6 +491,89 @@ export default function SpectatorView({
                 <h2 className="text-2xl lg:text-3xl font-bold text-gray-100 mb-4 lg:mb-6 text-center">
                   Draft Complete
                 </h2>
+
+                {/* Live Scoreboard */}
+                {scores && (
+                  <div className="bg-gray-900/70 rounded-xl p-3 lg:p-4 border border-gray-600/40 flex items-center justify-center gap-6 lg:gap-10 mb-4 lg:mb-6">
+                    <div className="flex-1 text-center min-w-0">
+                      <p className="text-xs text-gray-400 uppercase tracking-wider mb-0.5 break-words">
+                        {team1Name}
+                      </p>
+                      <p className="text-3xl lg:text-4xl font-bold text-blue-400 font-mono">
+                        {scores.team1Points}
+                      </p>
+                    </div>
+                    <div className="shrink-0 text-center">
+                      <p className="text-xs text-gray-500 uppercase tracking-wider mb-0.5">
+                        First to 25
+                      </p>
+                      <p className="text-lg text-gray-500 font-bold">vs</p>
+                      <p className="text-[10px] text-gray-600">
+                        {racesReported} race{racesReported !== 1 ? "s" : ""} reported
+                      </p>
+                    </div>
+                    <div className="flex-1 text-center min-w-0">
+                      <p className="text-xs text-gray-400 uppercase tracking-wider mb-0.5 break-words">
+                        {team2Name}
+                      </p>
+                      <p className="text-3xl lg:text-4xl font-bold text-red-400 font-mono">
+                        {scores.team2Points}
+                      </p>
+                    </div>
+                  </div>
+                )}
+                {/* Series winner announcement */}
+                {scores && (scores.team1Points >= 25 || scores.team2Points >= 25) && (
+                  <div className="mb-4 lg:mb-6 bg-yellow-900/30 border border-yellow-600/40 rounded-lg p-3 text-center">
+                    <p className="text-yellow-400 font-bold text-lg">
+                      {scores.team1Points >= 25 ? team1Name : team2Name} wins the series!
+                    </p>
+                    <p className="text-gray-400 text-xs mt-1">
+                      Final score: {scores.team1Points} - {scores.team2Points} after{" "}
+                      {racesReported} race{racesReported !== 1 ? "s" : ""}
+                    </p>
+                  </div>
+                )}
+                {/* Race-by-race breakdown */}
+                {raceResults.length > 0 && (
+                  <div className="mb-4 lg:mb-6 space-y-1">
+                    {raceResults.map((result) => {
+                      const POINT_VALUES: Record<number, number> = { 1: 4, 2: 2, 3: 1 };
+                      const raceT1 = result.placements
+                        .filter((p) => p.team === "team1")
+                        .reduce((sum, p) => sum + (POINT_VALUES[p.position] || 0), 0);
+                      const raceT2 = result.placements
+                        .filter((p) => p.team === "team2")
+                        .reduce((sum, p) => sum + (POINT_VALUES[p.position] || 0), 0);
+                      return (
+                        <div
+                          key={result.raceIndex}
+                          className="flex items-center gap-2 px-3 py-1 bg-gray-900/30 rounded text-xs"
+                        >
+                          <span className="text-gray-500 font-mono w-5">
+                            {result.raceIndex + 1}.
+                          </span>
+                          <span className="text-gray-400 flex-1">
+                            {result.placements.map((p) => (
+                              <span
+                                key={p.position}
+                                className={`mx-0.5 ${p.team === "team1" ? "text-blue-400" : "text-red-400"}`}
+                              >
+                                {p.position === 1 ? "1st " : p.position === 2 ? "2nd " : "3rd "}
+                                {p.umaName}
+                                {p.umaTitle ? ` ${p.umaTitle}` : ""}
+                              </span>
+                            ))}
+                          </span>
+                          <span className="text-gray-500 ml-2">
+                            <span className="text-blue-400">{raceT1}</span>-
+                            <span className="text-red-400">{raceT2}</span>
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
 
                 {/* Team Rosters Side by Side */}
                 <div className="grid grid-cols-2 gap-4 lg:gap-6 mb-6">

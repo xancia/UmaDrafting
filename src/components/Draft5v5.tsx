@@ -2499,6 +2499,9 @@ export default function Draft5v5({
         timeRemaining={timeRemaining}
         pendingSelections={pendingSelections}
         roomCodes={roomCodes}
+        scores={scores}
+        racesReported={matchResults.length}
+        raceResults={matchResults}
       />
     );
   }
