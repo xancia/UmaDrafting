@@ -207,8 +207,7 @@ type SfxKey =
   | "lockInButtonHover"
   | "lockInButtonClick"
   | "timerTickSmall"
-  | "timerTick"
-  | "enemyPickSingle";
+  | "timerTick";
 
 const SFX_BASE_VOLUMES: Record<SfxKey, number> = {
   banButtonHover: 0.7,
@@ -217,7 +216,6 @@ const SFX_BASE_VOLUMES: Record<SfxKey, number> = {
   lockInButtonClick: 0.8,
   timerTickSmall: 0.65,
   timerTick: 0.75,
-  enemyPickSingle: 0.75,
 };
 
 export default function Draft5v5({
@@ -289,7 +287,6 @@ export default function Draft5v5({
   // the turn-timeout handler that can fire before React re-renders.
   const draftStateRef = useRef(draftState);
   draftStateRef.current = draftState;
-  const previousSyncedStateRef = useRef<DraftState | null>(null);
   const [history, setHistory] = useState<DraftState[]>([
     getInitialDraftState(),
   ]);
@@ -476,7 +473,6 @@ export default function Draft5v5({
     lockInButtonClick: null,
     timerTickSmall: null,
     timerTick: null,
-    enemyPickSingle: null,
   });
   const lastTimerSecondSfxRef = useRef<number | null>(null);
 
@@ -508,7 +504,6 @@ export default function Draft5v5({
     );
     sfxRefs.current.timerTickSmall = buildSfx("sfx-timer-tick-small.ogg", 0.65);
     sfxRefs.current.timerTick = buildSfx("sfx-timer-tick.ogg", 0.75);
-    sfxRefs.current.enemyPickSingle = buildSfx("sfx-enemy-pick-single.ogg", 0.75);
 
     return () => {
       Object.values(sfxRefs.current).forEach((audio) => {
@@ -550,56 +545,6 @@ export default function Draft5v5({
     },
     [sfxVolume],
   );
-
-  useEffect(() => {
-    if (!isMultiplayer || !syncedDraftState) return;
-    if (multiplayerConfig?.isSpectator) {
-      previousSyncedStateRef.current = syncedDraftState;
-      return;
-    }
-
-    const prevSynced = previousSyncedStateRef.current;
-    if (!prevSynced) {
-      previousSyncedStateRef.current = syncedDraftState;
-      return;
-    }
-
-    const myTeam =
-      draftState.multiplayer?.localTeam ||
-      (multiplayerConfig?.isHost ? "team1" : "team2");
-    const enemyTeam = myTeam === "team1" ? "team2" : "team1";
-
-    const syncedEnemyPicks = syncedDraftState[enemyTeam].pickedUmas || [];
-    const prevEnemyPicks = prevSynced[enemyTeam].pickedUmas || [];
-    const syncedEnemyBans = syncedDraftState[enemyTeam].bannedUmas || [];
-    const prevEnemyBans = prevSynced[enemyTeam].bannedUmas || [];
-    const syncedEnemyPreBans = syncedDraftState[enemyTeam].preBannedUmas || [];
-    const prevEnemyPreBans = prevSynced[enemyTeam].preBannedUmas || [];
-
-    const newEnemyPicks = syncedEnemyPicks.slice(prevEnemyPicks.length);
-    const newEnemyBans = syncedEnemyBans.slice(prevEnemyBans.length);
-    const newEnemyPreBans = syncedEnemyPreBans.slice(prevEnemyPreBans.length);
-    const enemyActionCount =
-      newEnemyPicks.length + newEnemyBans.length + newEnemyPreBans.length;
-
-    if (enemyActionCount > 0) {
-      playSfx("enemyPickSingle");
-    }
-
-    newEnemyPicks.forEach((uma) => playUmaVoiceline(uma, "picked"));
-    [...newEnemyBans, ...newEnemyPreBans].forEach((uma) =>
-      playUmaVoiceline(uma, "banned"),
-    );
-
-    previousSyncedStateRef.current = syncedDraftState;
-  }, [
-    isMultiplayer,
-    syncedDraftState,
-    multiplayerConfig?.isSpectator,
-    multiplayerConfig?.isHost,
-    draftState.multiplayer?.localTeam,
-    playUmaVoiceline,
-  ]);
 
   // Timer authority: you control timer when it's your turn (or always in local mode)
   const isTimerAuthority =
