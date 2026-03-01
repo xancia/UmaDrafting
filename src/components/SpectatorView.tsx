@@ -65,6 +65,36 @@ export default function SpectatorView({
   });
   const previousDraftStateRef = useRef<DraftState | null>(null);
 
+  // Preload lock-in / ban click SFX so spectators hear them on every action
+  const sfxRefs = useRef<{ lockInClick: HTMLAudioElement | null; banClick: HTMLAudioElement | null }>({
+    lockInClick: null,
+    banClick: null,
+  });
+
+  useEffect(() => {
+    const build = (filename: string, volume: number) => {
+      const audio = new Audio(`${import.meta.env.BASE_URL}sound-effects/${filename}`);
+      audio.preload = "auto";
+      audio.volume = volume * (sfxVolume / 100);
+      return audio;
+    };
+    sfxRefs.current.lockInClick = build("sfx-lockin-button-click.ogg", 0.8);
+    sfxRefs.current.banClick = build("sfx-ban-button-click.ogg", 0.8);
+  }, []);
+
+  // Keep SFX volume in sync
+  useEffect(() => {
+    if (sfxRefs.current.lockInClick) sfxRefs.current.lockInClick.volume = 0.8 * (sfxVolume / 100);
+    if (sfxRefs.current.banClick) sfxRefs.current.banClick.volume = 0.8 * (sfxVolume / 100);
+  }, [sfxVolume]);
+
+  const playActionSfx = useCallback((type: "picked" | "banned") => {
+    const audio = type === "picked" ? sfxRefs.current.lockInClick : sfxRefs.current.banClick;
+    if (!audio) return;
+    audio.currentTime = 0;
+    void audio.play().catch(() => {});
+  }, []);
+
   const playUmaVoiceline = useCallback((umaId: string, type: "picked" | "banned") => {
     const audio = new Audio(
       `${import.meta.env.BASE_URL}Voicelines/${umaId}/${umaId}-${type}.wav`,
@@ -190,15 +220,25 @@ export default function SpectatorView({
     const newTeam1PreBans = currentTeam1PreBans.slice(prevTeam1PreBans.length);
     const newTeam2PreBans = currentTeam2PreBans.slice(prevTeam2PreBans.length);
 
-    [...newTeam1Picks, ...newTeam2Picks].forEach((uma) =>
+    const newPicks = [...newTeam1Picks, ...newTeam2Picks];
+    const newBans = [...newTeam1Bans, ...newTeam2Bans, ...newTeam1PreBans, ...newTeam2PreBans];
+
+    if (newPicks.length > 0) {
+      playActionSfx("picked");
+    }
+    if (newBans.length > 0) {
+      playActionSfx("banned");
+    }
+
+    newPicks.forEach((uma) =>
       playUmaVoiceline(uma.id.toString(), "picked"),
     );
-    [...newTeam1Bans, ...newTeam2Bans, ...newTeam1PreBans, ...newTeam2PreBans].forEach(
-      (uma) => playUmaVoiceline(uma.id.toString(), "banned"),
+    newBans.forEach((uma) =>
+      playUmaVoiceline(uma.id.toString(), "banned"),
     );
 
     previousDraftStateRef.current = draftState;
-  }, [draftState, playUmaVoiceline]);
+  }, [draftState, playUmaVoiceline, playActionSfx]);
 
   return (
     <div className="h-screen bg-linear-to-br from-gray-950 to-gray-900 flex gap-2 lg:gap-4 px-2 lg:px-4 py-2 lg:py-4 overflow-hidden">
