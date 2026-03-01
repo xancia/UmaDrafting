@@ -207,7 +207,8 @@ type SfxKey =
   | "lockInButtonHover"
   | "lockInButtonClick"
   | "timerTickSmall"
-  | "timerTick";
+  | "timerTick"
+  | "enemyPickSingle";
 
 const SFX_BASE_VOLUMES: Record<SfxKey, number> = {
   banButtonHover: 0.7,
@@ -216,6 +217,7 @@ const SFX_BASE_VOLUMES: Record<SfxKey, number> = {
   lockInButtonClick: 0.8,
   timerTickSmall: 0.65,
   timerTick: 0.75,
+  enemyPickSingle: 0.75,
 };
 
 export default function Draft5v5({
@@ -474,6 +476,7 @@ export default function Draft5v5({
     lockInButtonClick: null,
     timerTickSmall: null,
     timerTick: null,
+    enemyPickSingle: null,
   });
   const lastTimerSecondSfxRef = useRef<number | null>(null);
 
@@ -505,6 +508,7 @@ export default function Draft5v5({
     );
     sfxRefs.current.timerTickSmall = buildSfx("sfx-timer-tick-small.ogg", 0.65);
     sfxRefs.current.timerTick = buildSfx("sfx-timer-tick.ogg", 0.75);
+    sfxRefs.current.enemyPickSingle = buildSfx("sfx-enemy-pick-single.ogg", 0.75);
 
     return () => {
       Object.values(sfxRefs.current).forEach((audio) => {
@@ -575,6 +579,12 @@ export default function Draft5v5({
     const newEnemyPicks = syncedEnemyPicks.slice(prevEnemyPicks.length);
     const newEnemyBans = syncedEnemyBans.slice(prevEnemyBans.length);
     const newEnemyPreBans = syncedEnemyPreBans.slice(prevEnemyPreBans.length);
+    const enemyActionCount =
+      newEnemyPicks.length + newEnemyBans.length + newEnemyPreBans.length;
+
+    if (enemyActionCount > 0) {
+      playSfx("enemyPickSingle");
+    }
 
     newEnemyPicks.forEach((uma) => playUmaVoiceline(uma, "picked"));
     [...newEnemyBans, ...newEnemyPreBans].forEach((uma) =>
