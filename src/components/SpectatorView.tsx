@@ -56,21 +56,28 @@ export default function SpectatorView({
   } = draftState;
   const [umaSearch, setUmaSearch] = useState("");
   const [copiedRoomCodeKey, setCopiedRoomCodeKey] = useState<string | null>(null);
+  const [sfxVolume, setSfxVolume] = useState<number>(() => {
+    const saved = localStorage.getItem("draft5v5SfxVolume");
+    if (!saved) return 70;
+    const parsed = Number(saved);
+    if (Number.isNaN(parsed)) return 70;
+    return Math.min(100, Math.max(0, parsed));
+  });
   const previousDraftStateRef = useRef<DraftState | null>(null);
 
   const playUmaVoiceline = useCallback((umaId: string, type: "picked" | "banned") => {
     const audio = new Audio(
       `${import.meta.env.BASE_URL}Voicelines/${umaId}/${umaId}-${type}.wav`,
     );
-    const saved = localStorage.getItem("draft5v5SfxVolume");
-    const parsed = saved ? Number(saved) : 70;
-    const volume = Number.isNaN(parsed)
-      ? 70
-      : Math.min(100, Math.max(0, parsed));
-    audio.volume = 0.9 * (volume / 100);
+    audio.volume = 0.9 * (sfxVolume / 100);
     void audio.play().catch(() => {
       // Missing files are expected while voiceline library is in progress.
     });
+  }, [sfxVolume]);
+
+  const handleSfxVolumeChange = useCallback((volume: number) => {
+    setSfxVolume(volume);
+    localStorage.setItem("draft5v5SfxVolume", String(volume));
   }, []);
 
   const isUmaPhase =
@@ -245,6 +252,8 @@ export default function SpectatorView({
             timeRemaining={timeRemaining}
             timerEnabled={true}
             completedActions={completedActions}
+            sfxVolume={sfxVolume}
+            onSfxVolumeChange={handleSfxVolumeChange}
           />
         </div>
 
