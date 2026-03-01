@@ -364,6 +364,45 @@ export default function Draft5v5({
     third: string;
   }>({ first: "", second: "", third: "" });
 
+  // Auto-confirm countdown for player 2 (60s)
+  const CONFIRM_TIMEOUT_SECONDS = 60;
+  const [confirmCountdown, setConfirmCountdown] = useState<number | null>(null);
+  const confirmTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    // Start countdown when player 2 sees a pending report awaiting confirm
+    if (pendingReport?.awaitingConfirm && isMultiplayer && !isHost) {
+      setConfirmCountdown(CONFIRM_TIMEOUT_SECONDS);
+      confirmTimerRef.current = setInterval(() => {
+        setConfirmCountdown((prev) => {
+          if (prev === null) return null;
+          if (prev <= 1) return 0;
+          return prev - 1;
+        });
+      }, 1000);
+    } else {
+      setConfirmCountdown(null);
+      if (confirmTimerRef.current) {
+        clearInterval(confirmTimerRef.current);
+        confirmTimerRef.current = null;
+      }
+    }
+    return () => {
+      if (confirmTimerRef.current) {
+        clearInterval(confirmTimerRef.current);
+        confirmTimerRef.current = null;
+      }
+    };
+  }, [pendingReport?.awaitingConfirm, pendingReport?.submissionId, isMultiplayer, isHost]);
+
+  // Auto-confirm when countdown reaches 0
+  useEffect(() => {
+    if (confirmCountdown === 0 && pendingReport?.awaitingConfirm && !isHost) {
+      confirmMatchReport();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [confirmCountdown]);
+
   const isUmaPhase =
     draftState.phase === "uma-pick" ||
     draftState.phase === "uma-ban" ||
@@ -3024,6 +3063,11 @@ export default function Draft5v5({
                       ))}
                     </div>
                   </div>
+                  {confirmCountdown !== null && (
+                    <p className="text-center text-xs text-yellow-400/80 mb-2">
+                      Auto-confirming in {confirmCountdown}s
+                    </p>
+                  )}
                   <div className="flex justify-center gap-3">
                     <button
                       onClick={rejectMatchReport}

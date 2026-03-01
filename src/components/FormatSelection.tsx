@@ -189,7 +189,7 @@ export default function FormatSelection({
                 <div className="bg-gray-900/50 rounded-lg p-3 border border-gray-700">
                   <p className="text-center text-gray-200">
                     Wildcard Reveal → Strategy Phase → Map Draft → Strategy
-                    Phase → Uma Pre-Ban → Uma Draft
+                    Phase → Uma Pre-Ban → Uma Draft → Live Career → Races
                   </p>
                 </div>
               </div>
@@ -255,6 +255,42 @@ export default function FormatSelection({
                 </p>
               </div>
 
+              {/* Live Career */}
+              <div>
+                <h3 className="text-lg font-bold text-teal-400 mb-2">
+                  Live Career
+                </h3>
+                <ul className="space-y-2 text-gray-300">
+                  <li className="flex gap-2">
+                    <span className="text-teal-400">•</span>
+                    <span>
+                      After the draft finishes, teams are given a limited amount
+                      of time to run their careers
+                    </span>
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="text-teal-400">•</span>
+                    <span>
+                      <strong>Recommended time:</strong> 10 minutes of strategy
+                      + 60 minutes of career clock time
+                    </span>
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="text-teal-400">•</span>
+                    <span>
+                      Exact time limits are set by the event organizer
+                    </span>
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="text-teal-400">•</span>
+                    <span>
+                      Once time is up, races must be started{" "}
+                      <strong>as soon as possible</strong>
+                    </span>
+                  </li>
+                </ul>
+              </div>
+
               {/* Racing Procedure */}
               <div>
                 <h3 className="text-lg font-bold text-green-400 mb-2">
@@ -263,7 +299,7 @@ export default function FormatSelection({
                 <ul className="space-y-2 text-gray-300">
                   <li className="flex gap-2">
                     <span className="text-green-400">•</span>
-                    <span>After map draft, proceed to races</span>
+                    <span>After career time expires, proceed to races</span>
                   </li>
                   <li className="flex gap-2">
                     <span className="text-green-400">•</span>
