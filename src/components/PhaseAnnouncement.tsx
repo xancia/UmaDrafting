@@ -49,6 +49,29 @@ export default function PhaseAnnouncement({ phase }: PhaseAnnouncementProps) {
     color: string;
   } | null>(null);
   const prevPhaseRef = useRef<DraftPhase>(phase);
+  const banPhaseAudioRef = useRef<HTMLAudioElement | null>(null);
+  const pickPhaseAudioRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    const createAudio = (filename: string) => {
+      const audio = new Audio(
+        `${import.meta.env.BASE_URL}sound-effects/${filename}`,
+      );
+      audio.preload = "auto";
+      return audio;
+    };
+
+    banPhaseAudioRef.current = createAudio("music-ban-phase-announcement.ogg");
+    pickPhaseAudioRef.current = createAudio("music-pick-phase-announcement.ogg");
+
+    return () => {
+      [banPhaseAudioRef.current, pickPhaseAudioRef.current].forEach((audio) => {
+        if (!audio) return;
+        audio.pause();
+        audio.src = "";
+      });
+    };
+  }, []);
 
   useEffect(() => {
     // Only trigger when phase actually changes
@@ -72,6 +95,22 @@ export default function PhaseAnnouncement({ phase }: PhaseAnnouncementProps) {
         ? { text: "FINAL UMA PICK", color: "text-green-400" }
         : phaseConfig,
     );
+
+    const isBanAnnouncement =
+      phase === "uma-ban" || phase === "uma-pre-ban" || phase === "map-ban";
+    const isPickAnnouncement = phase === "uma-pick" || phase === "map-pick";
+    const phaseAudio = isBanAnnouncement
+      ? banPhaseAudioRef.current
+      : isPickAnnouncement
+        ? pickPhaseAudioRef.current
+        : null;
+    if (phaseAudio) {
+      phaseAudio.currentTime = 0;
+      void phaseAudio.play().catch(() => {
+        // Ignore autoplay restrictions.
+      });
+    }
+
     setVisible(true);
 
     // Auto-dismiss after animation duration (2.2s)
