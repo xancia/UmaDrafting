@@ -15,7 +15,7 @@ const PHASE_CONFIG: Partial<
     color: "text-green-400",
   },
   "map-ban": {
-    text: "MAP BAN PHASE",
+    text: "MAP VETO PHASE",
     color: "text-red-400",
   },
   "uma-pick": {
@@ -27,7 +27,7 @@ const PHASE_CONFIG: Partial<
     color: "text-orange-400",
   },
   "uma-ban": {
-    text: "UMA BAN PHASE",
+    text: "UMA VETO PHASE",
     color: "text-red-400",
   },
   complete: {

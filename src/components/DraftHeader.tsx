@@ -113,11 +113,11 @@ export default function DraftHeader({
       case "uma-pre-ban":
         return "Umamusume Pre-Ban Phase";
       case "uma-ban":
-        return "Umamusume Banning Phase";
+        return "Umamusume Veto Phase";
       case "map-pick":
         return "Map Picking Phase";
       case "map-ban":
-        return "Map Banning Phase";
+        return "Map Veto Phase";
       case "post-map-pause":
         return "Map Draft Complete";
       case "complete":

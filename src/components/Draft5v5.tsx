@@ -2964,14 +2964,14 @@ export default function Draft5v5({
                     {draftState.phase === "uma-pick" && "Available Umamusume"}
                     {draftState.phase === "uma-pre-ban" && "Pre-Ban Umamusume"}
                     {draftState.phase === "uma-ban" &&
-                      "Ban Opponent's Umamusume"}
+                      "Veto Opponent's Umamusume"}
                     {draftState.phase === "map-pick" &&
                       !selectedTrack &&
                       "Select a Racecourse"}
                     {draftState.phase === "map-pick" &&
                       selectedTrack &&
                       `Select Distance - ${selectedTrack}`}
-                    {draftState.phase === "map-ban" && "Ban Opponent's Map"}
+                    {draftState.phase === "map-ban" && "Veto Opponent's Map"}
                   </h2>
 
                   {isUmaPhase && (
@@ -3623,16 +3623,20 @@ export default function Draft5v5({
           (() => {
             const isMyTurn =
               !isMultiplayer || draftState.currentTeam === localTeam;
-            const isBanPhase =
-              draftState.phase === "uma-ban" ||
-              draftState.phase === "map-ban" ||
-              draftState.phase === "uma-pre-ban";
+            const isPreBanPhase = draftState.phase === "uma-pre-ban";
+            const isVetoPhase =
+              draftState.phase === "uma-ban" || draftState.phase === "map-ban";
+            const isBanPhase = isPreBanPhase || isVetoPhase;
 
             return (
               <div className="shrink-0 py-3 lg:py-4 bg-gray-900/80 backdrop-blur-sm border-t border-gray-700/50">
                 <div className="flex flex-col items-center gap-1">
                   {(() => {
-                    const label = isBanPhase ? "BAN" : "LOCK IN";
+                    const label = isPreBanPhase
+                      ? "BAN"
+                      : isVetoPhase
+                        ? "VETO"
+                        : "LOCK IN";
                     const glowClass = isBanPhase
                       ? "ban-btn-glow"
                       : "lockin-btn-glow";
