@@ -121,11 +121,15 @@ function buildPickOrderHistoryText(
 
     // Uma picks
     if (curr.team1.pickedUmas.length > prev.team1.pickedUmas.length) {
-      const newPicks = curr.team1.pickedUmas.slice(prev.team1.pickedUmas.length);
+      const newPicks = curr.team1.pickedUmas.slice(
+        prev.team1.pickedUmas.length,
+      );
       newPicks.forEach((u) => pickOrder.push(`${t1n} pick: ${umaLabel(u)}`));
     }
     if (curr.team2.pickedUmas.length > prev.team2.pickedUmas.length) {
-      const newPicks = curr.team2.pickedUmas.slice(prev.team2.pickedUmas.length);
+      const newPicks = curr.team2.pickedUmas.slice(
+        prev.team2.pickedUmas.length,
+      );
       newPicks.forEach((u) => pickOrder.push(`${t2n} pick: ${umaLabel(u)}`));
     }
 
@@ -141,15 +145,23 @@ function buildPickOrderHistoryText(
 
     // Map picks
     if (curr.team1.pickedMaps.length > prev.team1.pickedMaps.length) {
-      const newPicks = curr.team1.pickedMaps.slice(prev.team1.pickedMaps.length);
+      const newPicks = curr.team1.pickedMaps.slice(
+        prev.team1.pickedMaps.length,
+      );
       newPicks.forEach((m) =>
-        pickOrder.push(`${t1n} map pick: ${m.track}${formatVariant(m)} ${m.distance}m`),
+        pickOrder.push(
+          `${t1n} map pick: ${m.track}${formatVariant(m)} ${m.distance}m`,
+        ),
       );
     }
     if (curr.team2.pickedMaps.length > prev.team2.pickedMaps.length) {
-      const newPicks = curr.team2.pickedMaps.slice(prev.team2.pickedMaps.length);
+      const newPicks = curr.team2.pickedMaps.slice(
+        prev.team2.pickedMaps.length,
+      );
       newPicks.forEach((m) =>
-        pickOrder.push(`${t2n} map pick: ${m.track}${formatVariant(m)} ${m.distance}m`),
+        pickOrder.push(
+          `${t2n} map pick: ${m.track}${formatVariant(m)} ${m.distance}m`,
+        ),
       );
     }
 
@@ -157,13 +169,17 @@ function buildPickOrderHistoryText(
     if (curr.team1.bannedMaps.length > prev.team1.bannedMaps.length) {
       const newBans = curr.team1.bannedMaps.slice(prev.team1.bannedMaps.length);
       newBans.forEach((m) =>
-        pickOrder.push(`${t2n} map ban: ${m.track}${formatVariant(m)} ${m.distance}m`),
+        pickOrder.push(
+          `${t2n} map ban: ${m.track}${formatVariant(m)} ${m.distance}m`,
+        ),
       );
     }
     if (curr.team2.bannedMaps.length > prev.team2.bannedMaps.length) {
       const newBans = curr.team2.bannedMaps.slice(prev.team2.bannedMaps.length);
       newBans.forEach((m) =>
-        pickOrder.push(`${t1n} map ban: ${m.track}${formatVariant(m)} ${m.distance}m`),
+        pickOrder.push(
+          `${t1n} map ban: ${m.track}${formatVariant(m)} ${m.distance}m`,
+        ),
       );
     }
   }
@@ -339,15 +355,24 @@ export default function Draft5v5({
 
   // Match reporting state
   // In multiplayer, room codes are synced via Firebase; in local mode, use local state
-  const [localRoomCodes, setLocalRoomCodes] = useState<Record<string, string>>({});
+  const [localRoomCodes, setLocalRoomCodes] = useState<Record<string, string>>(
+    {},
+  );
   const roomCodes = isMultiplayer ? firebaseRoomCodes : localRoomCodes;
   const setRoomCodes = isMultiplayer
-    ? (updater: Record<string, string> | ((prev: Record<string, string>) => Record<string, string>)) => {
-        const newCodes = typeof updater === "function" ? updater(firebaseRoomCodes) : updater;
+    ? (
+        updater:
+          | Record<string, string>
+          | ((prev: Record<string, string>) => Record<string, string>),
+      ) => {
+        const newCodes =
+          typeof updater === "function" ? updater(firebaseRoomCodes) : updater;
         firebaseUpdateRoomCodes(newCodes);
       }
     : setLocalRoomCodes;
-  const [copiedRoomCodeKey, setCopiedRoomCodeKey] = useState<string | null>(null);
+  const [copiedRoomCodeKey, setCopiedRoomCodeKey] = useState<string | null>(
+    null,
+  );
   const [matchResults, setMatchResults] = useState<RaceResult[]>([]);
   const [showMatchReporting, setShowMatchReporting] = useState<boolean>(false);
   const [pendingReport, setPendingReport] = useState<PendingReport | null>(
@@ -399,14 +424,19 @@ export default function Draft5v5({
         confirmTimerRef.current = null;
       }
     };
-  }, [pendingReport?.awaitingConfirm, pendingReport?.submissionId, isMultiplayer, isHost]);
+  }, [
+    pendingReport?.awaitingConfirm,
+    pendingReport?.submissionId,
+    isMultiplayer,
+    isHost,
+  ]);
 
   // Auto-confirm when countdown reaches 0
   useEffect(() => {
     if (confirmCountdown === 0 && pendingReport?.awaitingConfirm && !isHost) {
       confirmMatchReport();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [confirmCountdown]);
 
   const isUmaPhase =
@@ -567,14 +597,8 @@ export default function Draft5v5({
       return audio;
     };
 
-    sfxRefs.current.banButtonHover = buildSfx(
-      "sfx-ban-button-hover.ogg",
-      0.7,
-    );
-    sfxRefs.current.banButtonClick = buildSfx(
-      "sfx-ban-button-click.ogg",
-      0.8,
-    );
+    sfxRefs.current.banButtonHover = buildSfx("sfx-ban-button-hover.ogg", 0.7);
+    sfxRefs.current.banButtonClick = buildSfx("sfx-ban-button-click.ogg", 0.8);
     sfxRefs.current.lockInButtonHover = buildSfx(
       "sfx-lockin-button-hover.ogg",
       0.7,
@@ -1685,7 +1709,10 @@ export default function Draft5v5({
     // Only update if state changed (permission check passed)
     if (newState !== draftState) {
       console.log("Selection allowed, updating state");
-      playUmaVoiceline(uma, draftState.phase === "uma-pick" ? "picked" : "banned");
+      playUmaVoiceline(
+        uma,
+        draftState.phase === "uma-pick" ? "picked" : "banned",
+      );
       setUmaSearch("");
       if (isMultiplayer && isHost) {
         // Host broadcasts state to all peers and updates local state
@@ -2298,7 +2325,9 @@ export default function Draft5v5({
     const sortedUmas = [...getBannableUmas()].sort(compareUmasByRelease);
     if (!umaSearch.trim()) return sortedUmas;
     const q = umaSearch.toLowerCase();
-    return sortedUmas.filter((uma) => formatUmaName(uma).toLowerCase().includes(q));
+    return sortedUmas.filter((uma) =>
+      formatUmaName(uma).toLowerCase().includes(q),
+    );
   };
 
   const getBannableMaps = () => {
@@ -3298,7 +3327,9 @@ export default function Draft5v5({
                     const schedule = getMapSchedule();
                     return schedule.map((s) => {
                       const roomCodeKey =
-                        s.team === "Tiebreaker" ? "tiebreaker" : `map-${s.index}`;
+                        s.team === "Tiebreaker"
+                          ? "tiebreaker"
+                          : `map-${s.index}`;
                       const dotClass =
                         s.team === team1Name
                           ? "bg-blue-500"
@@ -3306,73 +3337,76 @@ export default function Draft5v5({
                             ? "bg-red-500"
                             : "bg-yellow-400";
                       return (
-                      <div
-                        key={s.index}
-                        className="flex items-center gap-2 px-3 py-1.5 bg-gray-900/40 rounded-lg text-sm"
-                      >
-                        <span className="text-gray-500 font-mono text-xs w-5">
-                          {s.index}.
-                        </span>
-                        <span
-                          className={`inline-block w-1.5 h-1.5 rounded-full ${dotClass}`}
-                        />
-                        <span className="text-gray-200 font-medium">
-                          {s.map.track}
-                        </span>
-                        {s.map.variant && (
-                          <span className="text-gray-400 text-xs">
-                            ({s.map.variant})
-                          </span>
-                        )}
-                        <span className="text-gray-100 font-semibold">
-                          {s.map.distance}m
-                        </span>
-                        <span
-                          className={`text-xs px-1.5 py-0.5 rounded ${s.map.surface?.toLowerCase() === "turf" ? "bg-green-900/40 text-green-400" : "bg-amber-900/40 text-amber-400"}`}
+                        <div
+                          key={s.index}
+                          className="flex items-center gap-2 px-3 py-1.5 bg-gray-900/40 rounded-lg text-sm"
                         >
-                          {s.map.surface}
-                        </span>
-                        <span className="text-gray-300 text-xs ml-auto">
-                          {s.map.direction === "right"
-                            ? "Right"
-                            : s.map.direction === "left"
-                              ? "Left"
-                              : "Straight"}
-                          {s.map.conditions &&
-                            ` / ${s.map.conditions.season} / ${s.map.conditions.ground} / ${s.map.conditions.weather}`}
-                        </span>
-                        <div className="flex items-center gap-1 ml-2">
-                          <input
-                            type="text"
-                            placeholder="Room code"
-                            value={roomCodes[roomCodeKey] || ""}
-                            onChange={(e) =>
-                              setRoomCodes((prev) => ({
-                                ...prev,
-                                [roomCodeKey]: e.target.value,
-                              }))
-                            }
-                            className="w-24 px-2 py-0.5 text-xs bg-gray-800 border border-gray-600 rounded text-gray-200 placeholder-gray-600 focus:border-gray-400 focus:outline-none"
+                          <span className="text-gray-500 font-mono text-xs w-5">
+                            {s.index}.
+                          </span>
+                          <span
+                            className={`inline-block w-1.5 h-1.5 rounded-full ${dotClass}`}
                           />
-                          {roomCodes[roomCodeKey] && (
-                            <button
-                              onClick={() => {
-                                navigator.clipboard.writeText(
-                                  roomCodes[roomCodeKey],
-                                );
-                                setCopiedRoomCodeKey(roomCodeKey);
-                                setTimeout(() => setCopiedRoomCodeKey(null), 2000);
-                              }}
-                              className={`text-[10px] px-1.5 py-0.5 rounded transition-colors ${copiedRoomCodeKey === roomCodeKey ? "bg-green-700 text-green-200" : "bg-gray-700 hover:bg-gray-600 text-gray-300"}`}
-                              title="Copy room code"
-                            >
-                              {copiedRoomCodeKey === roomCodeKey
-                                ? "Copied!"
-                                : "Copy"}
-                            </button>
+                          <span className="text-gray-200 font-medium">
+                            {s.map.track}
+                          </span>
+                          {s.map.variant && (
+                            <span className="text-gray-400 text-xs">
+                              ({s.map.variant})
+                            </span>
                           )}
+                          <span className="text-gray-100 font-semibold">
+                            {s.map.distance}m
+                          </span>
+                          <span
+                            className={`text-xs px-1.5 py-0.5 rounded ${s.map.surface?.toLowerCase() === "turf" ? "bg-green-900/40 text-green-400" : "bg-amber-900/40 text-amber-400"}`}
+                          >
+                            {s.map.surface}
+                          </span>
+                          <span className="text-gray-300 text-xs ml-auto">
+                            {s.map.direction === "right"
+                              ? "Right"
+                              : s.map.direction === "left"
+                                ? "Left"
+                                : "Straight"}
+                            {s.map.conditions &&
+                              ` / ${s.map.conditions.season} / ${s.map.conditions.ground} / ${s.map.conditions.weather}`}
+                          </span>
+                          <div className="flex items-center gap-1 ml-2">
+                            <input
+                              type="text"
+                              placeholder="Room code"
+                              value={roomCodes[roomCodeKey] || ""}
+                              onChange={(e) =>
+                                setRoomCodes((prev) => ({
+                                  ...prev,
+                                  [roomCodeKey]: e.target.value,
+                                }))
+                              }
+                              className="w-24 px-2 py-0.5 text-xs bg-gray-800 border border-gray-600 rounded text-gray-200 placeholder-gray-600 focus:border-gray-400 focus:outline-none"
+                            />
+                            {roomCodes[roomCodeKey] && (
+                              <button
+                                onClick={() => {
+                                  navigator.clipboard.writeText(
+                                    roomCodes[roomCodeKey],
+                                  );
+                                  setCopiedRoomCodeKey(roomCodeKey);
+                                  setTimeout(
+                                    () => setCopiedRoomCodeKey(null),
+                                    2000,
+                                  );
+                                }}
+                                className={`text-[10px] px-1.5 py-0.5 rounded transition-colors ${copiedRoomCodeKey === roomCodeKey ? "bg-green-700 text-green-200" : "bg-gray-700 hover:bg-gray-600 text-gray-300"}`}
+                                title="Copy room code"
+                              >
+                                {copiedRoomCodeKey === roomCodeKey
+                                  ? "Copied!"
+                                  : "Copy"}
+                              </button>
+                            )}
+                          </div>
                         </div>
-                      </div>
                       );
                     });
                   })()}
@@ -3513,7 +3547,7 @@ export default function Draft5v5({
                       ? "Series Complete"
                       : nextRaceIndex >= getMapSchedule().length
                         ? "All Races Reported"
-                        : `Report Race ${nextRaceIndex + 1}`}
+                        : `Submit Results: Race ${nextRaceIndex + 1}`}
                   </button>
                 )}
               </div>
@@ -3548,7 +3582,9 @@ export default function Draft5v5({
                           onMouseEnter={() => {
                             if (!isMyTurn) return;
                             playSfx(
-                              isBanPhase ? "banButtonHover" : "lockInButtonHover",
+                              isBanPhase
+                                ? "banButtonHover"
+                                : "lockInButtonHover",
                             );
                           }}
                           onClick={
@@ -3920,241 +3956,311 @@ export default function Draft5v5({
       )}
 
       {/* Match Reporting Modal */}
-      {showMatchReporting && (() => {
-        const schedule = getMapSchedule();
-        const raceMap = schedule[reportRaceIndex];
-        const positionSlots = [
-          { key: "first" as const, label: "1st Place", points: POINT_VALUES[1], color: "text-yellow-400", ring: "ring-yellow-500", bg: "bg-yellow-500/20" },
-          { key: "second" as const, label: "2nd Place", points: POINT_VALUES[2], color: "text-gray-300", ring: "ring-gray-400", bg: "bg-gray-400/20" },
-          { key: "third" as const, label: "3rd Place", points: POINT_VALUES[3], color: "text-amber-600", ring: "ring-amber-600", bg: "bg-amber-600/20" },
-        ];
-        const selectedIds = [reportPlacements.first, reportPlacements.second, reportPlacements.third].filter(Boolean);
+      {showMatchReporting &&
+        (() => {
+          const schedule = getMapSchedule();
+          const raceMap = schedule[reportRaceIndex];
+          const positionSlots = [
+            {
+              key: "first" as const,
+              label: "1st Place",
+              points: POINT_VALUES[1],
+              color: "text-yellow-400",
+              ring: "ring-yellow-500",
+              bg: "bg-yellow-500/20",
+            },
+            {
+              key: "second" as const,
+              label: "2nd Place",
+              points: POINT_VALUES[2],
+              color: "text-gray-300",
+              ring: "ring-gray-400",
+              bg: "bg-gray-400/20",
+            },
+            {
+              key: "third" as const,
+              label: "3rd Place",
+              points: POINT_VALUES[3],
+              color: "text-amber-600",
+              ring: "ring-amber-600",
+              bg: "bg-amber-600/20",
+            },
+          ];
+          const selectedIds = [
+            reportPlacements.first,
+            reportPlacements.second,
+            reportPlacements.third,
+          ].filter(Boolean);
 
-        const handleUmaClick = (umaId: string) => {
-          const id = umaId;
-          // If already selected somewhere, remove it
-          if (reportPlacements.first === id) {
-            setReportPlacements((prev) => ({ ...prev, first: "" }));
-            return;
-          }
-          if (reportPlacements.second === id) {
-            setReportPlacements((prev) => ({ ...prev, second: "" }));
-            return;
-          }
-          if (reportPlacements.third === id) {
-            setReportPlacements((prev) => ({ ...prev, third: "" }));
-            return;
-          }
-          // Place in first empty slot
-          if (!reportPlacements.first) {
-            setReportPlacements((prev) => ({ ...prev, first: id }));
-          } else if (!reportPlacements.second) {
-            setReportPlacements((prev) => ({ ...prev, second: id }));
-          } else if (!reportPlacements.third) {
-            setReportPlacements((prev) => ({ ...prev, third: id }));
-          }
-        };
+          const handleUmaClick = (umaId: string) => {
+            const id = umaId;
+            // If already selected somewhere, remove it
+            if (reportPlacements.first === id) {
+              setReportPlacements((prev) => ({ ...prev, first: "" }));
+              return;
+            }
+            if (reportPlacements.second === id) {
+              setReportPlacements((prev) => ({ ...prev, second: "" }));
+              return;
+            }
+            if (reportPlacements.third === id) {
+              setReportPlacements((prev) => ({ ...prev, third: "" }));
+              return;
+            }
+            // Place in first empty slot
+            if (!reportPlacements.first) {
+              setReportPlacements((prev) => ({ ...prev, first: id }));
+            } else if (!reportPlacements.second) {
+              setReportPlacements((prev) => ({ ...prev, second: id }));
+            } else if (!reportPlacements.third) {
+              setReportPlacements((prev) => ({ ...prev, third: id }));
+            }
+          };
 
-        const getSlotForUma = (umaId: string): number | null => {
-          if (reportPlacements.first === umaId) return 1;
-          if (reportPlacements.second === umaId) return 2;
-          if (reportPlacements.third === umaId) return 3;
-          return null;
-        };
+          const getSlotForUma = (umaId: string): number | null => {
+            if (reportPlacements.first === umaId) return 1;
+            if (reportPlacements.second === umaId) return 2;
+            if (reportPlacements.third === umaId) return 3;
+            return null;
+          };
 
-        const slotColors: Record<number, string> = {
-          1: "ring-yellow-500 bg-yellow-500/20",
-          2: "ring-gray-400 bg-gray-400/20",
-          3: "ring-amber-600 bg-amber-600/20",
-        };
+          const slotColors: Record<number, string> = {
+            1: "ring-yellow-500 bg-yellow-500/20",
+            2: "ring-gray-400 bg-gray-400/20",
+            3: "ring-amber-600 bg-amber-600/20",
+          };
 
-        const slotBadgeColors: Record<number, string> = {
-          1: "bg-yellow-500 text-black",
-          2: "bg-gray-400 text-black",
-          3: "bg-amber-600 text-white",
-        };
+          const slotBadgeColors: Record<number, string> = {
+            1: "bg-yellow-500 text-black",
+            2: "bg-gray-400 text-black",
+            3: "bg-amber-600 text-white",
+          };
 
-        return (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-gray-800 rounded-xl shadow-2xl p-5 lg:p-7 border-2 border-gray-700 max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-              {/* Header */}
-              <div className="mb-4">
-                <h2 className="text-xl lg:text-2xl font-bold text-gray-100 mb-1">
-                  Report Race {reportRaceIndex + 1}
-                </h2>
-                {raceMap && (
-                  <p className="text-sm text-gray-400">
-                    {raceMap.map.track} {raceMap.map.distance}m ({raceMap.map.surface})
-                    {raceMap.map.conditions && (
-                      <span className="ml-1 text-gray-500">
-                        — {raceMap.map.conditions.season} / {raceMap.map.conditions.ground} / {raceMap.map.conditions.weather}
-                      </span>
-                    )}
-                  </p>
-                )}
-              </div>
+          return (
+            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+              <div className="bg-gray-800 rounded-xl shadow-2xl p-5 lg:p-7 border-2 border-gray-700 max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+                {/* Header */}
+                <div className="mb-4">
+                  <h2 className="text-xl lg:text-2xl font-bold text-gray-100 mb-1">
+                    Report Race {reportRaceIndex + 1}
+                  </h2>
+                  {raceMap && (
+                    <p className="text-sm text-gray-400">
+                      {raceMap.map.track} {raceMap.map.distance}m (
+                      {raceMap.map.surface})
+                      {raceMap.map.conditions && (
+                        <span className="ml-1 text-gray-500">
+                          — {raceMap.map.conditions.season} /{" "}
+                          {raceMap.map.conditions.ground} /{" "}
+                          {raceMap.map.conditions.weather}
+                        </span>
+                      )}
+                    </p>
+                  )}
+                </div>
 
-              {/* Placement Slots */}
-              <div className="flex gap-3 mb-5">
-                {positionSlots.map(({ key, label, points, color, bg }) => {
-                  const selectedUma = reportPlacements[key]
-                    ? allDraftedUmas.find((u) => u.id.toString() === reportPlacements[key])
-                    : null;
-                  return (
-                    <div
-                      key={key}
-                      className={`flex-1 rounded-lg border-2 border-dashed p-2 text-center transition-all ${
-                        selectedUma
-                          ? `border-solid ${key === "first" ? "border-yellow-500/60" : key === "second" ? "border-gray-400/60" : "border-amber-600/60"} bg-gray-700/60`
-                          : "border-gray-600/40 bg-gray-900/30"
-                      }`}
-                    >
-                      <div className={`text-xs font-bold ${color} mb-1`}>
-                        {label}
-                        {SCORING_MODE === "points" && (
-                          <span className="text-gray-500 font-normal ml-1">({points} pts)</span>
+                {/* Placement Slots */}
+                <div className="flex gap-3 mb-5">
+                  {positionSlots.map(({ key, label, points, color, bg }) => {
+                    const selectedUma = reportPlacements[key]
+                      ? allDraftedUmas.find(
+                          (u) => u.id.toString() === reportPlacements[key],
+                        )
+                      : null;
+                    return (
+                      <div
+                        key={key}
+                        className={`flex-1 rounded-lg border-2 border-dashed p-2 text-center transition-all ${
+                          selectedUma
+                            ? `border-solid ${key === "first" ? "border-yellow-500/60" : key === "second" ? "border-gray-400/60" : "border-amber-600/60"} bg-gray-700/60`
+                            : "border-gray-600/40 bg-gray-900/30"
+                        }`}
+                      >
+                        <div className={`text-xs font-bold ${color} mb-1`}>
+                          {label}
+                          {SCORING_MODE === "points" && (
+                            <span className="text-gray-500 font-normal ml-1">
+                              ({points} pts)
+                            </span>
+                          )}
+                        </div>
+                        {selectedUma ? (
+                          <div className="flex flex-col items-center gap-1">
+                            <div className="w-10 h-10 rounded-lg overflow-hidden border border-gray-600 bg-gray-700">
+                              {selectedUma.imageUrl && (
+                                <img
+                                  src={selectedUma.imageUrl}
+                                  alt={selectedUma.name}
+                                  className="w-full h-full object-cover"
+                                />
+                              )}
+                            </div>
+                            <span className="text-[10px] text-gray-200 leading-tight text-center">
+                              {selectedUma.name}
+                            </span>
+                            <span
+                              className={`text-[9px] ${selectedUma.team === "team1" ? "text-blue-400" : "text-red-400"}`}
+                            >
+                              {selectedUma.team === "team1"
+                                ? team1Name
+                                : team2Name}
+                            </span>
+                          </div>
+                        ) : (
+                          <div
+                            className={`w-10 h-10 mx-auto rounded-lg border-2 border-dashed border-gray-600/40 ${bg} flex items-center justify-center`}
+                          >
+                            <span className="text-gray-600 text-lg">?</span>
+                          </div>
                         )}
                       </div>
-                      {selectedUma ? (
-                        <div className="flex flex-col items-center gap-1">
-                          <div className="w-10 h-10 rounded-lg overflow-hidden border border-gray-600 bg-gray-700">
-                            {selectedUma.imageUrl && (
-                              <img src={selectedUma.imageUrl} alt={selectedUma.name} className="w-full h-full object-cover" />
+                    );
+                  })}
+                </div>
+
+                {/* Instruction */}
+                <p className="text-xs text-gray-500 text-center mb-3">
+                  Click a character to assign them to the next open placement
+                  slot. Click again to remove.
+                </p>
+
+                {/* Team Grids */}
+                <div className="grid grid-cols-2 gap-4 mb-6">
+                  {/* Team 1 */}
+                  <div className="bg-gray-900/60 rounded-lg p-3 border border-blue-500/20">
+                    <h3 className="text-blue-400 font-bold text-xs uppercase tracking-wider mb-2 text-center">
+                      {team1Name}
+                    </h3>
+                    <div className="grid grid-cols-3 gap-2">
+                      {draftState.team1.pickedUmas.map((uma) => {
+                        const slot = getSlotForUma(uma.id.toString());
+                        const isSelected = slot !== null;
+                        return (
+                          <button
+                            key={uma.id}
+                            onClick={() => handleUmaClick(uma.id.toString())}
+                            className={`relative flex flex-col items-center gap-1 p-1.5 rounded-lg transition-all cursor-pointer ${
+                              isSelected
+                                ? `ring-2 ${slotColors[slot!]}`
+                                : "hover:bg-gray-700/60 bg-gray-800/40"
+                            }`}
+                          >
+                            {isSelected && (
+                              <div
+                                className={`absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full ${slotBadgeColors[slot!]} text-[10px] font-bold flex items-center justify-center z-10`}
+                              >
+                                {slot}
+                              </div>
                             )}
-                          </div>
-                          <span className="text-[10px] text-gray-200 leading-tight text-center">
-                            {selectedUma.name}
-                          </span>
-                          <span className={`text-[9px] ${selectedUma.team === "team1" ? "text-blue-400" : "text-red-400"}`}>
-                            {selectedUma.team === "team1" ? team1Name : team2Name}
-                          </span>
-                        </div>
-                      ) : (
-                        <div className={`w-10 h-10 mx-auto rounded-lg border-2 border-dashed border-gray-600/40 ${bg} flex items-center justify-center`}>
-                          <span className="text-gray-600 text-lg">?</span>
-                        </div>
-                      )}
+                            <div
+                              className={`w-12 h-12 lg:w-14 lg:h-14 rounded-lg overflow-hidden border-2 bg-gray-700 transition-all ${
+                                isSelected
+                                  ? "border-blue-400/60"
+                                  : "border-blue-500/30"
+                              } ${!isSelected && selectedIds.length >= 3 ? "opacity-40" : ""}`}
+                            >
+                              {uma.imageUrl ? (
+                                <img
+                                  src={uma.imageUrl}
+                                  alt={uma.name}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center text-gray-500">
+                                  ?
+                                </div>
+                              )}
+                            </div>
+                            <span className="text-[9px] lg:text-[10px] text-gray-300 text-center leading-tight">
+                              {uma.name}
+                            </span>
+                          </button>
+                        );
+                      })}
                     </div>
-                  );
-                })}
-              </div>
+                  </div>
 
-              {/* Instruction */}
-              <p className="text-xs text-gray-500 text-center mb-3">
-                Click a character to assign them to the next open placement slot. Click again to remove.
-              </p>
-
-              {/* Team Grids */}
-              <div className="grid grid-cols-2 gap-4 mb-6">
-                {/* Team 1 */}
-                <div className="bg-gray-900/60 rounded-lg p-3 border border-blue-500/20">
-                  <h3 className="text-blue-400 font-bold text-xs uppercase tracking-wider mb-2 text-center">
-                    {team1Name}
-                  </h3>
-                  <div className="grid grid-cols-3 gap-2">
-                    {draftState.team1.pickedUmas.map((uma) => {
-                      const slot = getSlotForUma(uma.id.toString());
-                      const isSelected = slot !== null;
-                      return (
-                        <button
-                          key={uma.id}
-                          onClick={() => handleUmaClick(uma.id.toString())}
-                          className={`relative flex flex-col items-center gap-1 p-1.5 rounded-lg transition-all cursor-pointer ${
-                            isSelected
-                              ? `ring-2 ${slotColors[slot!]}`
-                              : "hover:bg-gray-700/60 bg-gray-800/40"
-                          }`}
-                        >
-                          {isSelected && (
-                            <div className={`absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full ${slotBadgeColors[slot!]} text-[10px] font-bold flex items-center justify-center z-10`}>
-                              {slot}
-                            </div>
-                          )}
-                          <div className={`w-12 h-12 lg:w-14 lg:h-14 rounded-lg overflow-hidden border-2 bg-gray-700 transition-all ${
-                            isSelected ? "border-blue-400/60" : "border-blue-500/30"
-                          } ${!isSelected && selectedIds.length >= 3 ? "opacity-40" : ""}`}>
-                            {uma.imageUrl ? (
-                              <img src={uma.imageUrl} alt={uma.name} className="w-full h-full object-cover" />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center text-gray-500">?</div>
+                  {/* Team 2 */}
+                  <div className="bg-gray-900/60 rounded-lg p-3 border border-red-500/20">
+                    <h3 className="text-red-400 font-bold text-xs uppercase tracking-wider mb-2 text-center">
+                      {team2Name}
+                    </h3>
+                    <div className="grid grid-cols-3 gap-2">
+                      {draftState.team2.pickedUmas.map((uma) => {
+                        const slot = getSlotForUma(uma.id.toString());
+                        const isSelected = slot !== null;
+                        return (
+                          <button
+                            key={uma.id}
+                            onClick={() => handleUmaClick(uma.id.toString())}
+                            className={`relative flex flex-col items-center gap-1 p-1.5 rounded-lg transition-all cursor-pointer ${
+                              isSelected
+                                ? `ring-2 ${slotColors[slot!]}`
+                                : "hover:bg-gray-700/60 bg-gray-800/40"
+                            }`}
+                          >
+                            {isSelected && (
+                              <div
+                                className={`absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full ${slotBadgeColors[slot!]} text-[10px] font-bold flex items-center justify-center z-10`}
+                              >
+                                {slot}
+                              </div>
                             )}
-                          </div>
-                          <span className="text-[9px] lg:text-[10px] text-gray-300 text-center leading-tight">
-                            {uma.name}
-                          </span>
-                        </button>
-                      );
-                    })}
+                            <div
+                              className={`w-12 h-12 lg:w-14 lg:h-14 rounded-lg overflow-hidden border-2 bg-gray-700 transition-all ${
+                                isSelected
+                                  ? "border-red-400/60"
+                                  : "border-red-500/30"
+                              } ${!isSelected && selectedIds.length >= 3 ? "opacity-40" : ""}`}
+                            >
+                              {uma.imageUrl ? (
+                                <img
+                                  src={uma.imageUrl}
+                                  alt={uma.name}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center text-gray-500">
+                                  ?
+                                </div>
+                              )}
+                            </div>
+                            <span className="text-[9px] lg:text-[10px] text-gray-300 text-center leading-tight">
+                              {uma.name}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
 
-                {/* Team 2 */}
-                <div className="bg-gray-900/60 rounded-lg p-3 border border-red-500/20">
-                  <h3 className="text-red-400 font-bold text-xs uppercase tracking-wider mb-2 text-center">
-                    {team2Name}
-                  </h3>
-                  <div className="grid grid-cols-3 gap-2">
-                    {draftState.team2.pickedUmas.map((uma) => {
-                      const slot = getSlotForUma(uma.id.toString());
-                      const isSelected = slot !== null;
-                      return (
-                        <button
-                          key={uma.id}
-                          onClick={() => handleUmaClick(uma.id.toString())}
-                          className={`relative flex flex-col items-center gap-1 p-1.5 rounded-lg transition-all cursor-pointer ${
-                            isSelected
-                              ? `ring-2 ${slotColors[slot!]}`
-                              : "hover:bg-gray-700/60 bg-gray-800/40"
-                          }`}
-                        >
-                          {isSelected && (
-                            <div className={`absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full ${slotBadgeColors[slot!]} text-[10px] font-bold flex items-center justify-center z-10`}>
-                              {slot}
-                            </div>
-                          )}
-                          <div className={`w-12 h-12 lg:w-14 lg:h-14 rounded-lg overflow-hidden border-2 bg-gray-700 transition-all ${
-                            isSelected ? "border-red-400/60" : "border-red-500/30"
-                          } ${!isSelected && selectedIds.length >= 3 ? "opacity-40" : ""}`}>
-                            {uma.imageUrl ? (
-                              <img src={uma.imageUrl} alt={uma.name} className="w-full h-full object-cover" />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center text-gray-500">?</div>
-                            )}
-                          </div>
-                          <span className="text-[9px] lg:text-[10px] text-gray-300 text-center leading-tight">
-                            {uma.name}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
+                {/* Action Buttons */}
+                <div className="flex gap-3 justify-end">
+                  <button
+                    onClick={() => setShowMatchReporting(false)}
+                    className="bg-gray-700 hover:bg-gray-600 text-gray-100 font-semibold py-2 px-6 rounded-lg transition-colors border border-gray-600 text-sm"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={submitRaceReport}
+                    disabled={
+                      !reportPlacements.first ||
+                      !reportPlacements.second ||
+                      !reportPlacements.third
+                    }
+                    className="bg-purple-600 hover:bg-purple-700 disabled:bg-gray-700 disabled:text-gray-500 text-white font-semibold py-2 px-6 rounded-lg transition-colors text-sm"
+                  >
+                    {isMultiplayer
+                      ? "Submit for Confirmation"
+                      : "Confirm Result"}
+                  </button>
                 </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex gap-3 justify-end">
-                <button
-                  onClick={() => setShowMatchReporting(false)}
-                  className="bg-gray-700 hover:bg-gray-600 text-gray-100 font-semibold py-2 px-6 rounded-lg transition-colors border border-gray-600 text-sm"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={submitRaceReport}
-                  disabled={
-                    !reportPlacements.first ||
-                    !reportPlacements.second ||
-                    !reportPlacements.third
-                  }
-                  className="bg-purple-600 hover:bg-purple-700 disabled:bg-gray-700 disabled:text-gray-500 text-white font-semibold py-2 px-6 rounded-lg transition-colors text-sm"
-                >
-                  {isMultiplayer ? "Submit for Confirmation" : "Confirm Result"}
-                </button>
               </div>
             </div>
-          </div>
-        );
-      })()}
+          );
+        })()}
     </div>
   );
 }
