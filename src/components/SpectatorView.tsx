@@ -76,6 +76,13 @@ export default function SpectatorView({
     if (Number.isNaN(parsed)) return 70;
     return Math.min(100, Math.max(0, parsed));
   });
+  const [voicelineVolume, setVoicelineVolume] = useState<number>(() => {
+    const saved = localStorage.getItem("draft5v5VoicelineVolume");
+    if (!saved) return 70;
+    const parsed = Number(saved);
+    if (Number.isNaN(parsed)) return 70;
+    return Math.min(100, Math.max(0, parsed));
+  });
   const previousDraftStateRef = useRef<DraftState | null>(null);
 
   // Preload lock-in / ban click SFX so spectators hear them on every action
@@ -112,15 +119,20 @@ export default function SpectatorView({
     const audio = new Audio(
       `${import.meta.env.BASE_URL}Voicelines/${umaId}/${umaId}-${type}.wav`,
     );
-    audio.volume = 0.9 * (sfxVolume / 100);
+    audio.volume = 0.9 * (voicelineVolume / 100);
     void audio.play().catch(() => {
       // Missing files are expected while voiceline library is in progress.
     });
-  }, [sfxVolume]);
+  }, [voicelineVolume]);
 
   const handleSfxVolumeChange = useCallback((volume: number) => {
     setSfxVolume(volume);
     localStorage.setItem("draft5v5SfxVolume", String(volume));
+  }, []);
+
+  const handleVoicelineVolumeChange = useCallback((volume: number) => {
+    setVoicelineVolume(volume);
+    localStorage.setItem("draft5v5VoicelineVolume", String(volume));
   }, []);
 
   const isUmaPhase =
@@ -331,6 +343,8 @@ export default function SpectatorView({
             completedActions={completedActions}
             sfxVolume={sfxVolume}
             onSfxVolumeChange={handleSfxVolumeChange}
+            voicelineVolume={voicelineVolume}
+            onVoicelineVolumeChange={handleVoicelineVolumeChange}
           />
         </div>
 

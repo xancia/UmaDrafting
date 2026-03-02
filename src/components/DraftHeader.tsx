@@ -29,6 +29,8 @@ interface DraftHeaderProps {
   // SFX volume controls
   sfxVolume?: number;
   onSfxVolumeChange?: (volume: number) => void;
+  voicelineVolume?: number;
+  onVoicelineVolumeChange?: (volume: number) => void;
 }
 
 export default function DraftHeader({
@@ -52,6 +54,8 @@ export default function DraftHeader({
   completedActions = 0,
   sfxVolume = 70,
   onSfxVolumeChange,
+  voicelineVolume = 70,
+  onVoicelineVolumeChange,
 }: DraftHeaderProps) {
   const [showSfxSlider, setShowSfxSlider] = useState(false);
   const sfxPopoverRef = useRef<HTMLDivElement | null>(null);
@@ -214,15 +218,15 @@ export default function DraftHeader({
               </button>
             </>
           )}
-          {onSfxVolumeChange && (
+          {(onSfxVolumeChange || onVoicelineVolumeChange) && (
             <div className="relative hidden md:block" ref={sfxPopoverRef}>
               <button
                 type="button"
                 onClick={() => setShowSfxSlider((prev) => !prev)}
                 className="bg-gray-700/80 text-gray-100 font-semibold py-1.5 px-2.5 rounded-lg hover:bg-gray-600 transition-colors border border-gray-600/50"
-                aria-label="Sound effects volume"
+                aria-label="Audio settings"
                 aria-expanded={showSfxSlider}
-                title={`SFX Volume: ${sfxVolume}%`}
+                title={`SFX: ${sfxVolume}% | Voice: ${voicelineVolume}%`}
               >
                 <svg
                   viewBox="0 0 24 24"
@@ -240,23 +244,49 @@ export default function DraftHeader({
               </button>
               {showSfxSlider && (
                 <div className="absolute right-0 mt-2 z-20 bg-gray-800 border border-gray-600/60 rounded-lg px-3 py-2 shadow-xl">
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px] lg:text-xs text-gray-400 font-semibold">
-                      SFX
-                    </span>
-                    <input
-                      type="range"
-                      min={0}
-                      max={100}
-                      step={1}
-                      value={sfxVolume}
-                      onChange={(e) => onSfxVolumeChange(Number(e.target.value))}
-                      className="w-24 lg:w-28 accent-blue-500"
-                      aria-label="Sound effects volume slider"
-                    />
-                    <span className="text-[10px] lg:text-xs text-gray-300 font-mono w-9 text-right">
-                      {sfxVolume}%
-                    </span>
+                  <div className="space-y-2 min-w-[13rem]">
+                    {onSfxVolumeChange && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] lg:text-xs text-gray-400 font-semibold w-9">
+                          SFX
+                        </span>
+                        <input
+                          type="range"
+                          min={0}
+                          max={100}
+                          step={1}
+                          value={sfxVolume}
+                          onChange={(e) => onSfxVolumeChange(Number(e.target.value))}
+                          className="flex-1 accent-blue-500"
+                          aria-label="Sound effects volume slider"
+                        />
+                        <span className="text-[10px] lg:text-xs text-gray-300 font-mono w-9 text-right">
+                          {sfxVolume}%
+                        </span>
+                      </div>
+                    )}
+                    {onVoicelineVolumeChange && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] lg:text-xs text-gray-400 font-semibold w-9">
+                          Voice
+                        </span>
+                        <input
+                          type="range"
+                          min={0}
+                          max={100}
+                          step={1}
+                          value={voicelineVolume}
+                          onChange={(e) =>
+                            onVoicelineVolumeChange(Number(e.target.value))
+                          }
+                          className="flex-1 accent-pink-500"
+                          aria-label="Uma voiceline volume slider"
+                        />
+                        <span className="text-[10px] lg:text-xs text-gray-300 font-mono w-9 text-right">
+                          {voicelineVolume}%
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}

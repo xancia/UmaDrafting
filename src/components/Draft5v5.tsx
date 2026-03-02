@@ -345,6 +345,13 @@ export default function Draft5v5({
     if (Number.isNaN(parsed)) return 70;
     return Math.min(100, Math.max(0, parsed));
   });
+  const [voicelineVolume, setVoicelineVolume] = useState<number>(() => {
+    const saved = localStorage.getItem("draft5v5VoicelineVolume");
+    if (!saved) return 70;
+    const parsed = Number(saved);
+    if (Number.isNaN(parsed)) return 70;
+    return Math.min(100, Math.max(0, parsed));
+  });
 
   // Ready-up timer (5 minutes = 300 seconds)
   const [readyUpTime, setReadyUpTime] = useState<number>(300);
@@ -628,6 +635,10 @@ export default function Draft5v5({
     localStorage.setItem("draft5v5SfxVolume", String(sfxVolume));
   }, [sfxVolume]);
 
+  useEffect(() => {
+    localStorage.setItem("draft5v5VoicelineVolume", String(voicelineVolume));
+  }, [voicelineVolume]);
+
   const playSfx = useCallback((key: SfxKey) => {
     const audio = sfxRefs.current[key];
     if (!audio) return;
@@ -658,7 +669,7 @@ export default function Draft5v5({
       const audio = new Audio(
         `${import.meta.env.BASE_URL}Voicelines/${umaId}/${umaId}-${type}.wav`,
       );
-      audio.volume = 0.9 * (sfxVolume / 100);
+      audio.volume = 0.9 * (voicelineVolume / 100);
       activeVoicelineRef.current = audio;
       audio.onended = () => {
         if (voicelineTokenRef.current === token) {
@@ -672,7 +683,7 @@ export default function Draft5v5({
         }
       });
     },
-    [sfxVolume],
+    [voicelineVolume],
   );
 
   useEffect(() => {
@@ -2687,6 +2698,8 @@ export default function Draft5v5({
             completedActions={completedActions}
             sfxVolume={sfxVolume}
             onSfxVolumeChange={setSfxVolume}
+            voicelineVolume={voicelineVolume}
+            onVoicelineVolumeChange={setVoicelineVolume}
           />
         </div>
 
