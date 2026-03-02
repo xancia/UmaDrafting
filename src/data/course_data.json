@@ -141,9 +141,7 @@
       }
     ],
     "course": 1,
-    "courseSetStatus": [
-      3
-    ],
+    "courseSetStatus": [3],
     "distance": 2000,
     "distanceType": 3,
     "finishTimeMax": 1230000,
@@ -199,9 +197,7 @@
       }
     ],
     "course": 1,
-    "courseSetStatus": [
-      2
-    ],
+    "courseSetStatus": [2],
     "distance": 2600,
     "distanceType": 4,
     "finishTimeMax": 1650000,
@@ -289,9 +285,7 @@
       }
     ],
     "course": 1,
-    "courseSetStatus": [
-      1
-    ],
+    "courseSetStatus": [1],
     "distance": 1700,
     "distanceType": 2,
     "finishTimeMax": 1130000,
@@ -482,9 +476,7 @@
       }
     ],
     "course": 1,
-    "courseSetStatus": [
-      3
-    ],
+    "courseSetStatus": [3],
     "distance": 1800,
     "distanceType": 2,
     "finishTimeMax": 1100000,
@@ -543,9 +535,7 @@
       }
     ],
     "course": 1,
-    "courseSetStatus": [
-      1
-    ],
+    "courseSetStatus": [1],
     "distance": 2000,
     "distanceType": 3,
     "finishTimeMax": 1230000,
@@ -612,9 +602,7 @@
       }
     ],
     "course": 1,
-    "courseSetStatus": [
-      2
-    ],
+    "courseSetStatus": [2],
     "distance": 2600,
     "distanceType": 4,
     "finishTimeMax": 1650000,
@@ -785,9 +773,7 @@
       }
     ],
     "course": 1,
-    "courseSetStatus": [
-      2
-    ],
+    "courseSetStatus": [2],
     "distance": 2400,
     "distanceType": 3,
     "finishTimeMax": 1560000,
@@ -823,9 +809,7 @@
   "10301": {
     "corners": [],
     "course": 1,
-    "courseSetStatus": [
-      3
-    ],
+    "courseSetStatus": [3],
     "distance": 1000,
     "distanceType": 1,
     "finishTimeMax": 570000,
@@ -982,9 +966,7 @@
       }
     ],
     "course": 3,
-    "courseSetStatus": [
-      3
-    ],
+    "courseSetStatus": [3],
     "distance": 1800,
     "distanceType": 2,
     "finishTimeMax": 1100000,
@@ -1038,10 +1020,7 @@
       }
     ],
     "course": 2,
-    "courseSetStatus": [
-      2,
-      3
-    ],
+    "courseSetStatus": [2, 3],
     "distance": 2000,
     "distanceType": 3,
     "finishTimeMax": 1230000,
@@ -1081,10 +1060,7 @@
       }
     ],
     "course": 3,
-    "courseSetStatus": [
-      2,
-      3
-    ],
+    "courseSetStatus": [2, 3],
     "distance": 2000,
     "distanceType": 3,
     "finishTimeMax": 1230000,
@@ -1138,9 +1114,7 @@
       }
     ],
     "course": 2,
-    "courseSetStatus": [
-      1
-    ],
+    "courseSetStatus": [1],
     "distance": 2200,
     "distanceType": 3,
     "finishTimeMax": 1350000,
@@ -1271,9 +1245,7 @@
       }
     ],
     "course": 1,
-    "courseSetStatus": [
-      5
-    ],
+    "courseSetStatus": [5],
     "distance": 1800,
     "distanceType": 2,
     "finishTimeMax": 1180000,
@@ -1423,9 +1395,7 @@
       }
     ],
     "course": 1,
-    "courseSetStatus": [
-      2
-    ],
+    "courseSetStatus": [2],
     "distance": 1800,
     "distanceType": 2,
     "finishTimeMax": 1100000,
@@ -1479,9 +1449,7 @@
       }
     ],
     "course": 1,
-    "courseSetStatus": [
-      2
-    ],
+    "courseSetStatus": [2],
     "distance": 2000,
     "distanceType": 3,
     "finishTimeMax": 1230000,
@@ -1642,9 +1610,7 @@
       }
     ],
     "course": 1,
-    "courseSetStatus": [
-      3
-    ],
+    "courseSetStatus": [3],
     "distance": 1700,
     "distanceType": 2,
     "finishTimeMax": 1130000,
@@ -1706,9 +1672,7 @@
       }
     ],
     "course": 1,
-    "courseSetStatus": [
-      2
-    ],
+    "courseSetStatus": [2],
     "distance": 2400,
     "distanceType": 3,
     "finishTimeMax": 1560000,
@@ -1798,9 +1762,7 @@
       }
     ],
     "course": 3,
-    "courseSetStatus": [
-      3
-    ],
+    "courseSetStatus": [3],
     "distance": 1600,
     "distanceType": 2,
     "finishTimeMax": 950000,
@@ -1918,9 +1880,7 @@
       }
     ],
     "course": 2,
-    "courseSetStatus": [
-      1
-    ],
+    "courseSetStatus": [1],
     "distance": 2000,
     "distanceType": 3,
     "finishTimeMax": 1230000,
@@ -1989,10 +1949,7 @@
       }
     ],
     "course": 3,
-    "courseSetStatus": [
-      2,
-      4
-    ],
+    "courseSetStatus": [2, 4],
     "distance": 2200,
     "distanceType": 3,
     "finishTimeMax": 1350000,
@@ -2064,10 +2021,7 @@
       }
     ],
     "course": 2,
-    "courseSetStatus": [
-      2,
-      4
-    ],
+    "courseSetStatus": [2, 4],
     "distance": 2500,
     "distanceType": 4,
     "finishTimeMax": 1570000,
@@ -2152,9 +2106,7 @@
       }
     ],
     "course": 2,
-    "courseSetStatus": [
-      2
-    ],
+    "courseSetStatus": [2],
     "distance": 3600,
     "distanceType": 4,
     "finishTimeMax": 2270000,
@@ -2240,9 +2192,7 @@
       }
     ],
     "course": 1,
-    "courseSetStatus": [
-      3
-    ],
+    "courseSetStatus": [3],
     "distance": 1200,
     "distanceType": 1,
     "finishTimeMax": 770000,
@@ -2296,9 +2246,7 @@
       }
     ],
     "course": 1,
-    "courseSetStatus": [
-      3
-    ],
+    "courseSetStatus": [3],
     "distance": 1800,
     "distanceType": 2,
     "finishTimeMax": 1180000,
@@ -2375,9 +2323,7 @@
       }
     ],
     "course": 1,
-    "courseSetStatus": [
-      2
-    ],
+    "courseSetStatus": [2],
     "distance": 2400,
     "distanceType": 3,
     "finishTimeMax": 1560000,
@@ -2483,10 +2429,7 @@
       }
     ],
     "course": 1,
-    "courseSetStatus": [
-      2,
-      3
-    ],
+    "courseSetStatus": [2, 3],
     "distance": 1400,
     "distanceType": 1,
     "finishTimeMax": 840000,
@@ -2537,10 +2480,7 @@
       }
     ],
     "course": 1,
-    "courseSetStatus": [
-      2,
-      4
-    ],
+    "courseSetStatus": [2, 4],
     "distance": 1600,
     "distanceType": 2,
     "finishTimeMax": 950000,
@@ -2595,9 +2535,7 @@
       }
     ],
     "course": 1,
-    "courseSetStatus": [
-      1
-    ],
+    "courseSetStatus": [1],
     "distance": 1800,
     "distanceType": 2,
     "finishTimeMax": 1100000,
@@ -2711,9 +2649,7 @@
       }
     ],
     "course": 1,
-    "courseSetStatus": [
-      3
-    ],
+    "courseSetStatus": [3],
     "distance": 2300,
     "distanceType": 3,
     "finishTimeMax": 1430000,
@@ -2846,9 +2782,7 @@
       }
     ],
     "course": 1,
-    "courseSetStatus": [
-      2
-    ],
+    "courseSetStatus": [2],
     "distance": 2500,
     "distanceType": 4,
     "finishTimeMax": 1570000,
@@ -3001,9 +2935,7 @@
       }
     ],
     "course": 1,
-    "courseSetStatus": [
-      1
-    ],
+    "courseSetStatus": [1],
     "distance": 1300,
     "distanceType": 1,
     "finishTimeMax": 820000,
@@ -3049,9 +2981,7 @@
       }
     ],
     "course": 1,
-    "courseSetStatus": [
-      2
-    ],
+    "courseSetStatus": [2],
     "distance": 1400,
     "distanceType": 1,
     "finishTimeMax": 940000,
@@ -3097,10 +3027,7 @@
       }
     ],
     "course": 1,
-    "courseSetStatus": [
-      1,
-      2
-    ],
+    "courseSetStatus": [1, 2],
     "distance": 1600,
     "distanceType": 2,
     "finishTimeMax": 1080000,
@@ -3217,9 +3144,7 @@
       }
     ],
     "course": 1,
-    "courseSetStatus": [
-      2
-    ],
+    "courseSetStatus": [2],
     "distance": 2400,
     "distanceType": 3,
     "finishTimeMax": 1560000,
@@ -3355,9 +3280,7 @@
       }
     ],
     "course": 1,
-    "courseSetStatus": [
-      1
-    ],
+    "courseSetStatus": [1],
     "distance": 1600,
     "distanceType": 2,
     "finishTimeMax": 950000,
@@ -3475,9 +3398,7 @@
       }
     ],
     "course": 1,
-    "courseSetStatus": [
-      2
-    ],
+    "courseSetStatus": [2],
     "distance": 2200,
     "distanceType": 3,
     "finishTimeMax": 1350000,
@@ -3627,9 +3548,7 @@
       }
     ],
     "course": 1,
-    "courseSetStatus": [
-      2
-    ],
+    "courseSetStatus": [2],
     "distance": 1800,
     "distanceType": 2,
     "finishTimeMax": 1180000,
@@ -3876,9 +3795,7 @@
       }
     ],
     "course": 2,
-    "courseSetStatus": [
-      1
-    ],
+    "courseSetStatus": [1],
     "distance": 1600,
     "distanceType": 2,
     "finishTimeMax": 950000,
@@ -3924,9 +3841,7 @@
       }
     ],
     "course": 3,
-    "courseSetStatus": [
-      1
-    ],
+    "courseSetStatus": [1],
     "distance": 1600,
     "distanceType": 2,
     "finishTimeMax": 950000,
@@ -4036,9 +3951,7 @@
       }
     ],
     "course": 2,
-    "courseSetStatus": [
-      3
-    ],
+    "courseSetStatus": [3],
     "distance": 2000,
     "distanceType": 3,
     "finishTimeMax": 1230000,
@@ -4097,9 +4010,7 @@
       }
     ],
     "course": 3,
-    "courseSetStatus": [
-      1
-    ],
+    "courseSetStatus": [1],
     "distance": 2200,
     "distanceType": 3,
     "finishTimeMax": 1350000,
@@ -4163,9 +4074,7 @@
       }
     ],
     "course": 3,
-    "courseSetStatus": [
-      3
-    ],
+    "courseSetStatus": [3],
     "distance": 2400,
     "distanceType": 3,
     "finishTimeMax": 1490000,
@@ -4237,10 +4146,7 @@
       }
     ],
     "course": 3,
-    "courseSetStatus": [
-      3,
-      5
-    ],
+    "courseSetStatus": [3, 5],
     "distance": 3000,
     "distanceType": 4,
     "finishTimeMax": 1900000,
@@ -4710,9 +4616,7 @@
       }
     ],
     "course": 3,
-    "courseSetStatus": [
-      3
-    ],
+    "courseSetStatus": [3],
     "distance": 1600,
     "distanceType": 2,
     "finishTimeMax": 950000,
@@ -4758,9 +4662,7 @@
       }
     ],
     "course": 3,
-    "courseSetStatus": [
-      3
-    ],
+    "courseSetStatus": [3],
     "distance": 1800,
     "distanceType": 2,
     "finishTimeMax": 1100000,
@@ -4814,9 +4716,7 @@
       }
     ],
     "course": 2,
-    "courseSetStatus": [
-      4
-    ],
+    "courseSetStatus": [4],
     "distance": 2000,
     "distanceType": 3,
     "finishTimeMax": 1230000,
@@ -4885,9 +4785,7 @@
       }
     ],
     "course": 2,
-    "courseSetStatus": [
-      1
-    ],
+    "courseSetStatus": [1],
     "distance": 2200,
     "distanceType": 3,
     "finishTimeMax": 1350000,
@@ -4956,9 +4854,7 @@
       }
     ],
     "course": 3,
-    "courseSetStatus": [
-      3
-    ],
+    "courseSetStatus": [3],
     "distance": 2400,
     "distanceType": 3,
     "finishTimeMax": 1490000,
@@ -5104,9 +5000,7 @@
       }
     ],
     "course": 2,
-    "courseSetStatus": [
-      3
-    ],
+    "courseSetStatus": [3],
     "distance": 3000,
     "distanceType": 4,
     "finishTimeMax": 1900000,
@@ -5336,10 +5230,7 @@
       }
     ],
     "course": 1,
-    "courseSetStatus": [
-      2,
-      3
-    ],
+    "courseSetStatus": [2, 3],
     "distance": 2000,
     "distanceType": 3,
     "finishTimeMax": 1290000,
@@ -5482,9 +5373,7 @@
       }
     ],
     "course": 1,
-    "courseSetStatus": [
-      1
-    ],
+    "courseSetStatus": [1],
     "distance": 1200,
     "distanceType": 1,
     "finishTimeMax": 710000,
@@ -5587,9 +5476,7 @@
       }
     ],
     "course": 1,
-    "courseSetStatus": [
-      3
-    ],
+    "courseSetStatus": [3],
     "distance": 2000,
     "distanceType": 3,
     "finishTimeMax": 1230000,
@@ -5651,9 +5538,7 @@
       }
     ],
     "course": 1,
-    "courseSetStatus": [
-      2
-    ],
+    "courseSetStatus": [2],
     "distance": 2600,
     "distanceType": 4,
     "finishTimeMax": 1650000,
@@ -5704,9 +5589,7 @@
       }
     ],
     "course": 1,
-    "courseSetStatus": [
-      1
-    ],
+    "courseSetStatus": [1],
     "distance": 1000,
     "distanceType": 1,
     "finishTimeMax": 630000,
@@ -5856,10 +5739,7 @@
       }
     ],
     "course": 1,
-    "courseSetStatus": [
-      4,
-      5
-    ],
+    "courseSetStatus": [4, 5],
     "distance": 1200,
     "distanceType": 1,
     "finishTimeMax": 770000,
@@ -5902,9 +5782,7 @@
       }
     ],
     "course": 1,
-    "courseSetStatus": [
-      3
-    ],
+    "courseSetStatus": [3],
     "distance": 1800,
     "distanceType": 2,
     "finishTimeMax": 1180000,
@@ -5952,9 +5830,7 @@
       }
     ],
     "course": 1,
-    "courseSetStatus": [
-      2
-    ],
+    "courseSetStatus": [2],
     "distance": 2000,
     "distanceType": 3,
     "finishTimeMax": 1290000,
@@ -5994,10 +5870,7 @@
       }
     ],
     "course": 1,
-    "courseSetStatus": [
-      2,
-      3
-    ],
+    "courseSetStatus": [2, 3],
     "distance": 2400,
     "distanceType": 3,
     "finishTimeMax": 1650000,
@@ -6061,9 +5934,7 @@
       }
     ],
     "course": 1,
-    "courseSetStatus": [
-      5
-    ],
+    "courseSetStatus": [5],
     "distance": 1400,
     "distanceType": 1,
     "finishTimeMax": 940000,
@@ -6111,9 +5982,7 @@
       }
     ],
     "course": 1,
-    "courseSetStatus": [
-      5
-    ],
+    "courseSetStatus": [5],
     "distance": 1600,
     "distanceType": 2,
     "finishTimeMax": 1080000,
@@ -6169,10 +6038,7 @@
       }
     ],
     "course": 1,
-    "courseSetStatus": [
-      2,
-      5
-    ],
+    "courseSetStatus": [2, 5],
     "distance": 2100,
     "distanceType": 3,
     "finishTimeMax": 1400000,
@@ -6217,9 +6083,7 @@
       }
     ],
     "course": 1,
-    "courseSetStatus": [
-      1
-    ],
+    "courseSetStatus": [1],
     "distance": 1000,
     "distanceType": 1,
     "finishTimeMax": 630000,
@@ -6366,9 +6230,7 @@
       }
     ],
     "course": 1,
-    "courseSetStatus": [
-      2
-    ],
+    "courseSetStatus": [2],
     "distance": 2400,
     "distanceType": 3,
     "finishTimeMax": 1560000,
@@ -6413,9 +6275,7 @@
       }
     ],
     "course": 1,
-    "courseSetStatus": [
-      2
-    ],
+    "courseSetStatus": [2],
     "distance": 1200,
     "distanceType": 1,
     "finishTimeMax": 770000,
@@ -6466,10 +6326,7 @@
       }
     ],
     "course": 1,
-    "courseSetStatus": [
-      2,
-      5
-    ],
+    "courseSetStatus": [2, 5],
     "distance": 1600,
     "distanceType": 2,
     "finishTimeMax": 1080000,
@@ -6528,10 +6385,7 @@
       }
     ],
     "course": 1,
-    "courseSetStatus": [
-      2,
-      5
-    ],
+    "courseSetStatus": [2, 5],
     "distance": 1800,
     "distanceType": 2,
     "finishTimeMax": 1180000,
@@ -6595,9 +6449,7 @@
       }
     ],
     "course": 1,
-    "courseSetStatus": [
-      2
-    ],
+    "courseSetStatus": [2],
     "distance": 2000,
     "distanceType": 3,
     "finishTimeMax": 1290000,
@@ -6666,9 +6518,7 @@
       }
     ],
     "course": 1,
-    "courseSetStatus": [
-      2
-    ],
+    "courseSetStatus": [2],
     "distance": 2000,
     "distanceType": 3,
     "finishTimeMax": 1290000,
@@ -6729,10 +6579,7 @@
       }
     ],
     "course": 1,
-    "courseSetStatus": [
-      1,
-      3
-    ],
+    "courseSetStatus": [1, 3],
     "distance": 1000,
     "distanceType": 1,
     "finishTimeMax": 560000,
@@ -6775,9 +6622,7 @@
       }
     ],
     "course": 1,
-    "courseSetStatus": [
-      5
-    ],
+    "courseSetStatus": [5],
     "distance": 1600,
     "distanceType": 2,
     "finishTimeMax": 960000,
@@ -6829,10 +6674,7 @@
       }
     ],
     "course": 1,
-    "courseSetStatus": [
-      2,
-      5
-    ],
+    "courseSetStatus": [2, 5],
     "distance": 2000,
     "distanceType": 3,
     "finishTimeMax": 1220000,
@@ -6890,10 +6732,7 @@
       }
     ],
     "course": 1,
-    "courseSetStatus": [
-      2,
-      4
-    ],
+    "courseSetStatus": [2, 4],
     "distance": 2400,
     "distanceType": 3,
     "finishTimeMax": 1460000,
@@ -6939,10 +6778,7 @@
       }
     ],
     "course": 1,
-    "courseSetStatus": [
-      1,
-      3
-    ],
+    "courseSetStatus": [1, 3],
     "distance": 1200,
     "distanceType": 1,
     "finishTimeMax": 700000,
@@ -6977,9 +6813,7 @@
       }
     ],
     "course": 1,
-    "courseSetStatus": [
-      1
-    ],
+    "courseSetStatus": [1],
     "distance": 1400,
     "distanceType": 1,
     "finishTimeMax": 830000,
@@ -7022,10 +6856,7 @@
       }
     ],
     "course": 1,
-    "courseSetStatus": [
-      3,
-      5
-    ],
+    "courseSetStatus": [3, 5],
     "distance": 1600,
     "distanceType": 2,
     "finishTimeMax": 970000,
@@ -7073,9 +6904,7 @@
       }
     ],
     "course": 1,
-    "courseSetStatus": [
-      3
-    ],
+    "courseSetStatus": [3],
     "distance": 1800,
     "distanceType": 2,
     "finishTimeMax": 1110000,
@@ -7123,10 +6952,7 @@
       }
     ],
     "course": 1,
-    "courseSetStatus": [
-      3,
-      5
-    ],
+    "courseSetStatus": [3, 5],
     "distance": 2000,
     "distanceType": 3,
     "finishTimeMax": 1230000,
@@ -7166,10 +6992,7 @@
       }
     ],
     "course": 1,
-    "courseSetStatus": [
-      1,
-      3
-    ],
+    "courseSetStatus": [1, 3],
     "distance": 1000,
     "distanceType": 1,
     "finishTimeMax": 570000,
@@ -7212,9 +7035,7 @@
       }
     ],
     "course": 1,
-    "courseSetStatus": [
-      5
-    ],
+    "courseSetStatus": [5],
     "distance": 1600,
     "distanceType": 2,
     "finishTimeMax": 950000,
@@ -7270,10 +7091,7 @@
       }
     ],
     "course": 1,
-    "courseSetStatus": [
-      3,
-      5
-    ],
+    "courseSetStatus": [3, 5],
     "distance": 2200,
     "distanceType": 3,
     "finishTimeMax": 1350000,
@@ -7334,10 +7152,7 @@
       }
     ],
     "course": 1,
-    "courseSetStatus": [
-      2,
-      4
-    ],
+    "courseSetStatus": [2, 4],
     "distance": 2400,
     "distanceType": 3,
     "finishTimeMax": 1470000,
@@ -7382,10 +7197,7 @@
       }
     ],
     "course": 1,
-    "courseSetStatus": [
-      1,
-      3
-    ],
+    "courseSetStatus": [1, 3],
     "distance": 1200,
     "distanceType": 1,
     "finishTimeMax": 700000,
@@ -7420,9 +7232,7 @@
       }
     ],
     "course": 1,
-    "courseSetStatus": [
-      1
-    ],
+    "courseSetStatus": [1],
     "distance": 1400,
     "distanceType": 1,
     "finishTimeMax": 830000,
@@ -7465,10 +7275,7 @@
       }
     ],
     "course": 1,
-    "courseSetStatus": [
-      3,
-      5
-    ],
+    "courseSetStatus": [3, 5],
     "distance": 1600,
     "distanceType": 2,
     "finishTimeMax": 960000,
@@ -7516,9 +7323,7 @@
       }
     ],
     "course": 1,
-    "courseSetStatus": [
-      3
-    ],
+    "courseSetStatus": [3],
     "distance": 1800,
     "distanceType": 2,
     "finishTimeMax": 1110000,
@@ -7566,10 +7371,7 @@
       }
     ],
     "course": 1,
-    "courseSetStatus": [
-      3,
-      5
-    ],
+    "courseSetStatus": [3, 5],
     "distance": 2000,
     "distanceType": 3,
     "finishTimeMax": 1220000,
