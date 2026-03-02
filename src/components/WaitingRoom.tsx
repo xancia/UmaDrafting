@@ -119,8 +119,8 @@ export default function WaitingRoom({
   };
 
   return (
-    <div className="h-screen bg-linear-to-br from-gray-950 to-gray-900 flex items-center justify-center px-4 lg:px-6">
-      <div className="bg-gray-800 rounded-xl shadow-2xl p-[18px] lg:p-5 xl:p-6 border-2 border-gray-700 max-w-lg w-full text-center">
+    <div className="min-h-screen bg-linear-to-br from-gray-950 to-gray-900 flex items-start lg:items-center justify-center px-4 lg:px-6 py-4 lg:py-6 overflow-y-auto">
+      <div className="bg-gray-800 rounded-xl shadow-2xl p-[18px] lg:p-5 xl:p-6 border-2 border-gray-700 max-w-lg w-full text-center my-auto">
         <h1 className="text-2xl lg:text-3xl font-bold mb-1 lg:mb-2 text-gray-100">
           Waiting Room
         </h1>
@@ -157,7 +157,7 @@ export default function WaitingRoom({
                   <p className="text-[11px] text-green-400 font-semibold mb-1">
                     Player Join
                   </p>
-                  <p className="text-[10px] text-gray-400 break-all leading-snug mb-2">
+                  <p className="text-[9px] lg:text-[10px] text-gray-400 break-all leading-snug mb-2">
                     {joinInviteUrl}
                   </p>
                   <button
@@ -171,7 +171,7 @@ export default function WaitingRoom({
                   <p className="text-[11px] text-purple-400 font-semibold mb-1">
                     Spectator Join
                   </p>
-                  <p className="text-[10px] text-gray-400 break-all leading-snug mb-2">
+                  <p className="text-[9px] lg:text-[10px] text-gray-400 break-all leading-snug mb-2">
                     {spectateInviteUrl}
                   </p>
                   <button
