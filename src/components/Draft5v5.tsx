@@ -3283,7 +3283,9 @@ export default function Draft5v5({
                             ({s.map.variant})
                           </span>
                         )}
-                        <span className="text-gray-500">{s.map.distance}m</span>
+                        <span className="text-gray-100 font-semibold">
+                          {s.map.distance}m
+                        </span>
                         <span
                           className={`text-xs px-1.5 py-0.5 rounded ${s.map.surface?.toLowerCase() === "turf" ? "bg-green-900/40 text-green-400" : "bg-amber-900/40 text-amber-400"}`}
                         >

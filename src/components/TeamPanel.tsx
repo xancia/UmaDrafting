@@ -173,7 +173,10 @@ export default function TeamPanel({
                       isBanned ? "text-gray-500 line-through" : "text-gray-200"
                     }`}
                   >
-                    {map.distance} • {map.surface} •{" "}
+                    <span className={isBanned ? "" : "text-gray-50 font-semibold"}>
+                      {map.distance}
+                    </span>{" "}
+                    • {map.surface} •{" "}
                     {map.direction === "right"
                       ? "Right"
                       : map.direction === "left"
