@@ -32,6 +32,12 @@ interface InviteConfig {
   mode: "join" | "spectate";
 }
 
+function getAppRootPath(): string {
+  const basePath = (import.meta.env.BASE_URL || "/").trim();
+  if (!basePath || basePath === "/") return "/";
+  return `/${basePath.replace(/^\/+|\/+$/g, "")}/`;
+}
+
 function LeaderboardPage() {
   return (
     <div className="h-screen flex flex-col overflow-hidden">
@@ -88,6 +94,9 @@ function MainApp({ inviteConfig }: { inviteConfig?: InviteConfig }) {
     format: "5v5" | "3v3v3",
     config?: MultiplayerConfig,
   ) => {
+    if (inviteConfig && typeof window !== "undefined") {
+      window.history.replaceState(null, "", getAppRootPath());
+    }
     setSelectedFormat(format);
     setMultiplayerConfig(config);
     // Clear any pending session when starting fresh
