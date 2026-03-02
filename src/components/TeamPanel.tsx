@@ -287,7 +287,8 @@ export default function TeamPanel({
               slotOffset >= 0 &&
               slotOffset < consecutivePicks &&
               isCurrentTurn &&
-              activeSection === "umas";
+              activeSection === "umas" &&
+              phase === "uma-pick";
             const isNextEmptySlot = isActiveSlot && slotOffset === 0;
             return (
               <div
@@ -442,8 +443,8 @@ export default function TeamPanel({
                           </div>
                         </div>
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-orange-400/30 text-xl">
-                          X
+                        <div className="w-full h-full flex items-center justify-center text-orange-400/20 text-[10px] uppercase tracking-wider">
+                          Empty
                         </div>
                       )}
                       <div className="absolute bottom-0 inset-x-0 bg-orange-900/80 py-px">
@@ -516,8 +517,8 @@ export default function TeamPanel({
                           </div>
                         </div>
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-red-400/30 text-xl">
-                          X
+                        <div className="w-full h-full flex items-center justify-center text-red-400/20 text-[10px] uppercase tracking-wider">
+                          Empty
                         </div>
                       )}
                       <div className="absolute bottom-0 inset-x-0 bg-red-900/80 py-px">
