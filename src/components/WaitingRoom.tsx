@@ -157,7 +157,7 @@ export default function WaitingRoom({
                   <p className="text-[11px] text-green-400 font-semibold mb-1">
                     Player Join
                   </p>
-                  <p className="text-[9px] lg:text-[10px] text-gray-400 break-all leading-snug mb-2">
+                  <p className="text-[8px] lg:text-[9px] text-gray-400 break-all leading-snug mb-2">
                     {joinInviteUrl}
                   </p>
                   <button
@@ -171,7 +171,7 @@ export default function WaitingRoom({
                   <p className="text-[11px] text-purple-400 font-semibold mb-1">
                     Spectator Join
                   </p>
-                  <p className="text-[9px] lg:text-[10px] text-gray-400 break-all leading-snug mb-2">
+                  <p className="text-[8px] lg:text-[9px] text-gray-400 break-all leading-snug mb-2">
                     {spectateInviteUrl}
                   </p>
                   <button
