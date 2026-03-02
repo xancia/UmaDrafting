@@ -1,4 +1,5 @@
-import type { Team, UmaMusume, Map } from "../types";
+import { PRE_BANS_PER_TEAM } from "../draftLogic";
+import type { DraftPhase, Team, UmaMusume, Map } from "../types";
 import type { FirebasePendingSelection } from "../types/firebase";
 
 interface TeamPanelProps {
@@ -15,7 +16,9 @@ interface TeamPanelProps {
   dirtCount?: number;
   pulsingBorder?: boolean;
   showMapOrder?: boolean;
+  phase?: DraftPhase;
   ghostSelection?: FirebasePendingSelection | null;
+  incomingVetoSelection?: FirebasePendingSelection | null;
   /** How many consecutive picks this team has in a row (for snake draft slot highlighting) */
   consecutivePicks?: number;
 }
@@ -34,11 +37,40 @@ export default function TeamPanel({
   dirtCount = 0,
   pulsingBorder = false,
   showMapOrder = false,
+  phase = "pre-draft-pause",
   ghostSelection = null,
+  incomingVetoSelection = null,
   consecutivePicks = 1,
 }: TeamPanelProps) {
   const isTeam1 = team === "team1";
   const teamColor = isTeam1 ? "text-blue-500" : "text-red-500";
+  const pendingUmaGhost =
+    ghostSelection?.type === "uma" ? ghostSelection : null;
+  const pendingPreBanGhost =
+    phase === "uma-pre-ban" &&
+    activeSection === "umas" &&
+    isCurrentTurn &&
+    pendingUmaGhost
+      ? pendingUmaGhost
+      : null;
+  const pendingPickGhost =
+    phase === "uma-pick" &&
+    activeSection === "umas" &&
+    isCurrentTurn &&
+    pendingUmaGhost
+      ? pendingUmaGhost
+      : null;
+  const pendingVetoGhost =
+    phase === "uma-ban" && incomingVetoSelection?.type === "uma"
+      ? incomingVetoSelection
+      : null;
+  const showBanSummary =
+    preBannedUmas.length > 0 ||
+    bannedUmas.length > 0 ||
+    phase === "uma-pre-ban" ||
+    phase === "uma-pick" ||
+    phase === "uma-ban" ||
+    phase === "complete";
 
   const borderColor = isCurrentTurn
     ? isTeam1
@@ -246,6 +278,8 @@ export default function TeamPanel({
         <div className="grid grid-cols-3 gap-1 lg:gap-1.5">
           {[...Array(6)].map((_, index) => {
             const uma = pickedUmas[index];
+            const isPendingVetoTarget =
+              !!uma && pendingVetoGhost?.id === uma.id.toString();
             // Highlight empty slots that will be filled in current turn sequence
             const slotOffset = index - pickedUmas.length;
             const isActiveSlot =
@@ -260,7 +294,9 @@ export default function TeamPanel({
                 key={index}
                 className={`aspect-square rounded-lg border-2 overflow-hidden transition-all duration-300 ${
                   uma
-                    ? "border-gray-600 bg-gray-600 shadow-lg"
+                    ? isPendingVetoTarget
+                      ? "border-red-400/80 bg-gray-600 shadow-lg ring-2 ring-red-500/50"
+                      : "border-gray-600 bg-gray-600 shadow-lg"
                     : isActiveSlot
                       ? isTeam1
                         ? "bg-gray-800/80 border-blue-500/40 border-dashed animate-slot-pulse-blue"
@@ -283,20 +319,28 @@ export default function TeamPanel({
                     <div className="hidden text-xl text-gray-400 w-full h-full items-center justify-center">
                       ?
                     </div>
+                    {isPendingVetoTarget && (
+                      <div className="absolute inset-0 border-2 border-red-400/70 animate-pulse pointer-events-none" />
+                    )}
                     <div className="absolute inset-0 bg-black/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center p-1">
                       <span className="text-xs font-semibold text-center whitespace-pre-line leading-tight break-words text-white">
                         {uma.name}
                       </span>
                     </div>
+                    {isPendingVetoTarget && (
+                      <div className="absolute bottom-0 inset-x-0 bg-red-900/75 px-1 py-0.5">
+                        <span className="text-[8px] text-red-100 font-semibold text-center block truncate">
+                          Pending veto
+                        </span>
+                      </div>
+                    )}
                   </div>
-                ) : ghostSelection?.type === "uma" &&
-                  activeSection === "umas" &&
-                  isNextEmptySlot ? (
+                ) : pendingPickGhost && isNextEmptySlot ? (
                   <div className="relative w-full h-full opacity-35 animate-pulse">
-                    {ghostSelection.imageUrl && (
+                    {pendingPickGhost.imageUrl && (
                       <img
-                        src={ghostSelection.imageUrl}
-                        alt={ghostSelection.name}
+                        src={pendingPickGhost.imageUrl}
+                        alt={pendingPickGhost.name}
                         className="w-full h-full object-cover"
                         onError={(e) => {
                           (e.target as HTMLImageElement).style.display = "none";
@@ -305,7 +349,7 @@ export default function TeamPanel({
                     )}
                     <div className="absolute bottom-0 inset-x-0 bg-black/60 px-1 py-0.5">
                       <span className="text-[8px] text-gray-200 text-center block truncate">
-                        {ghostSelection.name}
+                        {pendingPickGhost.name}
                       </span>
                     </div>
                   </div>
@@ -335,89 +379,157 @@ export default function TeamPanel({
         </div>
 
         {/* Banned & Vetoed row */}
-        {(preBannedUmas.length > 0 || bannedUmas.length > 0) && (
+        {showBanSummary && (
           <div className="mt-1.5 pt-1.5 border-t border-gray-700/50 flex justify-between gap-2">
-            {/* Pre-banned (left) */}
-            {preBannedUmas.length > 0 ? (
-              <div>
-                <p className="text-[10px] text-orange-300/80 uppercase tracking-wider font-semibold mb-1">
-                  Banned:
-                </p>
-                <div className="flex gap-1">
-                  {preBannedUmas.map((uma) => (
+            <div>
+              <p className="text-[10px] text-orange-300/80 uppercase tracking-wider font-semibold mb-1">
+                Banned:
+              </p>
+              <div className="flex gap-1">
+                {Array.from({ length: PRE_BANS_PER_TEAM }).map((_, index) => {
+                  const uma = preBannedUmas[index];
+                  const isGhostSlot =
+                    !uma &&
+                    index === preBannedUmas.length &&
+                    !!pendingPreBanGhost;
+                  return (
                     <div
-                      key={`preban-${uma.id}`}
-                      className="w-[60px] h-[60px] rounded-md border border-orange-500/50 bg-gray-600/90 shadow-md overflow-hidden relative shrink-0"
+                      key={uma ? `preban-${uma.id}` : `preban-empty-${index}`}
+                      className={`w-[60px] h-[60px] rounded-md border shadow-md overflow-hidden relative shrink-0 ${
+                        uma || isGhostSlot
+                          ? "border-orange-500/50 bg-gray-600/90"
+                          : "border-orange-500/20 bg-gray-800/60 border-dashed"
+                      }`}
                     >
-                      <div className="relative w-full h-full group">
-                        <img
-                          src={uma.imageUrl}
-                          alt={uma.name}
-                          className="w-full h-full object-cover grayscale opacity-50"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).style.display = "none";
-                          }}
-                        />
-                        <div className="absolute inset-0 flex items-center justify-center text-orange-500 text-xl font-bold drop-shadow-lg">
+                      {uma ? (
+                        <div className="relative w-full h-full group">
+                          <img
+                            src={uma.imageUrl}
+                            alt={uma.name}
+                            className="w-full h-full object-cover grayscale opacity-50"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).style.display = "none";
+                            }}
+                          />
+                          <div className="absolute inset-0 flex items-center justify-center text-orange-500 text-xl font-bold drop-shadow-lg">
+                            X
+                          </div>
+                          <div className="absolute inset-0 bg-black/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center p-1">
+                            <span className="text-[10px] font-semibold text-center whitespace-pre-line leading-tight break-words text-white">
+                              {uma.name}
+                            </span>
+                          </div>
+                        </div>
+                      ) : isGhostSlot ? (
+                        <div className="relative w-full h-full opacity-40 animate-pulse">
+                          {pendingPreBanGhost.imageUrl && (
+                            <img
+                              src={pendingPreBanGhost.imageUrl}
+                              alt={pendingPreBanGhost.name}
+                              className="w-full h-full object-cover grayscale"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).style.display = "none";
+                              }}
+                            />
+                          )}
+                          <div className="absolute inset-0 flex items-center justify-center text-orange-400 text-xl font-bold drop-shadow-lg">
+                            X
+                          </div>
+                          <div className="absolute bottom-0 inset-x-0 bg-black/60 px-1 py-px">
+                            <span className="text-[7px] text-orange-200 text-center block truncate">
+                              {pendingPreBanGhost.name}
+                            </span>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-orange-400/30 text-xl">
                           X
                         </div>
-                        <div className="absolute inset-0 bg-black/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center p-1">
-                          <span className="text-[10px] font-semibold text-center whitespace-pre-line leading-tight break-words text-white">
-                            {uma.name}
-                          </span>
-                        </div>
-                      </div>
+                      )}
                       <div className="absolute bottom-0 inset-x-0 bg-orange-900/80 py-px">
                         <span className="text-[6px] text-orange-300 font-bold uppercase text-center block tracking-wider">
                           Banned
                         </span>
                       </div>
                     </div>
-                  ))}
-                </div>
+                  );
+                })}
               </div>
-            ) : <div />}
+            </div>
 
-            {/* Vetoed (right) */}
-            {bannedUmas.length > 0 ? (
-              <div className="ml-auto">
-                <p className="text-[10px] text-red-300/80 uppercase tracking-wider font-semibold mb-1 text-right">
-                  Vetoed by Enemy Team:
-                </p>
-                <div className="flex gap-1 justify-end">
-                  {bannedUmas.map((uma) => (
+            <div className="ml-auto">
+              <p className="text-[10px] text-red-300/80 uppercase tracking-wider font-semibold mb-1 text-right">
+                Vetoed by Enemy Team:
+              </p>
+              <div className="flex gap-1 justify-end">
+                {Array.from({ length: 1 }).map((_, index) => {
+                  const uma = bannedUmas[index];
+                  const isGhostSlot =
+                    !uma && index === bannedUmas.length && !!pendingVetoGhost;
+                  return (
                     <div
-                      key={`veto-${uma.id}`}
-                      className="w-[60px] h-[60px] rounded-md border border-red-500/50 bg-gray-600/90 shadow-md overflow-hidden relative shrink-0"
+                      key={uma ? `veto-${uma.id}` : `veto-empty-${index}`}
+                      className={`w-[60px] h-[60px] rounded-md border shadow-md overflow-hidden relative shrink-0 ${
+                        uma || isGhostSlot
+                          ? "border-red-500/50 bg-gray-600/90"
+                          : "border-red-500/20 bg-gray-800/60 border-dashed"
+                      }`}
                     >
-                      <div className="relative w-full h-full group">
-                        <img
-                          src={uma.imageUrl}
-                          alt={uma.name}
-                          className="w-full h-full object-cover grayscale opacity-50"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).style.display = "none";
-                          }}
-                        />
-                        <div className="absolute inset-0 flex items-center justify-center text-red-500 text-xl font-bold drop-shadow-lg">
+                      {uma ? (
+                        <div className="relative w-full h-full group">
+                          <img
+                            src={uma.imageUrl}
+                            alt={uma.name}
+                            className="w-full h-full object-cover grayscale opacity-50"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).style.display = "none";
+                            }}
+                          />
+                          <div className="absolute inset-0 flex items-center justify-center text-red-500 text-xl font-bold drop-shadow-lg">
+                            X
+                          </div>
+                          <div className="absolute inset-0 bg-black/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center p-1">
+                            <span className="text-[10px] font-semibold text-center whitespace-pre-line leading-tight break-words text-white">
+                              {uma.name}
+                            </span>
+                          </div>
+                        </div>
+                      ) : isGhostSlot ? (
+                        <div className="relative w-full h-full opacity-40 animate-pulse">
+                          {pendingVetoGhost.imageUrl && (
+                            <img
+                              src={pendingVetoGhost.imageUrl}
+                              alt={pendingVetoGhost.name}
+                              className="w-full h-full object-cover grayscale"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).style.display = "none";
+                              }}
+                            />
+                          )}
+                          <div className="absolute inset-0 flex items-center justify-center text-red-400 text-xl font-bold drop-shadow-lg">
+                            X
+                          </div>
+                          <div className="absolute bottom-0 inset-x-0 bg-black/60 px-1 py-px">
+                            <span className="text-[7px] text-red-200 text-center block truncate">
+                              {pendingVetoGhost.name}
+                            </span>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-red-400/30 text-xl">
                           X
                         </div>
-                        <div className="absolute inset-0 bg-black/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center p-1">
-                          <span className="text-[10px] font-semibold text-center whitespace-pre-line leading-tight break-words text-white">
-                            {uma.name}
-                          </span>
-                        </div>
-                      </div>
+                      )}
                       <div className="absolute bottom-0 inset-x-0 bg-red-900/80 py-px">
                         <span className="text-[6px] text-red-300 font-bold uppercase text-center block tracking-wider">
                           Vetoed
                         </span>
                       </div>
                     </div>
-                  ))}
-                </div>
+                  );
+                })}
               </div>
-            ) : <div />}
+            </div>
           </div>
         )}
 

@@ -2470,6 +2470,56 @@ export default function Draft5v5({
     return Math.max(count, 1);
   }, [draftState.phase, completedActions]);
 
+  const localGhostSelection: FirebasePendingSelection | null = pendingUma
+    ? {
+        type: "uma",
+        id: pendingUma.id.toString(),
+        name: pendingUma.name,
+        imageUrl: pendingUma.imageUrl,
+        updatedAt: 0,
+      }
+    : pendingMap
+      ? {
+          type: "map",
+          id: pendingMap.name,
+          name: pendingMap.name,
+          track: pendingMap.track,
+          distance: pendingMap.distance,
+          surface: pendingMap.surface,
+          updatedAt: 0,
+        }
+      : null;
+  const team1GhostSelection = isMultiplayer
+    ? (pendingSelections.team1 ?? null)
+    : draftState.currentTeam === "team1"
+      ? localGhostSelection
+      : null;
+  const team2GhostSelection = isMultiplayer
+    ? (pendingSelections.team2 ?? null)
+    : draftState.currentTeam === "team2"
+      ? localGhostSelection
+      : null;
+  const team1IncomingVetoSelection =
+    draftState.phase === "uma-ban"
+      ? isMultiplayer
+        ? draftState.currentTeam === "team2"
+          ? (pendingSelections.team2 ?? null)
+          : null
+        : draftState.currentTeam === "team2"
+          ? localGhostSelection
+          : null
+      : null;
+  const team2IncomingVetoSelection =
+    draftState.phase === "uma-ban"
+      ? isMultiplayer
+        ? draftState.currentTeam === "team1"
+          ? (pendingSelections.team1 ?? null)
+          : null
+        : draftState.currentTeam === "team1"
+          ? localGhostSelection
+          : null
+      : null;
+
   // Reconnecting view — show loading spinner while waiting for Firebase state
   if (isMultiplayer && draftState.phase === "reconnecting") {
     return (
@@ -2660,6 +2710,7 @@ export default function Draft5v5({
           }
           distanceCounts={countDistances(draftState.team1.pickedMaps)}
           dirtCount={countDirtTracks(draftState.team1.pickedMaps)}
+          phase={draftState.phase}
           showMapOrder={
             draftState.phase === "post-map-pause" ||
             draftState.phase === "uma-pick" ||
@@ -2667,9 +2718,8 @@ export default function Draft5v5({
             draftState.phase === "uma-pre-ban" ||
             draftState.phase === "complete"
           }
-          ghostSelection={
-            isMultiplayer ? (pendingSelections.team1 ?? null) : null
-          }
+          ghostSelection={team1GhostSelection}
+          incomingVetoSelection={team1IncomingVetoSelection}
           consecutivePicks={
             draftState.currentTeam === "team1" ? consecutivePicks : 1
           }
@@ -3656,6 +3706,7 @@ export default function Draft5v5({
           }
           distanceCounts={countDistances(draftState.team2.pickedMaps)}
           dirtCount={countDirtTracks(draftState.team2.pickedMaps)}
+          phase={draftState.phase}
           showMapOrder={
             draftState.phase === "post-map-pause" ||
             draftState.phase === "uma-pick" ||
@@ -3663,9 +3714,8 @@ export default function Draft5v5({
             draftState.phase === "uma-pre-ban" ||
             draftState.phase === "complete"
           }
-          ghostSelection={
-            isMultiplayer ? (pendingSelections.team2 ?? null) : null
-          }
+          ghostSelection={team2GhostSelection}
+          incomingVetoSelection={team2IncomingVetoSelection}
           consecutivePicks={
             draftState.currentTeam === "team2" ? consecutivePicks : 1
           }

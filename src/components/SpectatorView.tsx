@@ -187,6 +187,14 @@ export default function SpectatorView({
     }
     return Math.max(count, 1);
   }, [phase, completedActions]);
+  const team1IncomingVetoSelection =
+    phase === "uma-ban" && currentTeam === "team2"
+      ? (pendingSelections.team2 ?? null)
+      : null;
+  const team2IncomingVetoSelection =
+    phase === "uma-ban" && currentTeam === "team1"
+      ? (pendingSelections.team1 ?? null)
+      : null;
 
   // Filtered umas for spectator grid
   const filteredUmas = useMemo(() => {
@@ -307,6 +315,7 @@ export default function SpectatorView({
           dirtCount={countDirtTracks(team1.pickedMaps)}
           isCurrentTurn={phase !== "complete" && currentTeam === "team1"}
           activeSection={isMapPhase ? "maps" : isUmaPhase ? "umas" : null}
+          phase={phase}
           showMapOrder={
             phase === "post-map-pause" ||
             phase === "uma-pick" ||
@@ -315,6 +324,7 @@ export default function SpectatorView({
             phase === "complete"
           }
           ghostSelection={pendingSelections.team1 ?? null}
+          incomingVetoSelection={team1IncomingVetoSelection}
           consecutivePicks={currentTeam === "team1" ? consecutivePicks : 1}
         />
       </div>
@@ -904,6 +914,7 @@ export default function SpectatorView({
           dirtCount={countDirtTracks(team2.pickedMaps)}
           isCurrentTurn={phase !== "complete" && currentTeam === "team2"}
           activeSection={isMapPhase ? "maps" : isUmaPhase ? "umas" : null}
+          phase={phase}
           showMapOrder={
             phase === "post-map-pause" ||
             phase === "uma-pick" ||
@@ -912,6 +923,7 @@ export default function SpectatorView({
             phase === "complete"
           }
           ghostSelection={pendingSelections.team2 ?? null}
+          incomingVetoSelection={team2IncomingVetoSelection}
           consecutivePicks={currentTeam === "team2" ? consecutivePicks : 1}
         />
       </div>

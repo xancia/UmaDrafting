@@ -170,7 +170,7 @@ export default function DraftHeader({
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 lg:gap-3">
             <h1 className="text-lg lg:text-xl xl:text-2xl font-bold whitespace-nowrap">
-              Uma Drafting
+              Uma Drafter
             </h1>
             <span className="text-xs lg:text-sm text-gray-400 font-medium">
               {getPhaseText()}
@@ -256,7 +256,9 @@ export default function DraftHeader({
                           max={100}
                           step={1}
                           value={sfxVolume}
-                          onChange={(e) => onSfxVolumeChange(Number(e.target.value))}
+                          onChange={(e) =>
+                            onSfxVolumeChange(Number(e.target.value))
+                          }
                           className="flex-1 accent-blue-500"
                           aria-label="Sound effects volume slider"
                         />
@@ -325,7 +327,7 @@ export default function DraftHeader({
               </span>
               {wildcardMap.conditions && (
                 <span className="text-gray-400 ml-1">
-                  -- {wildcardMap.conditions.season} /{" "}
+                  - {wildcardMap.conditions.season} /{" "}
                   {wildcardMap.conditions.ground} /{" "}
                   {wildcardMap.conditions.weather}
                 </span>
