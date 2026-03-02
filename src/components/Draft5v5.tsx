@@ -423,6 +423,42 @@ export default function Draft5v5({
     }
   }, [seriesOver, isMultiplayer]);
 
+  const finalizeDraftStateForSync = useCallback(
+    (state: DraftState, historyOverride?: DraftState[]) => {
+      if (
+        !isMultiplayer ||
+        !isHost ||
+        state.phase !== "complete" ||
+        state.pickOrderHistoryText
+      ) {
+        return state;
+      }
+
+      const draftHistory =
+        historyOverride ||
+        (history[history.length - 1] === state ? history : [...history, state]);
+
+      return {
+        ...state,
+        pickOrderHistoryText: buildPickOrderHistoryText(
+          draftHistory,
+          team1Name,
+          team2Name,
+        ),
+      };
+    },
+    [history, isHost, isMultiplayer, team1Name, team2Name],
+  );
+
+  const persistDraftState = useCallback(
+    (state: DraftState, historyOverride?: DraftState[]) => {
+      const finalizedState = finalizeDraftStateForSync(state, historyOverride);
+      syncUpdateDraftState(finalizedState);
+      return finalizedState;
+    },
+    [finalizeDraftStateForSync, syncUpdateDraftState],
+  );
+
   // Host emits finalized pick-order text exactly once when draft completes.
   useEffect(() => {
     if (!isMultiplayer || !isHost || draftState.phase !== "complete") return;
@@ -444,7 +480,7 @@ export default function Draft5v5({
 
     draftStateRef.current = newState;
     setDraftState(newState);
-    syncUpdateDraftState(newState);
+    persistDraftState(newState, draftHistory);
   }, [
     isMultiplayer,
     isHost,
@@ -452,7 +488,7 @@ export default function Draft5v5({
     history,
     team1Name,
     team2Name,
-    syncUpdateDraftState,
+    persistDraftState,
   ]);
 
   // Clear pending selection when phase or turn changes
@@ -734,12 +770,14 @@ export default function Draft5v5({
         if (newState !== currentState) {
           // Update ref synchronously BEFORE setDraftState so any Firebase
           // callback that fires before React re-renders sees the new state.
-          draftStateRef.current = newState;
-          if (isMultiplayer && isHost) {
-            syncUpdateDraftState(newState);
-          }
-          setDraftState(newState);
-          setHistory((prev) => [...prev, newState]);
+          const historyForState = [...history, newState];
+          const finalizedState =
+            isMultiplayer && isHost
+              ? persistDraftState(newState, historyForState)
+              : newState;
+          draftStateRef.current = finalizedState;
+          setDraftState(finalizedState);
+          setHistory(historyForState);
           if (clearTrack) {
             setSelectedTrack(null);
           }
@@ -1249,10 +1287,11 @@ export default function Draft5v5({
     // and update the ref synchronously so the next action in the same tick
     // also sees the latest state.
     const applyState = (newState: DraftState, addHistory = true) => {
-      draftStateRef.current = newState;
-      syncUpdateDraftState(newState);
-      setDraftState(newState);
-      if (addHistory) setHistory((prev) => [...prev, newState]);
+      const historyForState = addHistory ? [...history, newState] : history;
+      const finalizedState = persistDraftState(newState, historyForState);
+      draftStateRef.current = finalizedState;
+      setDraftState(finalizedState);
+      if (addHistory) setHistory(historyForState);
     };
 
     // Set up handler for pending actions from Firebase
@@ -1351,7 +1390,7 @@ export default function Draft5v5({
                   pendingMatchReport: null,
                   confirmedMatchResults: updated,
                 } as DraftState;
-                syncUpdateDraftState(synced);
+                persistDraftState(synced);
                 return current;
               });
               return updated;
@@ -1373,7 +1412,7 @@ export default function Draft5v5({
               ...current,
               pendingMatchReport: null,
             } as DraftState;
-            syncUpdateDraftState(cleared);
+            persistDraftState(cleared);
             return current;
           });
           return;
@@ -1650,9 +1689,10 @@ export default function Draft5v5({
       setUmaSearch("");
       if (isMultiplayer && isHost) {
         // Host broadcasts state to all peers and updates local state
-        syncUpdateDraftState(newState);
-        setDraftState(newState);
-        setHistory([...history, newState]);
+        const historyForState = [...history, newState];
+        const finalizedState = persistDraftState(newState, historyForState);
+        setDraftState(finalizedState);
+        setHistory(historyForState);
       } else if (isMultiplayer) {
         // Non-host sends action request to host - wait for Firebase sync (no optimistic update)
         sendDraftAction({
@@ -1700,9 +1740,10 @@ export default function Draft5v5({
       console.log("[confirmMapSelect] Selection allowed, updating state");
       if (isMultiplayer && isHost) {
         // Host broadcasts state to all peers and updates local state
-        syncUpdateDraftState(newState);
-        setDraftState(newState);
-        setHistory([...history, newState]);
+        const historyForState = [...history, newState];
+        const finalizedState = persistDraftState(newState, historyForState);
+        setDraftState(finalizedState);
+        setHistory(historyForState);
         setSelectedTrack(null); // Reset track selection after picking
       } else if (isMultiplayer) {
         // Non-host sends action request to host - wait for Firebase sync (no optimistic update)
@@ -1787,7 +1828,7 @@ export default function Draft5v5({
 
       // Only host syncs the phase change
       if (isMultiplayer && isHost) {
-        syncUpdateDraftState(newState);
+        persistDraftState(newState);
       }
     }
   };
@@ -1803,7 +1844,7 @@ export default function Draft5v5({
         ...draftState,
         team1Ready: true,
       };
-      syncUpdateDraftState(newState);
+      persistDraftState(newState);
       setDraftState(newState);
     } else if (isMultiplayer) {
       // Non-host sends ready action to host — don't update local state
@@ -1830,7 +1871,7 @@ export default function Draft5v5({
 
     // Sync to all clients in multiplayer
     if (isMultiplayer && isHost) {
-      syncUpdateDraftState(newState);
+      persistDraftState(newState);
     } else if (isMultiplayer && !isHost) {
       // Non-host players send action to host
       sendDraftAction({
@@ -1856,7 +1897,7 @@ export default function Draft5v5({
 
     // Sync to all clients in multiplayer
     if (isMultiplayer && isHost) {
-      syncUpdateDraftState(newState);
+      persistDraftState(newState);
     } else if (isMultiplayer && !isHost) {
       // Non-host players send action to host
       sendDraftAction({
@@ -1956,7 +1997,7 @@ export default function Draft5v5({
       // (isHost from useFirebaseRoom may not be set yet before room subscription fires)
       if (multiplayerConfig?.isHost) {
         // Host directly updates Firebase
-        syncUpdateDraftState(newState);
+        persistDraftState(newState);
       } else {
         // Non-host sends action to host
         sendDraftAction({
@@ -1989,7 +2030,7 @@ export default function Draft5v5({
         },
       };
       setDraftState(newState);
-      syncUpdateDraftState(newState);
+      persistDraftState(newState);
     }
   };
 
@@ -2007,7 +2048,7 @@ export default function Draft5v5({
 
     // Broadcast to all clients
     if (isMultiplayer) {
-      syncUpdateDraftState(newState);
+      persistDraftState(newState);
     }
 
     // Start the reveal animation
@@ -2158,7 +2199,7 @@ export default function Draft5v5({
       setPendingReport(report);
       // Sync pending report via draft state so team 2 can see it
       // Include a unique submissionId so resubmissions are distinguishable
-      syncUpdateDraftState({
+      persistDraftState({
         ...draftState,
         pendingMatchReport: {
           raceIndex: reportRaceIndex,

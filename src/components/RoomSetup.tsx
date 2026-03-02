@@ -18,7 +18,7 @@ interface RoomSetupProps {
 
 /**
  * Room setup modal for multiplayer mode selection
- * 
+ *
  * Allows users to:
  * - Play locally (single device)
  * - Host a multiplayer room
@@ -53,9 +53,11 @@ export default function RoomSetup({
     setError(null);
 
     const normalized = normalizeRoomCode(roomCode);
-    
+
     if (!validateRoomCode(normalized)) {
-      setError("Invalid room code. Must be 6 characters (letters and numbers).");
+      setError(
+        "Invalid room code. Must be 6 characters (letters and numbers).",
+      );
       return;
     }
 
@@ -74,21 +76,29 @@ export default function RoomSetup({
    */
   const renderModeSelection = () => (
     <div className="space-y-3 lg:space-y-4">
-      <h2 className="text-2xl lg:text-3xl font-bold text-center mb-4 lg:mb-6 text-gray-100">Multiplayer Mode</h2>
+      <h2 className="text-2xl lg:text-3xl font-bold text-center mb-4 lg:mb-6 text-gray-100">
+        Multiplayer Mode
+      </h2>
 
       <button
         onClick={() => setMode("host")}
         className="w-full group bg-gray-700 hover:bg-gray-600 border-2 border-gray-600 hover:border-purple-500 rounded-xl p-4 lg:p-5 transition-all transform hover:scale-105 shadow-lg"
       >
-        <div className="text-xl lg:text-2xl font-bold text-purple-400 mb-1">Host Room</div>
-        <p className="text-gray-400 text-xs lg:text-sm">Create a new multiplayer room</p>
+        <div className="text-xl lg:text-2xl font-bold text-purple-400 mb-1">
+          Host Room
+        </div>
+        <p className="text-gray-400 text-xs lg:text-sm">
+          Create a new multiplayer room
+        </p>
       </button>
 
       <button
         onClick={() => setMode("join")}
         className="w-full group bg-gray-700 hover:bg-gray-600 border-2 border-gray-600 hover:border-green-500 rounded-xl p-4 lg:p-5 transition-all transform hover:scale-105 shadow-lg"
       >
-        <div className="text-xl lg:text-2xl font-bold text-green-400 mb-1">Join Room</div>
+        <div className="text-xl lg:text-2xl font-bold text-green-400 mb-1">
+          Join Room
+        </div>
         <p className="text-gray-400 text-xs lg:text-sm">Join as a player</p>
       </button>
 
@@ -96,8 +106,12 @@ export default function RoomSetup({
         onClick={() => setMode("spectate")}
         className="w-full group bg-gray-700 hover:bg-gray-600 border-2 border-gray-600 hover:border-gray-500 rounded-xl p-4 lg:p-5 transition-all transform hover:scale-105 shadow-lg"
       >
-        <div className="text-xl lg:text-2xl font-bold text-gray-300 mb-1">Spectate</div>
-        <p className="text-gray-400 text-xs lg:text-sm">Watch the draft</p>
+        <div className="text-xl lg:text-2xl font-bold text-gray-300 mb-1">
+          Spectate
+        </div>
+        <p className="text-gray-400 text-xs lg:text-sm">
+          Watch a live draft or view past drafts
+        </p>
       </button>
 
       {onBack && (
@@ -116,7 +130,9 @@ export default function RoomSetup({
    */
   const renderHostSetup = () => (
     <div className="space-y-3 lg:space-y-4">
-      <h2 className="text-xl lg:text-2xl font-bold text-center mb-4 lg:mb-6 text-gray-100">Host Room</h2>
+      <h2 className="text-xl lg:text-2xl font-bold text-center mb-4 lg:mb-6 text-gray-100">
+        Host Room
+      </h2>
 
       <div>
         <label className="block text-xs lg:text-sm font-medium text-gray-300 mb-2">
@@ -146,7 +162,8 @@ export default function RoomSetup({
 
       <div className="bg-gray-900/50 rounded-lg p-3 lg:p-4 border border-gray-700">
         <p className="text-xs lg:text-sm text-gray-400">
-          You will receive a room code to share with other players after creating the room.
+          You will receive a room code to share with other players after
+          creating the room.
         </p>
       </div>
 
