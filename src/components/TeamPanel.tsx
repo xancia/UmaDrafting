@@ -249,7 +249,7 @@ export default function TeamPanel({
                   <>
                     <div className="absolute inset-0 border-2 border-red-400/70 animate-pulse pointer-events-none rounded-lg" />
                     <div className="absolute right-2 top-1.5 bg-red-900/80 text-red-100 text-[9px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded">
-                      Pending ban
+                      Pending veto
                     </div>
                   </>
                 )}
