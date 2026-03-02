@@ -170,7 +170,7 @@ export default function TeamPanel({
                   </div>
                   <div
                     className={`text-xs truncate ${
-                      isBanned ? "text-gray-500 line-through" : "text-gray-100"
+                      isBanned ? "text-gray-500 line-through" : "text-gray-200"
                     }`}
                   >
                     {map.distance} • {map.surface} •{" "}
@@ -186,7 +186,7 @@ export default function TeamPanel({
                       className={`text-xs truncate ${
                         isBanned
                           ? "text-gray-500 line-through"
-                          : "text-gray-300"
+                        : "text-gray-100"
                       }`}
                     >
                       {map.conditions.season} • {map.conditions.ground} •{" "}

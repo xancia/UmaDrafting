@@ -1,6 +1,7 @@
 import type { UmaMusume, Map } from "./types";
 import type { Card } from "./types3v3v3";
 import { getIconCardId } from "./iconMappings";
+import { compareByReleaseOrder, getEntryByOutfitId } from "./data/releaseorder";
 
 // Import JSON data
 import characterDataJson from "./data/TerumiCharacterData.json";
@@ -99,13 +100,15 @@ const characterData = characterDataJson as CharacterData[];
 
 export const SAMPLE_UMAS: UmaMusume[] = characterData.map((char) => {
   const iconCardId = getIconCardId(char.cardId);
+  const releaseEntry = getEntryByOutfitId(String(char.cardId));
+  const variantNickname = releaseEntry?.variant?.trim() || undefined;
   return {
     id: `${char.cardId}`,
     name: char.charaName,
-    title: char.cardTitle,
+    title: variantNickname,
     imageUrl: `./uma/chara_stand_${char.charaId}_${iconCardId}.webp`,
   };
-});
+}).sort((a, b) => compareByReleaseOrder(a.id, b.id));
 
 // Generate Support Card data from JSON
 // Portrait path: ./card/tex_support_card_{supportCardId}.webp

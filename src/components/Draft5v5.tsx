@@ -29,6 +29,12 @@ import MapCard from "./MapCard";
 import SpectatorView from "./SpectatorView";
 import WaitingRoom from "./WaitingRoom";
 import PhaseAnnouncement from "./PhaseAnnouncement";
+import {
+  compareUmasByRelease,
+  formatUmaName,
+  formatUmaNameFromParts,
+  getUmaVariantNickname,
+} from "../utils/umaDisplay";
 import { useFirebaseRoom } from "../hooks/useFirebaseRoom";
 import { useTurnTimer, DEFAULT_TURN_DURATION } from "../hooks/useTurnTimer";
 import type {
@@ -80,8 +86,8 @@ function buildPickOrderHistoryText(
   team1Name: string,
   team2Name: string,
 ): string {
-  const umaLabel = (u: { name: string; title?: string }) =>
-    u.title ? `${u.name} ${u.title}` : u.name;
+  const umaLabel = (u: { id: string | number; name: string; title?: string }) =>
+    formatUmaName(u);
   const formatVariant = (m: { variant?: string }) =>
     m.variant ? ` (${m.variant})` : "";
 
@@ -571,19 +577,52 @@ export default function Draft5v5({
     });
   }, []);
 
+  const activeVoicelineRef = useRef<HTMLAudioElement | null>(null);
+  const voicelineTokenRef = useRef(0);
+
   const playUmaVoiceline = useCallback(
     (uma: UmaMusume, type: "picked" | "banned") => {
+      // Keep only one active voiceline so rapid picks don't overlap audio.
+      voicelineTokenRef.current += 1;
+      const token = voicelineTokenRef.current;
+
+      const previousVoiceline = activeVoicelineRef.current;
+      if (previousVoiceline) {
+        previousVoiceline.pause();
+        previousVoiceline.currentTime = 0;
+        previousVoiceline.src = "";
+        activeVoicelineRef.current = null;
+      }
+
       const umaId = uma.id.toString();
       const audio = new Audio(
         `${import.meta.env.BASE_URL}Voicelines/${umaId}/${umaId}-${type}.wav`,
       );
       audio.volume = 0.9 * (sfxVolume / 100);
+      activeVoicelineRef.current = audio;
+      audio.onended = () => {
+        if (voicelineTokenRef.current === token) {
+          activeVoicelineRef.current = null;
+        }
+      };
       void audio.play().catch(() => {
         // File may not exist yet for all cards, or playback may be blocked.
+        if (voicelineTokenRef.current === token) {
+          activeVoicelineRef.current = null;
+        }
       });
     },
     [sfxVolume],
   );
+
+  useEffect(() => {
+    return () => {
+      if (!activeVoicelineRef.current) return;
+      activeVoicelineRef.current.pause();
+      activeVoicelineRef.current.src = "";
+      activeVoicelineRef.current = null;
+    };
+  }, []);
 
   // Timer authority: you control timer when it's your turn (or always in local mode)
   const isTimerAuthority =
@@ -1520,6 +1559,12 @@ export default function Draft5v5({
     // Mark this turn as committed so a racing timeout is blocked.
     actionCommittedForKeyRef.current = turnKey;
 
+    const isBanPhaseNow =
+      draftState.phase === "uma-ban" ||
+      draftState.phase === "map-ban" ||
+      draftState.phase === "uma-pre-ban";
+    playSfx(isBanPhaseNow ? "banButtonClick" : "lockInButtonClick");
+
     if (pendingUma) {
       confirmUmaSelect(pendingUma);
       setPendingUma(null);
@@ -2084,21 +2129,21 @@ export default function Draft5v5({
         position: 1,
         umaId: first.id.toString(),
         umaName: first.name,
-        umaTitle: first.title,
+        umaTitle: getUmaVariantNickname(first.id),
         team: first.team,
       },
       {
         position: 2,
         umaId: second.id.toString(),
         umaName: second.name,
-        umaTitle: second.title,
+        umaTitle: getUmaVariantNickname(second.id),
         team: second.team,
       },
       {
         position: 3,
         umaId: third.id.toString(),
         umaName: third.name,
-        umaTitle: third.title,
+        umaTitle: getUmaVariantNickname(third.id),
         team: third.team,
       },
     ];
@@ -2209,11 +2254,10 @@ export default function Draft5v5({
   };
 
   const getFilteredUmas = () => {
-    const umas = getBannableUmas();
-    if (!umaSearch.trim()) return umas;
-    return umas.filter((uma) =>
-      uma.name.toLowerCase().includes(umaSearch.toLowerCase()),
-    );
+    const sortedUmas = [...getBannableUmas()].sort(compareUmasByRelease);
+    if (!umaSearch.trim()) return sortedUmas;
+    const q = umaSearch.toLowerCase();
+    return sortedUmas.filter((uma) => formatUmaName(uma).toLowerCase().includes(q));
   };
 
   const getBannableMaps = () => {
@@ -3012,8 +3056,7 @@ export default function Draft5v5({
                                   : p.position === 2
                                     ? "2nd "
                                     : "3rd "}
-                                {p.umaName}
-                                {p.umaTitle ? ` ${p.umaTitle}` : ""}
+                                {formatUmaNameFromParts(p.umaName, p.umaTitle)}
                               </span>
                             ))}
                           </span>
@@ -3055,8 +3098,7 @@ export default function Draft5v5({
                             : p.position === 2
                               ? "2nd"
                               : "3rd"}
-                          : {p.umaName}
-                          {p.umaTitle ? ` ${p.umaTitle}` : ""}
+                          : {formatUmaNameFromParts(p.umaName, p.umaTitle)}
                           <span
                             className={`ml-1 text-xs ${p.team === "team1" ? "text-blue-400" : "text-red-400"}`}
                           >
@@ -3128,24 +3170,24 @@ export default function Draft5v5({
                   </div>
                   {draftState.team1.preBannedUmas?.length > 0 && (
                     <div className="mt-1 pt-1 border-t border-gray-700/50">
-                      <span className="text-[9px] text-orange-400/70 uppercase">
+                      <span className="text-[10px] lg:text-xs text-orange-300 uppercase font-semibold">
                         Pre-Banned:{" "}
                       </span>
-                      <span className="text-[9px] text-gray-500">
+                      <span className="text-[10px] lg:text-xs text-gray-300">
                         {draftState.team1.preBannedUmas
-                          .map((u) => u.title ? `${u.name} ${u.title}` : u.name)
+                          .map((u) => formatUmaName(u))
                           .join(", ")}
                       </span>
                     </div>
                   )}
                   {draftState.team1.bannedUmas.length > 0 && (
                     <div className="mt-1 pt-1 border-t border-gray-700/50">
-                      <span className="text-[9px] text-red-400/70 uppercase">
-                        Vetoed:{" "}
+                      <span className="text-[10px] lg:text-xs text-red-300 uppercase font-semibold">
+                        Veoted By Enemy Team:{" "}
                       </span>
-                      <span className="text-[9px] text-gray-500">
+                      <span className="text-[10px] lg:text-xs text-gray-300">
                         {draftState.team1.bannedUmas
-                          .map((u) => u.title ? `${u.name} ${u.title}` : u.name)
+                          .map((u) => formatUmaName(u))
                           .join(", ")}
                       </span>
                     </div>
@@ -3180,24 +3222,24 @@ export default function Draft5v5({
                   </div>
                   {draftState.team2.preBannedUmas?.length > 0 && (
                     <div className="mt-1 pt-1 border-t border-gray-700/50">
-                      <span className="text-[9px] text-orange-400/70 uppercase">
+                      <span className="text-[10px] lg:text-xs text-orange-300 uppercase font-semibold">
                         Pre-Banned:{" "}
                       </span>
-                      <span className="text-[9px] text-gray-500">
+                      <span className="text-[10px] lg:text-xs text-gray-300">
                         {draftState.team2.preBannedUmas
-                          .map((u) => u.title ? `${u.name} ${u.title}` : u.name)
+                          .map((u) => formatUmaName(u))
                           .join(", ")}
                       </span>
                     </div>
                   )}
                   {draftState.team2.bannedUmas.length > 0 && (
                     <div className="mt-1 pt-1 border-t border-gray-700/50">
-                      <span className="text-[9px] text-red-400/70 uppercase">
-                        Vetoed:{" "}
+                      <span className="text-[10px] lg:text-xs text-red-300 uppercase font-semibold">
+                        Veoted By Enemy Team:{" "}
                       </span>
-                      <span className="text-[9px] text-gray-500">
+                      <span className="text-[10px] lg:text-xs text-gray-300">
                         {draftState.team2.bannedUmas
-                          .map((u) => u.title ? `${u.name} ${u.title}` : u.name)
+                          .map((u) => formatUmaName(u))
                           .join(", ")}
                       </span>
                     </div>
@@ -3212,30 +3254,17 @@ export default function Draft5v5({
                 </h3>
                 <div className="space-y-1">
                   {(() => {
-                    const t1Maps = draftState.team1.pickedMaps;
-                    const t2Maps = draftState.team2.pickedMaps;
-                    // Interleave: T1 pick 1, T2 pick 1, T1 pick 2, T2 pick 2, etc.
-                    const schedule: {
-                      map: Map;
-                      team: string;
-                      index: number;
-                    }[] = [];
-                    const maxLen = Math.max(t1Maps.length, t2Maps.length);
-                    for (let i = 0; i < maxLen; i++) {
-                      if (i < t1Maps.length)
-                        schedule.push({
-                          map: t1Maps[i],
-                          team: team1Name,
-                          index: schedule.length + 1,
-                        });
-                      if (i < t2Maps.length)
-                        schedule.push({
-                          map: t2Maps[i],
-                          team: team2Name,
-                          index: schedule.length + 1,
-                        });
-                    }
-                    return schedule.map((s) => (
+                    const schedule = getMapSchedule();
+                    return schedule.map((s) => {
+                      const roomCodeKey =
+                        s.team === "Tiebreaker" ? "tiebreaker" : `map-${s.index}`;
+                      const dotClass =
+                        s.team === team1Name
+                          ? "bg-blue-500"
+                          : s.team === team2Name
+                            ? "bg-red-500"
+                            : "bg-yellow-400";
+                      return (
                       <div
                         key={s.index}
                         className="flex items-center gap-2 px-3 py-1.5 bg-gray-900/40 rounded-lg text-sm"
@@ -3244,7 +3273,7 @@ export default function Draft5v5({
                           {s.index}.
                         </span>
                         <span
-                          className={`inline-block w-1.5 h-1.5 rounded-full ${s.team === team1Name ? "bg-blue-500" : "bg-red-500"}`}
+                          className={`inline-block w-1.5 h-1.5 rounded-full ${dotClass}`}
                         />
                         <span className="text-gray-200 font-medium">
                           {s.map.track}
@@ -3260,7 +3289,7 @@ export default function Draft5v5({
                         >
                           {s.map.surface}
                         </span>
-                        <span className="text-gray-500 text-xs ml-auto">
+                        <span className="text-gray-300 text-xs ml-auto">
                           {s.map.direction === "right"
                             ? "Right"
                             : s.map.direction === "left"
@@ -3273,94 +3302,37 @@ export default function Draft5v5({
                           <input
                             type="text"
                             placeholder="Room code"
-                            value={roomCodes[`map-${s.index}`] || ""}
-                            onChange={(e) => setRoomCodes((prev) => ({ ...prev, [`map-${s.index}`]: e.target.value }))}
+                            value={roomCodes[roomCodeKey] || ""}
+                            onChange={(e) =>
+                              setRoomCodes((prev) => ({
+                                ...prev,
+                                [roomCodeKey]: e.target.value,
+                              }))
+                            }
                             className="w-24 px-2 py-0.5 text-xs bg-gray-800 border border-gray-600 rounded text-gray-200 placeholder-gray-600 focus:border-gray-400 focus:outline-none"
                           />
-                          {roomCodes[`map-${s.index}`] && (
+                          {roomCodes[roomCodeKey] && (
                             <button
                               onClick={() => {
-                                navigator.clipboard.writeText(roomCodes[`map-${s.index}`]);
-                                setCopiedRoomCodeKey(`map-${s.index}`);
+                                navigator.clipboard.writeText(
+                                  roomCodes[roomCodeKey],
+                                );
+                                setCopiedRoomCodeKey(roomCodeKey);
                                 setTimeout(() => setCopiedRoomCodeKey(null), 2000);
                               }}
-                              className={`text-[10px] px-1.5 py-0.5 rounded transition-colors ${copiedRoomCodeKey === `map-${s.index}` ? "bg-green-700 text-green-200" : "bg-gray-700 hover:bg-gray-600 text-gray-300"}`}
+                              className={`text-[10px] px-1.5 py-0.5 rounded transition-colors ${copiedRoomCodeKey === roomCodeKey ? "bg-green-700 text-green-200" : "bg-gray-700 hover:bg-gray-600 text-gray-300"}`}
                               title="Copy room code"
                             >
-                              {copiedRoomCodeKey === `map-${s.index}` ? "Copied!" : "Copy"}
+                              {copiedRoomCodeKey === roomCodeKey
+                                ? "Copied!"
+                                : "Copy"}
                             </button>
                           )}
                         </div>
                       </div>
-                    ));
+                      );
+                    });
                   })()}
-                </div>
-              </div>
-
-              {/* Tiebreaker */}
-              <div className="bg-gray-900/40 rounded-lg p-3 lg:p-4 border border-gray-700/40 text-center">
-                <h3 className="text-gray-400 font-bold text-xs uppercase tracking-wider mb-2">
-                  Tiebreaker Map
-                </h3>
-                <div className="flex items-center justify-center gap-3">
-                  <div className="w-16 h-10 rounded overflow-hidden bg-gray-700">
-                    <img
-                      src={`./racetrack-portraits/${draftState.wildcardMap.track?.toLowerCase()}.png`}
-                      alt={draftState.wildcardMap.track}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.style.display = "none";
-                      }}
-                    />
-                  </div>
-                  <div className="text-left">
-                    <span className="text-white font-bold text-sm">
-                      {draftState.wildcardMap.track}
-                    </span>
-                    {draftState.wildcardMap.variant && (
-                      <span className="text-gray-400 text-xs ml-1">
-                        ({draftState.wildcardMap.variant})
-                      </span>
-                    )}
-                    <span className="text-gray-400 text-xs ml-2">
-                      {draftState.wildcardMap.distance}m
-                    </span>
-                    <span
-                      className={`text-xs ml-2 ${draftState.wildcardMap.surface?.toLowerCase() === "turf" ? "text-green-400" : "text-amber-400"}`}
-                    >
-                      {draftState.wildcardMap.surface}
-                    </span>
-                    {draftState.wildcardMap.conditions && (
-                      <span className="text-gray-500 text-xs ml-2">
-                        {draftState.wildcardMap.conditions.season} /{" "}
-                        {draftState.wildcardMap.conditions.ground} /{" "}
-                        {draftState.wildcardMap.conditions.weather}
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-1 ml-4">
-                    <input
-                      type="text"
-                      placeholder="Room code"
-                      value={roomCodes["tiebreaker"] || ""}
-                      onChange={(e) => setRoomCodes((prev) => ({ ...prev, tiebreaker: e.target.value }))}
-                      className="w-24 px-2 py-0.5 text-xs bg-gray-800 border border-gray-600 rounded text-gray-200 placeholder-gray-600 focus:border-gray-400 focus:outline-none"
-                    />
-                    {roomCodes["tiebreaker"] && (
-                      <button
-                        onClick={() => {
-                          navigator.clipboard.writeText(roomCodes["tiebreaker"]);
-                          setCopiedRoomCodeKey("tiebreaker");
-                          setTimeout(() => setCopiedRoomCodeKey(null), 2000);
-                        }}
-                        className={`text-[10px] px-1.5 py-0.5 rounded transition-colors ${copiedRoomCodeKey === "tiebreaker" ? "bg-green-700 text-green-200" : "bg-gray-700 hover:bg-gray-600 text-gray-300"}`}
-                        title="Copy room code"
-                      >
-                        {copiedRoomCodeKey === "tiebreaker" ? "Copied!" : "Copy"}
-                      </button>
-                    )}
-                  </div>
                 </div>
               </div>
 
@@ -3368,8 +3340,11 @@ export default function Draft5v5({
               <div className="mt-4 flex justify-center gap-3">
                 <button
                   onClick={() => {
-                    const umaLabel = (u: { name: string; title?: string }) =>
-                      u.title ? `${u.name} ${u.title}` : u.name;
+                    const umaLabel = (u: {
+                      id: string | number;
+                      name: string;
+                      title?: string;
+                    }) => formatUmaName(u);
                     const t1Umas = draftState.team1.pickedUmas
                       .map(umaLabel)
                       .join(", ");
@@ -3394,21 +3369,14 @@ export default function Draft5v5({
                         : "";
                     const formatVariant = (m: Map) =>
                       m.variant ? ` (${m.variant})` : "";
-                    const maps = [
-                      ...draftState.team1.pickedMaps,
-                      ...draftState.team2.pickedMaps,
-                    ]
+                    const maps = getMapSchedule()
                       .map(
-                        (m, i) =>
-                          `${i + 1}. ${m.track}${formatVariant(m)} ${m.distance}m (${m.surface})${formatConditions(m)}`,
+                        (entry) =>
+                          `${entry.index}. ${entry.map.track}${formatVariant(entry.map)} ${entry.map.distance}m (${entry.map.surface})${formatConditions(entry.map)}`,
                       )
                       .join("\n");
-                    const wcConditions = formatConditions(
-                      draftState.wildcardMap,
-                    );
-                    const wc = draftState.wildcardMap;
 
-                    let text = `=== DRAFT RESULTS ===\n\n${team1Name}: ${t1Umas}\nPre-Banned: ${t1PreBans || "None"}\nVetoed: ${t1Bans || "None"}\n\n${team2Name}: ${t2Umas}\nPre-Banned: ${t2PreBans || "None"}\nVetoed: ${t2Bans || "None"}\n\nMap Schedule:\n${maps}\n\nTiebreaker: ${wc.track}${formatVariant(wc)} ${wc.distance}m (${wc.surface})${wcConditions}`;
+                    let text = `=== DRAFT RESULTS ===\n\n${team1Name}: ${t1Umas}\nPre-Banned: ${t1PreBans || "None"}\nVeoted By Enemy Team: ${t1Bans || "None"}\n\n${team2Name}: ${t2Umas}\nPre-Banned: ${t2PreBans || "None"}\nVeoted By Enemy Team: ${t2Bans || "None"}\n\nMap Schedule:\n${maps}`;
 
                     if (matchResults.length > 0) {
                       const schedule = getMapSchedule();
@@ -3430,8 +3398,10 @@ export default function Draft5v5({
                                   : p.position === 2
                                     ? "2nd"
                                     : "3rd";
-                              const title = p.umaTitle ? ` ${p.umaTitle}` : "";
-                              return `${pos}: ${p.umaName}${title}`;
+                              return `${pos}: ${formatUmaNameFromParts(
+                                p.umaName,
+                                p.umaTitle,
+                              )}`;
                             })
                             .join(", ");
                           const raceT1 = result.placements
@@ -3541,11 +3511,6 @@ export default function Draft5v5({
                           onClick={
                             isMyTurn
                               ? () => {
-                                  playSfx(
-                                    isBanPhase
-                                      ? "banButtonClick"
-                                      : "lockInButtonClick",
-                                  );
                                   handleLockIn();
                                 }
                               : undefined

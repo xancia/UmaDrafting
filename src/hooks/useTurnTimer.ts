@@ -13,6 +13,9 @@ const ACTIVE_PHASES: DraftPhase[] = [
   "uma-pre-ban",
 ];
 
+const getMonotonicNow = () =>
+  typeof performance !== "undefined" ? performance.now() : Date.now();
+
 /**
  * Configuration for the turn timer
  */
@@ -76,7 +79,7 @@ export function useTurnTimer({
   const [isPaused, setIsPaused] = useState(false);
   const timeoutCalledRef = useRef(false);
   const previousTurnKeyRef = useRef(currentTurnKey);
-  const turnStartTimeRef = useRef(Date.now());
+  const turnStartTimeRef = useRef(getMonotonicNow());
   const previousIsAuthorityRef = useRef(isTimerAuthority);
 
   // Track the turn key actively being timed so consumers can verify
@@ -105,7 +108,7 @@ export function useTurnTimer({
     if (previousTurnKeyRef.current !== currentTurnKey) {
       previousTurnKeyRef.current = currentTurnKey;
       activeTurnKeyRef.current = currentTurnKey;
-      turnStartTimeRef.current = Date.now();
+      turnStartTimeRef.current = getMonotonicNow();
       setTimeRemaining(duration);
       timeoutCalledRef.current = false;
     }
@@ -118,7 +121,7 @@ export function useTurnTimer({
   useEffect(() => {
     if (isTimerAuthority && !previousIsAuthorityRef.current) {
       activeTurnKeyRef.current = currentTurnKey;
-      turnStartTimeRef.current = Date.now();
+      turnStartTimeRef.current = getMonotonicNow();
       setTimeRemaining(duration);
       timeoutCalledRef.current = false;
     }
@@ -129,7 +132,7 @@ export function useTurnTimer({
   useEffect(() => {
     if (isActivePhase) {
       activeTurnKeyRef.current = currentTurnKey;
-      turnStartTimeRef.current = Date.now();
+      turnStartTimeRef.current = getMonotonicNow();
       setTimeRemaining(duration);
       timeoutCalledRef.current = false;
     }
@@ -142,7 +145,7 @@ export function useTurnTimer({
     if (!shouldCountDown) return;
 
     const interval = setInterval(() => {
-      const elapsedMs = Date.now() - turnStartTimeRef.current;
+      const elapsedMs = getMonotonicNow() - turnStartTimeRef.current;
       const elapsed = Math.floor(elapsedMs / 1000);
       const remaining = Math.max(0, duration - elapsed);
 
@@ -177,7 +180,7 @@ export function useTurnTimer({
 
   const reset = useCallback(() => {
     activeTurnKeyRef.current = currentTurnKey;
-    turnStartTimeRef.current = Date.now();
+    turnStartTimeRef.current = getMonotonicNow();
     setTimeRemaining(duration);
     timeoutCalledRef.current = false;
   }, [duration, currentTurnKey]);

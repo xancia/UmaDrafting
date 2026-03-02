@@ -91,26 +91,36 @@ export default function FormatSelection({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6 xl:gap-8 mb-4 lg:mb-6 xl:mb-8">
           <button
             onClick={() => handleLocalMode("5v5")}
-            className="w-full group bg-gray-700 hover:bg-gray-600 border-2 border-gray-600 hover:border-blue-500 rounded-xl p-4 lg:p-5 xl:p-6 transition-all transform hover:scale-105 shadow-lg"
+            className="w-full group bg-gray-700 hover:bg-gray-600 border-2 border-gray-600 hover:border-gray-500 rounded-xl p-4 lg:p-5 xl:p-6 transition-all transform hover:scale-105 shadow-lg"
           >
-            <div className="text-2xl lg:text-3xl xl:text-4xl font-bold text-blue-500 mb-1 lg:mb-2">
+            <div className="text-2xl lg:text-3xl xl:text-4xl font-bold text-blue-400 mb-1 lg:mb-2">
               5v5
             </div>
-            <p className="text-gray-400 text-xs lg:text-sm mb-1 lg:mb-2">
-              2 Teams • Local Draft
+            <p className="text-gray-400 text-xs lg:text-sm mb-1">
+              <span className="text-base lg:text-lg xl:text-xl font-bold text-blue-400">
+                Local Draft
+              </span>
+            </p>
+            <p className="text-gray-500 text-xs lg:text-sm mb-2">
+              2 Teams
             </p>
             <p className="text-xs text-gray-500">Single Device</p>
           </button>
 
           <button
             onClick={() => handleMultiplayerMode("5v5")}
-            className="w-full group bg-purple-900/30 hover:bg-purple-900/50 border-2 border-purple-700 hover:border-purple-500 rounded-xl p-4 lg:p-5 xl:p-6 transition-all transform hover:scale-105 shadow-lg"
+            className="w-full group bg-gray-700 hover:bg-gray-600 border-2 border-gray-600 hover:border-gray-500 rounded-xl p-4 lg:p-5 xl:p-6 transition-all transform hover:scale-105 shadow-lg"
           >
             <div className="text-2xl lg:text-3xl xl:text-4xl font-bold text-purple-400 mb-1 lg:mb-2">
               5v5
             </div>
-            <p className="text-gray-400 text-xs lg:text-sm mb-1 lg:mb-2">
-              2 Teams • Online
+            <p className="text-gray-400 text-xs lg:text-sm mb-1">
+              <span className="text-base lg:text-lg xl:text-xl font-bold text-purple-400">
+                Online Draft
+              </span>
+            </p>
+            <p className="text-gray-500 text-xs lg:text-sm mb-2">
+              2 Teams
             </p>
             <p className="text-xs text-gray-500">Multiplayer</p>
           </button>
@@ -119,12 +129,12 @@ export default function FormatSelection({
         <div className="mt-4 lg:mt-6 space-y-3">
           <button
             onClick={() => navigate("/leaderboard")}
-            className="w-full group bg-purple-900/40 hover:bg-purple-900/60 border-2 border-purple-700 hover:border-purple-500 rounded-xl p-3 lg:p-4 transition-all shadow-lg"
+            className="w-full group bg-gray-700/50 hover:bg-gray-700 border-2 border-gray-600 hover:border-gray-500 rounded-xl p-3 lg:p-4 transition-all shadow-lg"
           >
-            <div className="text-lg lg:text-xl font-bold text-purple-300 mb-0.5 lg:mb-1">
+            <div className="text-lg lg:text-xl font-bold text-gray-300 mb-0.5 lg:mb-1">
               Leaderboard
             </div>
-            <p className="text-purple-200/70 text-xs lg:text-sm">
+            <p className="text-gray-500 text-xs lg:text-sm">
               View live ELO standings
             </p>
           </button>

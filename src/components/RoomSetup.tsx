@@ -59,15 +59,13 @@ export default function RoomSetup({
       return;
     }
 
-    if (!playerName.trim()) {
-      setError("Please enter your name.");
-      return;
-    }
+    const resolvedName =
+      playerName.trim() || (mode === "join" ? "Player" : "Spectator");
 
     if (mode === "join") {
-      onJoinRoom(normalized, playerName.trim());
+      onJoinRoom(normalized, resolvedName);
     } else if (mode === "spectate") {
-      onJoinAsSpectator(normalized, playerName.trim());
+      onJoinAsSpectator(normalized, resolvedName);
     }
   };
 
@@ -203,13 +201,15 @@ export default function RoomSetup({
 
       <div>
         <label className="block text-xs lg:text-sm font-medium text-gray-300 mb-1.5 lg:mb-2">
-          Your Name
+          Your Name (Optional)
         </label>
         <input
           type="text"
           value={playerName}
           onChange={(e) => setPlayerName(e.target.value)}
-          placeholder={mode === "join" ? "Player 1" : "Spectator"}
+          placeholder={
+            mode === "join" ? "Defaults to Player" : "Defaults to Spectator"
+          }
           maxLength={20}
           className="w-full py-2 lg:py-3 px-3 lg:px-4 bg-gray-700 text-gray-100 rounded-xl border-2 border-gray-600 focus:border-blue-500 focus:outline-none text-sm lg:text-base"
           disabled={isProcessing}

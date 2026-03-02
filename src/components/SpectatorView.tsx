@@ -7,6 +7,7 @@ import TeamPanel from "./TeamPanel";
 import PhaseAnnouncement from "./PhaseAnnouncement";
 import { countDistances, countDirtTracks } from "../draftLogic";
 import { getTimelineForPhase } from "./DraftTimeline";
+import { formatUmaName, formatUmaNameFromParts } from "../utils/umaDisplay";
 
 interface SpectatorViewProps {
   /** Current draft state to display */
@@ -560,8 +561,7 @@ export default function SpectatorView({
                                 className={`mx-0.5 ${p.team === "team1" ? "text-blue-400" : "text-red-400"}`}
                               >
                                 {p.position === 1 ? "1st " : p.position === 2 ? "2nd " : "3rd "}
-                                {p.umaName}
-                                {p.umaTitle ? ` ${p.umaTitle}` : ""}
+                                {formatUmaNameFromParts(p.umaName, p.umaTitle)}
                               </span>
                             ))}
                           </span>
@@ -605,21 +605,21 @@ export default function SpectatorView({
                     </div>
                     {(team1.preBannedUmas?.length ?? 0) > 0 && (
                       <div className="mt-1 pt-1 border-t border-gray-700/50">
-                        <span className="text-[9px] text-orange-400/70 uppercase">
-                          Pre-banned:{" "}
+                        <span className="text-[10px] lg:text-xs text-orange-300 uppercase font-semibold">
+                          Pre-Banned:{" "}
                         </span>
-                        <span className="text-[9px] text-gray-500">
-                          {team1.preBannedUmas!.map((u) => u.name).join(", ")}
+                        <span className="text-[10px] lg:text-xs text-gray-300">
+                          {team1.preBannedUmas!.map((u) => formatUmaName(u)).join(", ")}
                         </span>
                       </div>
                     )}
                     {team1.bannedUmas.length > 0 && (
                       <div className="mt-1 pt-1 border-t border-gray-700/50">
-                        <span className="text-[9px] text-red-400/70 uppercase">
-                          Banned:{" "}
+                        <span className="text-[10px] lg:text-xs text-red-300 uppercase font-semibold">
+                          Veoted By Enemy Team:{" "}
                         </span>
-                        <span className="text-[9px] text-gray-500">
-                          {team1.bannedUmas.map((u) => u.name).join(", ")}
+                        <span className="text-[10px] lg:text-xs text-gray-300">
+                          {team1.bannedUmas.map((u) => formatUmaName(u)).join(", ")}
                         </span>
                       </div>
                     )}
@@ -653,21 +653,21 @@ export default function SpectatorView({
                     </div>
                     {(team2.preBannedUmas?.length ?? 0) > 0 && (
                       <div className="mt-1 pt-1 border-t border-gray-700/50">
-                        <span className="text-[9px] text-orange-400/70 uppercase">
-                          Pre-banned:{" "}
+                        <span className="text-[10px] lg:text-xs text-orange-300 uppercase font-semibold">
+                          Pre-Banned:{" "}
                         </span>
-                        <span className="text-[9px] text-gray-500">
-                          {team2.preBannedUmas!.map((u) => u.name).join(", ")}
+                        <span className="text-[10px] lg:text-xs text-gray-300">
+                          {team2.preBannedUmas!.map((u) => formatUmaName(u)).join(", ")}
                         </span>
                       </div>
                     )}
                     {team2.bannedUmas.length > 0 && (
                       <div className="mt-1 pt-1 border-t border-gray-700/50">
-                        <span className="text-[9px] text-red-400/70 uppercase">
-                          Banned:{" "}
+                        <span className="text-[10px] lg:text-xs text-red-300 uppercase font-semibold">
+                          Veoted By Enemy Team:{" "}
                         </span>
-                        <span className="text-[9px] text-gray-500">
-                          {team2.bannedUmas.map((u) => u.name).join(", ")}
+                        <span className="text-[10px] lg:text-xs text-gray-300">
+                          {team2.bannedUmas.map((u) => formatUmaName(u)).join(", ")}
                         </span>
                       </div>
                     )}
@@ -683,27 +683,31 @@ export default function SpectatorView({
                     {(() => {
                       const t1Maps = team1.pickedMaps;
                       const t2Maps = team2.pickedMaps;
-                      const schedule: {
-                        map: Map;
-                        team: string;
-                        index: number;
-                      }[] = [];
+                      const schedule: { map: Map; team: string; index: number }[] = [];
                       const maxLen = Math.max(t1Maps.length, t2Maps.length);
                       for (let i = 0; i < maxLen; i++) {
-                        if (i < t1Maps.length)
-                          schedule.push({
-                            map: t1Maps[i],
-                            team: team1Name,
-                            index: schedule.length + 1,
-                          });
-                        if (i < t2Maps.length)
-                          schedule.push({
-                            map: t2Maps[i],
-                            team: team2Name,
-                            index: schedule.length + 1,
-                          });
+                        if (i < t1Maps.length) {
+                          schedule.push({ map: t1Maps[i], team: team1Name, index: schedule.length + 1 });
+                        }
+                        if (i < t2Maps.length) {
+                          schedule.push({ map: t2Maps[i], team: team2Name, index: schedule.length + 1 });
+                        }
                       }
-                      return schedule.map((s) => (
+                      schedule.push({
+                        map: wildcardMap,
+                        team: "Tiebreaker",
+                        index: schedule.length + 1,
+                      });
+                      return schedule.map((s) => {
+                        const roomCodeKey =
+                          s.team === "Tiebreaker" ? "tiebreaker" : `map-${s.index}`;
+                        const dotClass =
+                          s.team === team1Name
+                            ? "bg-blue-500"
+                            : s.team === team2Name
+                              ? "bg-red-500"
+                              : "bg-yellow-400";
+                        return (
                         <div
                           key={s.index}
                           className="flex items-center gap-2 px-3 py-1.5 bg-gray-900/40 rounded-lg text-sm"
@@ -712,7 +716,7 @@ export default function SpectatorView({
                             {s.index}.
                           </span>
                           <span
-                            className={`inline-block w-1.5 h-1.5 rounded-full ${s.team === team1Name ? "bg-blue-500" : "bg-red-500"}`}
+                            className={`inline-block w-1.5 h-1.5 rounded-full ${dotClass}`}
                           />
                           <span className="text-gray-200 font-medium">
                             {s.map.track}
@@ -728,7 +732,7 @@ export default function SpectatorView({
                           >
                             {s.map.surface}
                           </span>
-                          <span className="text-gray-500 text-xs ml-auto">
+                          <span className="text-gray-300 text-xs ml-auto">
                             {s.map.direction === "right"
                               ? "Right"
                               : s.map.direction === "left"
@@ -737,81 +741,24 @@ export default function SpectatorView({
                             {s.map.conditions &&
                               ` / ${s.map.conditions.season} / ${s.map.conditions.ground} / ${s.map.conditions.weather}`}
                           </span>
-                          {roomCodes[`map-${s.index}`] && (
+                          {roomCodes[roomCodeKey] && (
                             <div className="flex items-center gap-1 ml-2">
                               <span className="text-xs text-gray-300 font-mono bg-gray-800 px-2 py-0.5 rounded border border-gray-600">
-                                {roomCodes[`map-${s.index}`]}
+                                {roomCodes[roomCodeKey]}
                               </span>
                               <button
-                                onClick={() => handleCopyRoomCode(`map-${s.index}`, roomCodes[`map-${s.index}`])}
-                                className={`text-[10px] px-1.5 py-0.5 rounded transition-colors ${copiedRoomCodeKey === `map-${s.index}` ? "bg-green-700 text-green-200" : "bg-gray-700 hover:bg-gray-600 text-gray-300"}`}
+                                onClick={() => handleCopyRoomCode(roomCodeKey, roomCodes[roomCodeKey])}
+                                className={`text-[10px] px-1.5 py-0.5 rounded transition-colors ${copiedRoomCodeKey === roomCodeKey ? "bg-green-700 text-green-200" : "bg-gray-700 hover:bg-gray-600 text-gray-300"}`}
                                 title="Copy room code"
                               >
-                                {copiedRoomCodeKey === `map-${s.index}` ? "Copied!" : "Copy"}
+                                {copiedRoomCodeKey === roomCodeKey ? "Copied!" : "Copy"}
                               </button>
                             </div>
                           )}
                         </div>
-                      ));
+                        );
+                      });
                     })()}
-                  </div>
-                </div>
-
-                {/* Tiebreaker */}
-                <div className="bg-gray-900/40 rounded-lg p-3 lg:p-4 border border-gray-700/40 text-center mb-4">
-                  <h3 className="text-gray-400 font-bold text-xs uppercase tracking-wider mb-2">
-                    Tiebreaker Map
-                  </h3>
-                  <div className="flex items-center justify-center gap-3">
-                    <div className="w-16 h-10 rounded overflow-hidden bg-gray-700">
-                      <img
-                        src={`./racetrack-portraits/${wildcardMap.track?.toLowerCase()}.png`}
-                        alt={wildcardMap.track}
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).style.display = "none";
-                        }}
-                      />
-                    </div>
-                    <div className="text-left">
-                      <span className="text-white font-bold text-sm">
-                        {wildcardMap.track}
-                      </span>
-                      {wildcardMap.variant && (
-                        <span className="text-gray-400 text-xs ml-1">
-                          ({wildcardMap.variant})
-                        </span>
-                      )}
-                      <span className="text-gray-400 text-xs ml-2">
-                        {wildcardMap.distance}m
-                      </span>
-                      <span
-                        className={`text-xs ml-2 ${wildcardMap.surface?.toLowerCase() === "turf" ? "text-green-400" : "text-amber-400"}`}
-                      >
-                        {wildcardMap.surface}
-                      </span>
-                      {wildcardMap.conditions && (
-                        <span className="text-gray-500 text-xs ml-2">
-                          {wildcardMap.conditions.season} /{" "}
-                          {wildcardMap.conditions.ground} /{" "}
-                          {wildcardMap.conditions.weather}
-                        </span>
-                      )}
-                    </div>
-                    {roomCodes["tiebreaker"] && (
-                      <div className="flex items-center gap-1 ml-4">
-                        <span className="text-xs text-gray-300 font-mono bg-gray-800 px-2 py-0.5 rounded border border-gray-600">
-                          {roomCodes["tiebreaker"]}
-                        </span>
-                        <button
-                          onClick={() => handleCopyRoomCode("tiebreaker", roomCodes["tiebreaker"])}
-                          className={`text-[10px] px-1.5 py-0.5 rounded transition-colors ${copiedRoomCodeKey === "tiebreaker" ? "bg-green-700 text-green-200" : "bg-gray-700 hover:bg-gray-600 text-gray-300"}`}
-                          title="Copy room code"
-                        >
-                          {copiedRoomCodeKey === "tiebreaker" ? "Copied!" : "Copy"}
-                        </button>
-                      </div>
-                    )}
                   </div>
                 </div>
 
@@ -819,8 +766,11 @@ export default function SpectatorView({
                 <div className="flex justify-center gap-3">
                   <button
                     onClick={() => {
-                      const umaLabel = (u: { name: string; title?: string }) =>
-                        u.title ? `${u.name} ${u.title}` : u.name;
+                      const umaLabel = (u: {
+                        id: string | number;
+                        name: string;
+                        title?: string;
+                      }) => formatUmaName(u);
                       const t1Umas = team1.pickedUmas
                         .map(umaLabel)
                         .join(", ");
@@ -845,19 +795,25 @@ export default function SpectatorView({
                           : "";
                       const formatVariant = (m: Map) =>
                         m.variant ? ` (${m.variant})` : "";
-                      const maps = [
-                        ...team1.pickedMaps,
-                        ...team2.pickedMaps,
-                      ]
+                      const schedule: { map: Map; index: number }[] = [];
+                      const maxLen = Math.max(team1.pickedMaps.length, team2.pickedMaps.length);
+                      for (let i = 0; i < maxLen; i++) {
+                        if (i < team1.pickedMaps.length) {
+                          schedule.push({ map: team1.pickedMaps[i], index: schedule.length + 1 });
+                        }
+                        if (i < team2.pickedMaps.length) {
+                          schedule.push({ map: team2.pickedMaps[i], index: schedule.length + 1 });
+                        }
+                      }
+                      schedule.push({ map: wildcardMap, index: schedule.length + 1 });
+                      const maps = schedule
                         .map(
-                          (m, i) =>
-                            `${i + 1}. ${m.track}${formatVariant(m)} ${m.distance}m (${m.surface})${formatConditions(m)}`,
+                          (entry) =>
+                            `${entry.index}. ${entry.map.track}${formatVariant(entry.map)} ${entry.map.distance}m (${entry.map.surface})${formatConditions(entry.map)}`,
                         )
                         .join("\n");
-                      const wcConditions = formatConditions(wildcardMap);
-                      const wc = wildcardMap;
 
-                      const text = `=== DRAFT RESULTS ===\n\n${team1Name}: ${t1Umas}\nPre-Banned: ${t1PreBans || "None"}\nVetoed: ${t1Bans || "None"}\n\n${team2Name}: ${t2Umas}\nPre-Banned: ${t2PreBans || "None"}\nVetoed: ${t2Bans || "None"}\n\nMap Schedule:\n${maps}\n\nTiebreaker: ${wc.track}${formatVariant(wc)} ${wc.distance}m (${wc.surface})${wcConditions}`;
+                      const text = `=== DRAFT RESULTS ===\n\n${team1Name}: ${t1Umas}\nPre-Banned: ${t1PreBans || "None"}\nVeoted By Enemy Team: ${t1Bans || "None"}\n\n${team2Name}: ${t2Umas}\nPre-Banned: ${t2PreBans || "None"}\nVeoted By Enemy Team: ${t2Bans || "None"}\n\nMap Schedule:\n${maps}`;
                       navigator.clipboard.writeText(text);
                     }}
                     className="bg-gray-700/80 hover:bg-gray-600 text-gray-200 font-semibold py-2 px-6 rounded-lg transition-colors border border-gray-600/50 text-sm"
