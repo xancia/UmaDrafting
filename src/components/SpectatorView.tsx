@@ -225,6 +225,14 @@ export default function SpectatorView({
     const prevTeam1PreBans = prev.team1.preBannedUmas || [];
     const currentTeam2PreBans = draftState.team2.preBannedUmas || [];
     const prevTeam2PreBans = prev.team2.preBannedUmas || [];
+    const currentTeam1MapPicks = draftState.team1.pickedMaps || [];
+    const prevTeam1MapPicks = prev.team1.pickedMaps || [];
+    const currentTeam2MapPicks = draftState.team2.pickedMaps || [];
+    const prevTeam2MapPicks = prev.team2.pickedMaps || [];
+    const currentTeam1MapBans = draftState.team1.bannedMaps || [];
+    const prevTeam1MapBans = prev.team1.bannedMaps || [];
+    const currentTeam2MapBans = draftState.team2.bannedMaps || [];
+    const prevTeam2MapBans = prev.team2.bannedMaps || [];
 
     const newTeam1Picks = currentTeam1Picks.slice(prevTeam1Picks.length);
     const newTeam2Picks = currentTeam2Picks.slice(prevTeam2Picks.length);
@@ -232,9 +240,25 @@ export default function SpectatorView({
     const newTeam2Bans = currentTeam2Bans.slice(prevTeam2Bans.length);
     const newTeam1PreBans = currentTeam1PreBans.slice(prevTeam1PreBans.length);
     const newTeam2PreBans = currentTeam2PreBans.slice(prevTeam2PreBans.length);
+    const newTeam1MapPicks = currentTeam1MapPicks.slice(prevTeam1MapPicks.length);
+    const newTeam2MapPicks = currentTeam2MapPicks.slice(prevTeam2MapPicks.length);
+    const newTeam1MapBans = currentTeam1MapBans.slice(prevTeam1MapBans.length);
+    const newTeam2MapBans = currentTeam2MapBans.slice(prevTeam2MapBans.length);
 
-    const newPicks = [...newTeam1Picks, ...newTeam2Picks];
-    const newBans = [...newTeam1Bans, ...newTeam2Bans, ...newTeam1PreBans, ...newTeam2PreBans];
+    const newPicks = [
+      ...newTeam1Picks,
+      ...newTeam2Picks,
+      ...newTeam1MapPicks,
+      ...newTeam2MapPicks,
+    ];
+    const newBans = [
+      ...newTeam1Bans,
+      ...newTeam2Bans,
+      ...newTeam1PreBans,
+      ...newTeam2PreBans,
+      ...newTeam1MapBans,
+      ...newTeam2MapBans,
+    ];
 
     if (newPicks.length > 0) {
       playActionSfx("picked");
