@@ -120,22 +120,22 @@ export default function WaitingRoom({
 
   return (
     <div className="h-screen bg-linear-to-br from-gray-950 to-gray-900 flex items-center justify-center px-4 lg:px-6">
-      <div className="bg-gray-800 rounded-xl shadow-2xl p-6 lg:p-8 xl:p-10 border-2 border-gray-700 max-w-lg w-full text-center">
+      <div className="bg-gray-800 rounded-xl shadow-2xl p-[18px] lg:p-5 xl:p-6 border-2 border-gray-700 max-w-lg w-full text-center">
         <h1 className="text-2xl lg:text-3xl font-bold mb-1 lg:mb-2 text-gray-100">
           Waiting Room
         </h1>
-        <p className="text-sm lg:text-base text-gray-400 mb-4 lg:mb-6 xl:mb-8">
+        <p className="text-sm lg:text-base text-gray-400 mb-2.5 lg:mb-3.5">
           Share the room code with your opponent
         </p>
 
         {/* Room Code Display */}
-        <div className="bg-gray-900 rounded-xl p-4 lg:p-6 mb-4 lg:mb-6 xl:mb-8 border border-gray-700">
+        <div className="bg-gray-900 rounded-xl p-3.5 lg:p-4.5 mb-2.5 lg:mb-3.5 border border-gray-700">
           <p className="text-xs lg:text-sm text-gray-400 mb-1 lg:mb-2">
             Room Code
           </p>
           <button
             onClick={handleCopyRoomCode}
-            className={`text-3xl lg:text-4xl xl:text-5xl font-mono font-bold transition-colors tracking-wider ${
+            className={`text-[1.7rem] lg:text-[2.15rem] xl:text-[2.6rem] font-mono font-bold transition-colors tracking-wider ${
               copied ? "text-green-400" : "text-blue-400 hover:text-blue-300"
             }`}
             title="Click to copy"
@@ -148,7 +148,7 @@ export default function WaitingRoom({
             {copied ? "Copied!" : "Click to copy"}
           </p>
           {isHost && (
-            <div className="mt-4 pt-4 border-t border-gray-700 text-left">
+            <div className="mt-2.5 pt-2.5 border-t border-gray-700 text-left">
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 text-center">
                 Invite Links
               </p>
@@ -187,7 +187,7 @@ export default function WaitingRoom({
         </div>
 
         {/* Team Names */}
-        <div className="grid grid-cols-2 gap-3 lg:gap-4 mb-4 lg:mb-6 xl:mb-8">
+        <div className="grid grid-cols-2 gap-3 lg:gap-4 mb-2.5 lg:mb-3.5">
           {/* Team 1 */}
           <div className="bg-blue-900/20 border border-blue-700/50 rounded-lg p-3 lg:p-4">
             <p className="text-xs text-blue-400 mb-0.5 lg:mb-1">
@@ -257,7 +257,7 @@ export default function WaitingRoom({
         </div>
 
         {/* Connection Status */}
-        <div className="bg-gray-900/50 rounded-lg p-3 lg:p-4 mb-4 lg:mb-6 xl:mb-8 border border-gray-700">
+        <div className="bg-gray-900/50 rounded-lg p-3 lg:p-3.5 mb-2.5 lg:mb-3.5 border border-gray-700">
           <div className="flex items-center justify-center gap-4 lg:gap-6">
             <div className="flex items-center gap-1.5 lg:gap-2">
               <span
@@ -277,14 +277,14 @@ export default function WaitingRoom({
             )}
           </div>
           {playerCount < 2 && (
-            <p className="text-xs lg:text-sm text-yellow-400/80 mt-2 lg:mt-3">
+            <p className="text-xs lg:text-sm text-yellow-400/80 mt-1.5 lg:mt-2.5">
               Waiting for opponent to join...
             </p>
           )}
         </div>
 
         {/* Turn Timer Setting */}
-        <div className="bg-gray-900/50 rounded-lg p-3 lg:p-4 mb-4 lg:mb-6 xl:mb-8 border border-gray-700">
+        <div className="bg-gray-900/50 rounded-lg p-3 lg:p-3.5 mb-2.5 lg:mb-3.5 border border-gray-700">
           <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
             Turn Timer
           </p>
@@ -332,7 +332,7 @@ export default function WaitingRoom({
 
         {/* Connection Error */}
         {connectionError && (
-          <div className="bg-red-900/20 border border-red-700 rounded-lg p-3 lg:p-4 mb-4 lg:mb-6 xl:mb-8">
+          <div className="bg-red-900/20 border border-red-700 rounded-lg p-3 lg:p-3.5 mb-2.5 lg:mb-3.5">
             <p className="text-sm text-red-300 mb-2">{connectionError}</p>
             {onRetryConnection && (
               <button
