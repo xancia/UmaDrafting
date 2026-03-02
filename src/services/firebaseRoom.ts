@@ -96,6 +96,19 @@ function normalizeDraftState(state: Partial<DraftState>): DraftState {
   } as DraftState;
 }
 
+function sanitizeForFirebase(obj: unknown): unknown {
+  if (obj === null || obj === undefined) return null;
+  if (Array.isArray(obj)) return obj.map(sanitizeForFirebase);
+  if (typeof obj === "object") {
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(obj as Record<string, unknown>)) {
+      if (v !== undefined) out[k] = sanitizeForFirebase(v);
+    }
+    return out;
+  }
+  return obj;
+}
+
 /**
  * Creates a new multiplayer room
  *
@@ -144,7 +157,7 @@ export async function createRoom(
 
     // Write to database
     const roomRef = ref(db, buildPath.room(roomCode));
-    await set(roomRef, room);
+    await set(roomRef, sanitizeForFirebase(room));
 
     // Set up presence for the host
     await setupPresence(roomCode, user.uid);
@@ -406,7 +419,7 @@ export async function updateDraftState(
 
   // Update draft state and timestamp (version already set by transaction)
   await update(roomRef, {
-    draftState: sanitize(newState),
+    draftState: sanitizeForFirebase(newState),
     updatedAt: Date.now(),
   });
 }
