@@ -187,8 +187,12 @@ export async function joinRoom(
 
     const room = snapshot.val() as FirebaseRoom;
 
-    // Check room status
+    // Completed rooms are still viewable by spectators, but remain closed to
+    // late players so the finished participant list is not mutated.
     if (room.status === "completed") {
+      if (data.connectionType === "spectator") {
+        return { success: true };
+      }
       return { success: false, error: "This draft has already completed" };
     }
 
