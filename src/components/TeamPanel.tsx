@@ -462,9 +462,7 @@ export default function TeamPanel({
                           </div>
                         </div>
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-orange-400/20 text-[10px] uppercase tracking-wider">
-                          Empty
-                        </div>
+                        <div className="w-full h-full" />
                       )}
                       <div className="absolute bottom-0 inset-x-0 bg-orange-900/80 py-px">
                         <span className="text-[6px] text-orange-300 font-bold uppercase text-center block tracking-wider">
@@ -536,9 +534,7 @@ export default function TeamPanel({
                           </div>
                         </div>
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-red-400/20 text-[10px] uppercase tracking-wider">
-                          Empty
-                        </div>
+                        <div className="w-full h-full" />
                       )}
                       <div className="absolute bottom-0 inset-x-0 bg-red-900/80 py-px">
                         <span className="text-[6px] text-red-300 font-bold uppercase text-center block tracking-wider">
