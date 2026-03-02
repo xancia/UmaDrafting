@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { normalizeRoomCode, validateRoomCode } from "../utils/roomCode";
 
 type RoomMode = "local" | "host" | "join" | "spectate";
@@ -14,6 +14,10 @@ interface RoomSetupProps {
   onBack?: () => void;
   /** Whether currently processing */
   isProcessing?: boolean;
+  /** Optional mode to open immediately */
+  initialMode?: Extract<RoomMode, "join" | "spectate"> | null;
+  /** Optional room code to prefill */
+  initialRoomCode?: string;
 }
 
 /**
@@ -31,12 +35,22 @@ export default function RoomSetup({
   onJoinAsSpectator,
   onBack,
   isProcessing = false,
+  initialMode = null,
+  initialRoomCode = "",
 }: RoomSetupProps) {
-  const [mode, setMode] = useState<RoomMode | null>(null);
+  const [mode, setMode] = useState<RoomMode | null>(initialMode);
   const [format, setFormat] = useState<"5v5" | "3v3v3">("5v5");
-  const [roomCode, setRoomCode] = useState("");
+  const [roomCode, setRoomCode] = useState(normalizeRoomCode(initialRoomCode));
   const [playerName, setPlayerName] = useState("");
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setMode(initialMode);
+  }, [initialMode]);
+
+  useEffect(() => {
+    setRoomCode(normalizeRoomCode(initialRoomCode));
+  }, [initialRoomCode]);
 
   /**
    * Handles creating a new room

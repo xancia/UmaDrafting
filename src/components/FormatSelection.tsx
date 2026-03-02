@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import RoomSetup from "./RoomSetup";
 
@@ -12,10 +12,15 @@ interface FormatSelectionProps {
       isSpectator: boolean;
     },
   ) => void;
+  inviteConfig?: {
+    roomCode: string;
+    mode: "join" | "spectate";
+  };
 }
 
 export default function FormatSelection({
   onSelectFormat,
+  inviteConfig,
 }: FormatSelectionProps) {
   const navigate = useNavigate();
   const [showRoomSetup, setShowRoomSetup] = useState(false);
@@ -23,6 +28,12 @@ export default function FormatSelection({
   const [selectedFormat, setSelectedFormat] = useState<"5v5" | "3v3v3" | null>(
     null,
   );
+
+  useEffect(() => {
+    if (!inviteConfig) return;
+    setSelectedFormat("5v5");
+    setShowRoomSetup(true);
+  }, [inviteConfig]);
 
   const handleLocalMode = (format: "5v5" | "3v3v3") => {
     onSelectFormat(format);
@@ -71,9 +82,15 @@ export default function FormatSelection({
         onJoinRoom={handleJoinRoom}
         onJoinAsSpectator={handleJoinAsSpectator}
         onBack={() => {
+          if (inviteConfig) {
+            navigate("/");
+            return;
+          }
           setShowRoomSetup(false);
           setSelectedFormat(null);
         }}
+        initialMode={inviteConfig?.mode ?? null}
+        initialRoomCode={inviteConfig?.roomCode ?? ""}
       />
     );
   }

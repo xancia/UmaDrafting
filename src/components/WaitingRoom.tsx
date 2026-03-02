@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { formatRoomCode } from "../utils/roomCode";
+import { buildInviteUrl } from "../utils/inviteLinks";
 
 interface WaitingRoomProps {
   /** Room code to display */
@@ -56,6 +57,9 @@ export default function WaitingRoom({
   onTurnDurationChange,
 }: WaitingRoomProps) {
   const [copied, setCopied] = useState(false);
+  const [copiedInvite, setCopiedInvite] = useState<"join" | "spectate" | null>(
+    null,
+  );
   const [editingTeam1, setEditingTeam1] = useState(false);
   const [editingTeam2, setEditingTeam2] = useState(false);
   const [tempTeam1Name, setTempTeam1Name] = useState(team1Name);
@@ -100,6 +104,20 @@ export default function WaitingRoom({
     }
   };
 
+  const joinInviteUrl = buildInviteUrl("join", roomCode);
+  const spectateInviteUrl = buildInviteUrl("spectate", roomCode);
+
+  const handleCopyInvite = async (mode: "join" | "spectate") => {
+    const url = mode === "join" ? joinInviteUrl : spectateInviteUrl;
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopiedInvite(mode);
+      setTimeout(() => setCopiedInvite(null), 2000);
+    } catch (err) {
+      console.error(`Failed to copy ${mode} invite:`, err);
+    }
+  };
+
   return (
     <div className="h-screen bg-linear-to-br from-gray-950 to-gray-900 flex items-center justify-center px-4 lg:px-6">
       <div className="bg-gray-800 rounded-xl shadow-2xl p-6 lg:p-8 xl:p-10 border-2 border-gray-700 max-w-lg w-full text-center">
@@ -130,6 +148,46 @@ export default function WaitingRoom({
             {copied ? "Copied!" : "Click to copy"}
           </p>
         </div>
+
+        {isHost && (
+          <div className="bg-gray-900/50 rounded-lg p-3 lg:p-4 mb-4 lg:mb-6 xl:mb-8 border border-gray-700 text-left">
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
+              Invite Links
+            </p>
+            <div className="space-y-2">
+              <div className="rounded-lg border border-gray-700 bg-gray-800/60 p-2.5">
+                <p className="text-[11px] text-green-400 font-semibold mb-1">
+                  Player Join
+                </p>
+                <p className="text-[11px] text-gray-400 break-all mb-2">
+                  {joinInviteUrl}
+                </p>
+                <button
+                  onClick={() => handleCopyInvite("join")}
+                  className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-green-700 hover:bg-green-600 text-white transition-colors"
+                >
+                  {copiedInvite === "join" ? "Copied!" : "Copy Player Link"}
+                </button>
+              </div>
+              <div className="rounded-lg border border-gray-700 bg-gray-800/60 p-2.5">
+                <p className="text-[11px] text-purple-400 font-semibold mb-1">
+                  Spectator Join
+                </p>
+                <p className="text-[11px] text-gray-400 break-all mb-2">
+                  {spectateInviteUrl}
+                </p>
+                <button
+                  onClick={() => handleCopyInvite("spectate")}
+                  className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-purple-700 hover:bg-purple-600 text-white transition-colors"
+                >
+                  {copiedInvite === "spectate"
+                    ? "Copied!"
+                    : "Copy Spectator Link"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Team Names */}
         <div className="grid grid-cols-2 gap-3 lg:gap-4 mb-4 lg:mb-6 xl:mb-8">

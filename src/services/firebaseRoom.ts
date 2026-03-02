@@ -224,6 +224,18 @@ export async function joinRoom(
       return { success: true };
     }
 
+    if (data.connectionType === "player") {
+      const activeOpponent = Object.values(room.players || {}).find(
+        (player) => player.id !== room.hostId && player.type !== "host",
+      );
+      if (activeOpponent) {
+        return {
+          success: false,
+          error: "This room already has a player. Use the spectator link instead.",
+        };
+      }
+    }
+
     // Create player entry (omit team for spectators — Firebase rejects undefined)
     const player: FirebasePlayer = {
       id: user.uid,
@@ -235,13 +247,44 @@ export async function joinRoom(
       lastSeen: Date.now(),
     };
 
-    // Add to appropriate collection based on type
-    const path =
-      data.connectionType === "spectator"
-        ? `${buildPath.spectators(data.roomCode)}/${user.uid}`
-        : `${buildPath.players(data.roomCode)}/${user.uid}`;
+    if (
+      data.connectionType === "player" ||
+      data.connectionType === "host"
+    ) {
+      const playersRef = ref(db, buildPath.players(data.roomCode));
+      const joinResult = await runTransaction(playersRef, (currentPlayers) => {
+        const players =
+          (currentPlayers as Record<string, FirebasePlayer> | null) ?? {};
 
-    await set(ref(db, path), player);
+        if (players[user.uid]) {
+          return players;
+        }
+
+        const hasExistingPlayer =
+          data.connectionType === "player" &&
+          Object.values(players).some(
+            (entry) => entry.id !== room.hostId && entry.type !== "host",
+          );
+        if (hasExistingPlayer) {
+          return;
+        }
+
+        return {
+          ...players,
+          [user.uid]: player,
+        };
+      });
+
+      if (!joinResult.committed) {
+        return {
+          success: false,
+          error: "This room already has a player. Use the spectator link instead.",
+        };
+      }
+    } else {
+      const path = `${buildPath.spectators(data.roomCode)}/${user.uid}`;
+      await set(ref(db, path), player);
+    }
 
     // Update room timestamp
     await update(roomRef, { updatedAt: Date.now() });
@@ -419,7 +462,7 @@ export async function updateDraftState(
 
   // Update draft state and timestamp (version already set by transaction)
   await update(roomRef, {
-    draftState: sanitizeForFirebase(newState),
+    draftState: sanitize(newState),
     updatedAt: Date.now(),
   });
 }

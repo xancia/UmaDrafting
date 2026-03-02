@@ -1,10 +1,17 @@
 import { useState, useEffect } from "react";
-import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  useNavigate,
+  useParams,
+} from "react-router-dom";
 import FormatSelection from "./components/FormatSelection";
 import Draft5v5 from "./components/Draft5v5";
 import Draft3v3v3 from "./components/Draft3v3v3";
 import UnifiedTopBar from "./components/UnifiedTopBar";
 import Leaderboard from "./components/Leaderboard";
+import { normalizeRoomCode } from "./utils/roomCode";
 import {
   getDraftSession,
   clearDraftSession,
@@ -20,6 +27,11 @@ interface MultiplayerConfig {
   isSpectator: boolean;
 }
 
+interface InviteConfig {
+  roomCode: string;
+  mode: "join" | "spectate";
+}
+
 function LeaderboardPage() {
   return (
     <div className="h-screen flex flex-col overflow-hidden">
@@ -29,7 +41,7 @@ function LeaderboardPage() {
   );
 }
 
-function MainApp() {
+function MainApp({ inviteConfig }: { inviteConfig?: InviteConfig }) {
   const navigate = useNavigate();
   const [selectedFormat, setSelectedFormat] = useState<DraftFormat>(null);
   const [multiplayerConfig, setMultiplayerConfig] = useState<
@@ -41,11 +53,16 @@ function MainApp() {
 
   // Check for saved session on mount
   useEffect(() => {
+    if (inviteConfig) {
+      setPendingSession(null);
+      return;
+    }
+
     const session = getDraftSession();
     if (session) {
       setPendingSession(session);
     }
-  }, []);
+  }, [inviteConfig]);
 
   // Handle reconnecting to a saved session
   const handleReconnect = () => {
@@ -148,8 +165,24 @@ function MainApp() {
           </div>
         </div>
       )}
-      <FormatSelection onSelectFormat={handleSelectFormat} />
+      <FormatSelection
+        onSelectFormat={handleSelectFormat}
+        inviteConfig={inviteConfig}
+      />
     </div>
+  );
+}
+
+function InvitePage({ mode }: { mode: "join" | "spectate" }) {
+  const { roomCode = "" } = useParams();
+
+  return (
+    <MainApp
+      inviteConfig={{
+        roomCode: normalizeRoomCode(roomCode),
+        mode,
+      }}
+    />
   );
 }
 
@@ -157,6 +190,11 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
+        <Route path="/join/:roomCode" element={<InvitePage mode="join" />} />
+        <Route
+          path="/spectate/:roomCode"
+          element={<InvitePage mode="spectate" />}
+        />
         <Route path="/leaderboard" element={<LeaderboardPage />} />
         <Route path="*" element={<MainApp />} />
       </Routes>
