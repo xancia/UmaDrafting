@@ -118,9 +118,7 @@ export default function FormatSelection({
                 Local Draft
               </span>
             </p>
-            <p className="text-gray-500 text-xs lg:text-sm mb-2">
-              2 Teams
-            </p>
+            <p className="text-gray-500 text-xs lg:text-sm mb-2">2 Teams</p>
             <p className="text-xs text-gray-500">Single Device</p>
           </button>
 
@@ -136,9 +134,7 @@ export default function FormatSelection({
                 Online Draft
               </span>
             </p>
-            <p className="text-gray-500 text-xs lg:text-sm mb-2">
-              2 Teams
-            </p>
+            <p className="text-gray-500 text-xs lg:text-sm mb-2">2 Teams</p>
             <p className="text-xs text-gray-500">Multiplayer</p>
           </button>
         </div>
@@ -230,7 +226,7 @@ export default function FormatSelection({
                   <li className="flex gap-2">
                     <span className="text-blue-400">•</span>
                     <span>
-                      <strong>Map Draft:</strong> Pick 4, Ban 1
+                      <strong>Map Draft:</strong> Pick 4, Veto 1
                     </span>
                   </li>
                   <li className="flex gap-2">
@@ -243,7 +239,7 @@ export default function FormatSelection({
                   <li className="flex gap-2">
                     <span className="text-blue-400">•</span>
                     <span>
-                      <strong>Uma Draft:</strong> Pick 5, Ban 1, Pick 2
+                      <strong>Uma Draft:</strong> Pick 5, Veto 1, Pick 2
                     </span>
                   </li>
                   <li className="flex gap-2">
