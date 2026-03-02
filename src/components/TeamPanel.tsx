@@ -64,6 +64,10 @@ export default function TeamPanel({
     phase === "uma-ban" && incomingVetoSelection?.type === "uma"
       ? incomingVetoSelection
       : null;
+  const pendingMapBanGhost =
+    phase === "map-ban" && incomingVetoSelection?.type === "map"
+      ? incomingVetoSelection
+      : null;
   const showBanSummary =
     preBannedUmas.length > 0 ||
     bannedUmas.length > 0 ||
@@ -159,6 +163,11 @@ export default function TeamPanel({
           {[...Array(4)].map((_, index) => {
             const map = allMaps[index];
             const isBanned = map && bannedMaps.some((b) => b.id === map.id);
+            const isPendingMapBanTarget =
+              !!map &&
+              !isBanned &&
+              !!pendingMapBanGhost &&
+              map.name === pendingMapBanGhost.id;
             // Calculate play order: Team1 picks odd positions (1,3,5,7), Team2 picks even (2,4,6,8)
             // Only picked (non-banned) maps get numbers
             const pickIndex = pickedMaps.findIndex(
@@ -179,7 +188,9 @@ export default function TeamPanel({
               <div
                 key={map.id}
                 className={`px-2.5 py-1.5 lg:py-1.5 rounded-lg border min-w-0 relative flex gap-3 items-center ${
-                  isBanned
+                  isPendingMapBanTarget
+                    ? `${surfaceColor} border-red-400/80 ring-2 ring-red-500/40 shadow-lg`
+                    : isBanned
                     ? `${surfaceColor}/30 border-gray-700`
                     : `${surfaceColor} border-gray-700`
                 }`}
@@ -233,6 +244,14 @@ export default function TeamPanel({
                   <div className="absolute right-3 top-1/2 -translate-y-1/2 text-red-500 text-xl font-bold">
                     X
                   </div>
+                )}
+                {isPendingMapBanTarget && (
+                  <>
+                    <div className="absolute inset-0 border-2 border-red-400/70 animate-pulse pointer-events-none rounded-lg" />
+                    <div className="absolute right-2 top-1.5 bg-red-900/80 text-red-100 text-[9px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded">
+                      Pending ban
+                    </div>
+                  </>
                 )}
               </div>
             ) : (

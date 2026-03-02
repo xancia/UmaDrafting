@@ -2500,7 +2500,7 @@ export default function Draft5v5({
       ? localGhostSelection
       : null;
   const team1IncomingVetoSelection =
-    draftState.phase === "uma-ban"
+    draftState.phase === "uma-ban" || draftState.phase === "map-ban"
       ? isMultiplayer
         ? draftState.currentTeam === "team2"
           ? (pendingSelections.team2 ?? null)
@@ -2510,7 +2510,7 @@ export default function Draft5v5({
           : null
       : null;
   const team2IncomingVetoSelection =
-    draftState.phase === "uma-ban"
+    draftState.phase === "uma-ban" || draftState.phase === "map-ban"
       ? isMultiplayer
         ? draftState.currentTeam === "team1"
           ? (pendingSelections.team1 ?? null)
