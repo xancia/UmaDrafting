@@ -3158,8 +3158,8 @@ export default function Draft5v5({
 
               {/* Pending match report confirmation (shown to team 2) */}
               {pendingReport?.awaitingConfirm && !isHost && (
-                <div className="mb-4 bg-yellow-900/30 border border-yellow-600/40 rounded-lg p-3 lg:p-4">
-                  <h3 className="text-yellow-400 font-bold text-sm mb-2 text-center">
+                <div className="mb-4 bg-emerald-900/20 border border-emerald-600/35 rounded-lg p-3 lg:p-4">
+                  <h3 className="text-emerald-400 font-bold text-sm mb-2 text-center">
                     Confirm Race Result
                   </h3>
                   <div className="text-center text-sm text-gray-200 mb-3">
@@ -3192,7 +3192,7 @@ export default function Draft5v5({
                     </div>
                   </div>
                   {confirmCountdown !== null && (
-                    <p className="text-center text-xs text-yellow-400/80 mb-2">
+                    <p className="text-center text-xs text-emerald-300/80 mb-2">
                       Auto-confirming in {confirmCountdown}s
                     </p>
                   )}
@@ -3215,8 +3215,8 @@ export default function Draft5v5({
 
               {/* Pending confirmation notice for host */}
               {pendingReport?.awaitingConfirm && isHost && (
-                <div className="mb-4 bg-yellow-900/20 border border-yellow-700/30 rounded-lg p-3 text-center">
-                  <p className="text-yellow-400 text-sm">
+                <div className="mb-4 bg-emerald-900/15 border border-emerald-700/25 rounded-lg p-3 text-center">
+                  <p className="text-emerald-400 text-sm">
                     Waiting for {team2Name} to confirm race{" "}
                     {pendingReport.raceIndex + 1} result...
                   </p>
@@ -3549,7 +3549,7 @@ export default function Draft5v5({
                         (scores.team1Wins >= WINS_TO_WIN ||
                           scores.team2Wins >= WINS_TO_WIN))
                     }
-                    className="bg-purple-600/80 hover:bg-purple-500 disabled:bg-gray-700 disabled:text-gray-500 text-white font-semibold py-2 px-6 rounded-lg transition-colors border border-purple-500/50 disabled:border-gray-600 text-sm"
+                    className="bg-emerald-600/80 hover:bg-emerald-500 disabled:bg-gray-700 disabled:text-gray-500 text-white font-semibold py-2 px-6 rounded-lg transition-colors border border-emerald-500/50 disabled:border-gray-600 text-sm"
                   >
                     {(SCORING_MODE === "points" &&
                       (scores.team1Points >= POINTS_TO_WIN ||
@@ -4263,7 +4263,7 @@ export default function Draft5v5({
                       !reportPlacements.second ||
                       !reportPlacements.third
                     }
-                    className="bg-purple-600 hover:bg-purple-700 disabled:bg-gray-700 disabled:text-gray-500 text-white font-semibold py-2 px-6 rounded-lg transition-colors text-sm"
+                    className="bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-700 disabled:text-gray-500 text-white font-semibold py-2 px-6 rounded-lg transition-colors text-sm"
                   >
                     {isMultiplayer
                       ? "Submit for Confirmation"
