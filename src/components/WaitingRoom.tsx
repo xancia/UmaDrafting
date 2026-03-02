@@ -150,39 +150,37 @@ export default function WaitingRoom({
         </div>
 
         {isHost && (
-          <div className="bg-gray-900/50 rounded-lg p-3 lg:p-4 mb-4 lg:mb-6 xl:mb-8 border border-gray-700 text-left">
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
+          <div className="bg-gray-900/50 rounded-lg p-3 mb-4 lg:mb-5 border border-gray-700 text-left">
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
               Invite Links
             </p>
-            <div className="space-y-2">
-              <div className="rounded-lg border border-gray-700 bg-gray-800/60 p-2.5">
+            <div className="grid grid-cols-2 gap-2">
+              <div className="rounded-lg border border-gray-700 bg-gray-800/60 p-2">
                 <p className="text-[11px] text-green-400 font-semibold mb-1">
                   Player Join
                 </p>
-                <p className="text-[11px] text-gray-400 break-all mb-2">
+                <p className="text-[10px] text-gray-400 break-all leading-snug mb-2">
                   {joinInviteUrl}
                 </p>
                 <button
                   onClick={() => handleCopyInvite("join")}
-                  className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-green-700 hover:bg-green-600 text-white transition-colors"
+                  className="w-full px-2 py-1.5 rounded-lg text-[11px] font-semibold bg-green-700 hover:bg-green-600 text-white transition-colors"
                 >
-                  {copiedInvite === "join" ? "Copied!" : "Copy Player Link"}
+                  {copiedInvite === "join" ? "Copied!" : "Copy Link"}
                 </button>
               </div>
-              <div className="rounded-lg border border-gray-700 bg-gray-800/60 p-2.5">
+              <div className="rounded-lg border border-gray-700 bg-gray-800/60 p-2">
                 <p className="text-[11px] text-purple-400 font-semibold mb-1">
                   Spectator Join
                 </p>
-                <p className="text-[11px] text-gray-400 break-all mb-2">
+                <p className="text-[10px] text-gray-400 break-all leading-snug mb-2">
                   {spectateInviteUrl}
                 </p>
                 <button
                   onClick={() => handleCopyInvite("spectate")}
-                  className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-purple-700 hover:bg-purple-600 text-white transition-colors"
+                  className="w-full px-2 py-1.5 rounded-lg text-[11px] font-semibold bg-purple-700 hover:bg-purple-600 text-white transition-colors"
                 >
-                  {copiedInvite === "spectate"
-                    ? "Copied!"
-                    : "Copy Spectator Link"}
+                  {copiedInvite === "spectate" ? "Copied!" : "Copy Link"}
                 </button>
               </div>
             </div>
