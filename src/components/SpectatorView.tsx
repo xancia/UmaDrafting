@@ -99,8 +99,8 @@ export default function SpectatorView({
       audio.volume = volume * (sfxVolume / 100);
       return audio;
     };
-    sfxRefs.current.lockInClick = build("sfx-lockin-button-click.ogg", 0.8);
-    sfxRefs.current.banClick = build("sfx-ban-button-click.ogg", 0.8);
+    sfxRefs.current.lockInClick = build("sfx-button-lockin.wav", 0.8);
+    sfxRefs.current.banClick = build("sfx-ban-click.wav", 0.8);
   }, []);
 
   // Keep SFX volume in sync

@@ -610,18 +610,18 @@ export default function Draft5v5({
       return audio;
     };
 
-    sfxRefs.current.banButtonHover = buildSfx("sfx-ban-button-hover.ogg", 0.7);
-    sfxRefs.current.banButtonClick = buildSfx("sfx-ban-button-click.ogg", 0.8);
+    sfxRefs.current.banButtonHover = buildSfx("sfx-button-hover.wav", 0.7);
+    sfxRefs.current.banButtonClick = buildSfx("sfx-ban-click.wav", 0.8);
     sfxRefs.current.lockInButtonHover = buildSfx(
-      "sfx-lockin-button-hover.ogg",
+      "sfx-button-hover.wav",
       0.7,
     );
     sfxRefs.current.lockInButtonClick = buildSfx(
-      "sfx-lockin-button-click.ogg",
+      "sfx-button-lockin.wav",
       0.8,
     );
-    sfxRefs.current.timerTickSmall = buildSfx("sfx-timer-tick-small.ogg", 0.65);
-    sfxRefs.current.timerTick = buildSfx("sfx-timer-tick.ogg", 0.75);
+    sfxRefs.current.timerTickSmall = buildSfx("sfx-tick-small.wav", 0.65);
+    sfxRefs.current.timerTick = buildSfx("sfx-tick-heavy.wav", 0.75);
 
     return () => {
       Object.values(sfxRefs.current).forEach((audio) => {
