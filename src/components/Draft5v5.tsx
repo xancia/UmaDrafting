@@ -165,12 +165,12 @@ function buildPickOrderHistoryText(
       );
     }
 
-    // Map bans - opposing team performs the ban
+    // Map vetoes - opposing team performs the veto
     if (curr.team1.bannedMaps.length > prev.team1.bannedMaps.length) {
       const newBans = curr.team1.bannedMaps.slice(prev.team1.bannedMaps.length);
       newBans.forEach((m) =>
         pickOrder.push(
-          `${t2n} map ban: ${m.track}${formatVariant(m)} ${m.distance}m`,
+          `${t2n} map veto: ${m.track}${formatVariant(m)} ${m.distance}m`,
         ),
       );
     }
@@ -178,7 +178,7 @@ function buildPickOrderHistoryText(
       const newBans = curr.team2.bannedMaps.slice(prev.team2.bannedMaps.length);
       newBans.forEach((m) =>
         pickOrder.push(
-          `${t1n} map ban: ${m.track}${formatVariant(m)} ${m.distance}m`,
+          `${t1n} map veto: ${m.track}${formatVariant(m)} ${m.distance}m`,
         ),
       );
     }
@@ -3516,7 +3516,7 @@ export default function Draft5v5({
                       )
                       .join("\n");
 
-                    let text = `=== DRAFT RESULTS ===\n\n${team1Name}: ${t1Umas}\nPre-Banned: ${t1PreBans || "None"}\nVeoted By Enemy Team: ${t1Bans || "None"}\n\n${team2Name}: ${t2Umas}\nPre-Banned: ${t2PreBans || "None"}\nVeoted By Enemy Team: ${t2Bans || "None"}\n\nMap Schedule:\n${maps}`;
+                    let text = `=== DRAFT RESULTS ===\n\n${team1Name}: ${t1Umas}\nPre-Banned: ${t1PreBans || "None"}\nVetoed By Enemy Team: ${t1Bans || "None"}\n\n${team2Name}: ${t2Umas}\nPre-Banned: ${t2PreBans || "None"}\nVetoed By Enemy Team: ${t2Bans || "None"}\n\nMap Schedule:\n${maps}`;
 
                     if (matchResults.length > 0) {
                       const schedule = getMapSchedule();

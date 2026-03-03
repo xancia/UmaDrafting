@@ -863,7 +863,7 @@ export default function SpectatorView({
                         )
                         .join("\n");
 
-                      const text = `=== DRAFT RESULTS ===\n\n${team1Name}: ${t1Umas}\nPre-Banned: ${t1PreBans || "None"}\nVeoted By Enemy Team: ${t1Bans || "None"}\n\n${team2Name}: ${t2Umas}\nPre-Banned: ${t2PreBans || "None"}\nVeoted By Enemy Team: ${t2Bans || "None"}\n\nMap Schedule:\n${maps}`;
+                      const text = `=== DRAFT RESULTS ===\n\n${team1Name}: ${t1Umas}\nPre-Banned: ${t1PreBans || "None"}\nVetoed By Enemy Team: ${t1Bans || "None"}\n\n${team2Name}: ${t2Umas}\nPre-Banned: ${t2PreBans || "None"}\nVetoed By Enemy Team: ${t2Bans || "None"}\n\nMap Schedule:\n${maps}`;
                       navigator.clipboard.writeText(text);
                     }}
                     className="bg-gray-700/80 hover:bg-gray-600 text-gray-200 font-semibold py-2 px-6 rounded-lg transition-colors border border-gray-600/50 text-sm"
