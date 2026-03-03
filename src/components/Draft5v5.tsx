@@ -380,6 +380,7 @@ export default function Draft5v5({
   const [copiedRoomCodeKey, setCopiedRoomCodeKey] = useState<string | null>(
     null,
   );
+  const [copiedExportKey, setCopiedExportKey] = useState<string | null>(null);
   const [matchResults, setMatchResults] = useState<RaceResult[]>([]);
   const [showMatchReporting, setShowMatchReporting] = useState<boolean>(false);
   const [pendingReport, setPendingReport] = useState<PendingReport | null>(
@@ -406,6 +407,11 @@ export default function Draft5v5({
   const CONFIRM_TIMEOUT_SECONDS = 60;
   const [confirmCountdown, setConfirmCountdown] = useState<number | null>(null);
   const confirmTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const flashCopiedExport = useCallback((key: "draft-results" | "pick-order") => {
+    setCopiedExportKey(key);
+    setTimeout(() => setCopiedExportKey(null), 2000);
+  }, []);
 
   useEffect(() => {
     // Start countdown when player 2 sees a pending report awaiting confirm
@@ -3565,10 +3571,17 @@ export default function Draft5v5({
                     }
 
                     navigator.clipboard.writeText(text);
+                    flashCopiedExport("draft-results");
                   }}
-                  className="bg-gray-700/80 hover:bg-gray-600 text-gray-200 font-semibold py-2 px-6 rounded-lg transition-colors border border-gray-600/50 text-sm"
+                  className={`font-semibold py-2 px-6 rounded-lg transition-colors border text-sm ${
+                    copiedExportKey === "draft-results"
+                      ? "bg-green-700 text-green-200 border-green-600"
+                      : "bg-gray-700/80 hover:bg-gray-600 text-gray-200 border-gray-600/50"
+                  }`}
                 >
-                  Copy Draft Results
+                  {copiedExportKey === "draft-results"
+                    ? "Copied!"
+                    : "Copy Draft Results"}
                 </button>
                 <button
                   onClick={() => {
@@ -3582,10 +3595,17 @@ export default function Draft5v5({
                         team2Name,
                       );
                     navigator.clipboard.writeText(text);
+                    flashCopiedExport("pick-order");
                   }}
-                  className="bg-gray-700/80 hover:bg-gray-600 text-gray-200 font-semibold py-2 px-6 rounded-lg transition-colors border border-gray-600/50 text-sm"
+                  className={`font-semibold py-2 px-6 rounded-lg transition-colors border text-sm ${
+                    copiedExportKey === "pick-order"
+                      ? "bg-green-700 text-green-200 border-green-600"
+                      : "bg-gray-700/80 hover:bg-gray-600 text-gray-200 border-gray-600/50"
+                  }`}
                 >
-                  Copy Pick Order
+                  {copiedExportKey === "pick-order"
+                    ? "Copied!"
+                    : "Copy Pick Order"}
                 </button>
                 {(!isMultiplayer || isHost) && !pendingReport && (
                   <button

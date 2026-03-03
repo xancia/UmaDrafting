@@ -69,6 +69,7 @@ export default function SpectatorView({
   } = draftState;
   const [umaSearch, setUmaSearch] = useState("");
   const [copiedRoomCodeKey, setCopiedRoomCodeKey] = useState<string | null>(null);
+  const [copiedExportKey, setCopiedExportKey] = useState<string | null>(null);
   const [sfxVolume, setSfxVolume] = useState<number>(() => {
     const saved = localStorage.getItem("draft5v5SfxVolume");
     if (!saved) return 70;
@@ -225,6 +226,11 @@ export default function SpectatorView({
     setCopiedRoomCodeKey(key);
     setTimeout(() => setCopiedRoomCodeKey(null), 2000);
   };
+
+  const flashCopiedExport = useCallback((key: "draft-results" | "pick-order") => {
+    setCopiedExportKey(key);
+    setTimeout(() => setCopiedExportKey(null), 2000);
+  }, []);
 
   useEffect(() => {
     const prev = previousDraftStateRef.current;
@@ -865,10 +871,17 @@ export default function SpectatorView({
 
                       const text = `=== DRAFT RESULTS ===\n\n${team1Name}: ${t1Umas}\nPre-Banned: ${t1PreBans || "None"}\nVetoed By Enemy Team: ${t1Bans || "None"}\n\n${team2Name}: ${t2Umas}\nPre-Banned: ${t2PreBans || "None"}\nVetoed By Enemy Team: ${t2Bans || "None"}\n\nMap Schedule:\n${maps}`;
                       navigator.clipboard.writeText(text);
+                      flashCopiedExport("draft-results");
                     }}
-                    className="bg-gray-700/80 hover:bg-gray-600 text-gray-200 font-semibold py-2 px-6 rounded-lg transition-colors border border-gray-600/50 text-sm"
+                    className={`font-semibold py-2 px-6 rounded-lg transition-colors border text-sm ${
+                      copiedExportKey === "draft-results"
+                        ? "bg-green-700 text-green-200 border-green-600"
+                        : "bg-gray-700/80 hover:bg-gray-600 text-gray-200 border-gray-600/50"
+                    }`}
                   >
-                    Copy Draft Results
+                    {copiedExportKey === "draft-results"
+                      ? "Copied!"
+                      : "Copy Draft Results"}
                   </button>
                   <button
                     onClick={() => {
@@ -876,6 +889,7 @@ export default function SpectatorView({
                         draftState.pickOrderHistoryText ||
                         "No pick order history available.";
                       navigator.clipboard.writeText(text);
+                      flashCopiedExport("pick-order");
                     }}
                     disabled={!hasPickOrderHistory}
                     title={
@@ -884,12 +898,17 @@ export default function SpectatorView({
                         : "Waiting for host to finalize pick order"
                     }
                     className={`font-semibold py-2 px-6 rounded-lg transition-colors border text-sm ${
+                      copiedExportKey === "pick-order"
+                        ? "bg-green-700 text-green-200 border-green-600"
+                        : 
                       hasPickOrderHistory
                         ? "bg-gray-700/80 hover:bg-gray-600 text-gray-200 border-gray-600/50"
                         : "bg-gray-700/50 text-gray-500 border-gray-700 cursor-not-allowed"
                     }`}
                   >
-                    {hasPickOrderHistory
+                    {copiedExportKey === "pick-order"
+                      ? "Copied!"
+                      : hasPickOrderHistory
                       ? "Copy Pick Order"
                       : "Copy Pick Order (Waiting...)"}
                   </button>
