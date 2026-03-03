@@ -3666,14 +3666,6 @@ export default function Draft5v5({
                     return (
                       <>
                         <button
-                          onMouseEnter={() => {
-                            if (!isMyTurn) return;
-                            playSfx(
-                              isBanPhase
-                                ? "banButtonHover"
-                                : "lockInButtonHover",
-                            );
-                          }}
                           onClick={
                             isMyTurn
                               ? () => {

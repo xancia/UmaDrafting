@@ -92,6 +92,13 @@ export default function DraftHeader({
     );
   const isWarning = isTimerActive && timeRemaining <= 10 && timeRemaining > 5;
   const isCritical = isTimerActive && timeRemaining <= 5;
+  const showTurnStatus =
+    phase !== "complete" &&
+    phase !== "pre-draft-pause" &&
+    phase !== "post-map-pause";
+  const localTeam: Team = isHost ? "team1" : "team2";
+  const isLocalPlayersTurn =
+    isMultiplayer && !isSpectator && currentTeam === localTeam;
 
   const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
@@ -129,6 +136,22 @@ export default function DraftHeader({
 
   const getTeamColor = (team: Team) => {
     return team === "team1" ? "text-blue-500" : "text-red-500";
+  };
+
+  const getTurnStatusText = () => {
+    if (isMultiplayer && !isSpectator) {
+      return isLocalPlayersTurn ? "YOUR TURN" : "ENEMY TURN";
+    }
+
+    return currentTeam === "team1" ? team1Name : team2Name;
+  };
+
+  const getTurnStatusColor = () => {
+    if (isMultiplayer && !isSpectator) {
+      return isLocalPlayersTurn ? "text-emerald-300" : "text-amber-300";
+    }
+
+    return getTeamColor(currentTeam);
   };
 
   const getStatusIndicator = () => {
@@ -196,6 +219,13 @@ export default function DraftHeader({
             >
               {formatTime(timeRemaining)}
             </div>
+            {showTurnStatus && (
+              <div
+                className={`mt-1 text-xs lg:text-sm font-bold uppercase tracking-[0.18em] ${getTurnStatusColor()}`}
+              >
+                {getTurnStatusText()}
+              </div>
+            )}
           </div>
         )}
 
@@ -306,16 +336,6 @@ export default function DraftHeader({
       {/* Second row: current turn + multiplayer info + tiebreaker */}
       <div className="flex items-center justify-between gap-2 text-sm">
         <div className="flex items-center gap-3 flex-1 min-w-0">
-          {phase !== "complete" &&
-            phase !== "pre-draft-pause" &&
-            phase !== "post-map-pause" && (
-              <span className="text-gray-400">
-                Turn:{" "}
-                <span className={`font-bold ${getTeamColor(currentTeam)}`}>
-                  {currentTeam === "team1" ? team1Name : team2Name}
-                </span>
-              </span>
-            )}
           {wildcardMap && (
             <span className="text-gray-500 text-xs truncate">
               Tiebreaker:{" "}
