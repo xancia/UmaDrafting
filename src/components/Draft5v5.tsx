@@ -236,8 +236,8 @@ const SFX_BASE_VOLUMES: Record<SfxKey, number> = {
   banButtonClick: 0.8,
   lockInButtonHover: 0.7,
   lockInButtonClick: 0.8,
-  timerTickSmall: 0.65,
-  timerTick: 0.75,
+  timerTickSmall: 1,
+  timerTick: 1,
 };
 
 export default function Draft5v5({
@@ -620,8 +620,8 @@ export default function Draft5v5({
       "sfx-button-lockin.wav",
       0.8,
     );
-    sfxRefs.current.timerTickSmall = buildSfx("sfx-tick-heavy.wav", 0.65);
-    sfxRefs.current.timerTick = buildSfx("sfx-tick-heavy.wav", 0.75);
+    sfxRefs.current.timerTickSmall = buildSfx("sfx-tick-heavy.wav", 1);
+    sfxRefs.current.timerTick = buildSfx("sfx-tick-heavy.wav", 1);
 
     return () => {
       Object.values(sfxRefs.current).forEach((audio) => {
