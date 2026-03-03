@@ -620,7 +620,7 @@ export default function Draft5v5({
       "sfx-button-lockin.wav",
       0.8,
     );
-    sfxRefs.current.timerTickSmall = buildSfx("sfx-tick-small.wav", 0.65);
+    sfxRefs.current.timerTickSmall = buildSfx("sfx-tick-heavy.wav", 0.65);
     sfxRefs.current.timerTick = buildSfx("sfx-tick-heavy.wav", 0.75);
 
     return () => {
