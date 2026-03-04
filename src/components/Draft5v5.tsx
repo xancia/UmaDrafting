@@ -29,6 +29,8 @@ import MapCard from "./MapCard";
 import SpectatorView from "./SpectatorView";
 import WaitingRoom from "./WaitingRoom";
 import PhaseAnnouncement from "./PhaseAnnouncement";
+import MatchStatisticsModal from "./MatchStatisticsModal";
+import MatchSummaryTeamRoster from "./MatchSummaryTeamRoster";
 import {
   compareUmasByRelease,
   formatUmaName,
@@ -37,6 +39,7 @@ import {
 } from "../utils/umaDisplay";
 import { useFirebaseRoom } from "../hooks/useFirebaseRoom";
 import { useTurnTimer, DEFAULT_TURN_DURATION } from "../hooks/useTurnTimer";
+import { buildUmaMatchStats } from "../utils/matchStats";
 import type {
   FirebasePendingAction,
   FirebasePendingSelection,
@@ -383,6 +386,8 @@ export default function Draft5v5({
   const [copiedExportKey, setCopiedExportKey] = useState<string | null>(null);
   const [matchResults, setMatchResults] = useState<RaceResult[]>([]);
   const [showMatchReporting, setShowMatchReporting] = useState<boolean>(false);
+  const [showMatchStatistics, setShowMatchStatistics] =
+    useState<boolean>(false);
   const [pendingReport, setPendingReport] = useState<PendingReport | null>(
     null,
   );
@@ -2153,6 +2158,14 @@ export default function Draft5v5({
       })),
     ];
   }, [draftState.team1.pickedUmas, draftState.team2.pickedUmas]);
+  const team1DraftedUmas = useMemo(
+    () => allDraftedUmas.filter((uma) => uma.team === "team1"),
+    [allDraftedUmas],
+  );
+  const team2DraftedUmas = useMemo(
+    () => allDraftedUmas.filter((uma) => uma.team === "team2"),
+    [allDraftedUmas],
+  );
 
   // Compute current scores from confirmed results
   const scores = useMemo(() => {
@@ -2180,6 +2193,10 @@ export default function Draft5v5({
 
     return { team1Points, team2Points, team1Wins, team2Wins };
   }, [matchResults]);
+  const { statsByUmaId, mvpUmaIds, topPoints } = useMemo(
+    () => buildUmaMatchStats(allDraftedUmas, matchResults),
+    [allDraftedUmas, matchResults],
+  );
 
   // Determine next unreported race index
   const nextRaceIndex = useMemo(() => {
@@ -3155,59 +3172,15 @@ export default function Draft5v5({
                     </p>
                   </div>
                 )}
-                {/* Race-by-race breakdown */}
                 {matchResults.length > 0 && (
-                  <div className="mt-2 space-y-1">
-                    {matchResults.map((result) => {
-                      const schedule = getMapSchedule();
-                      const raceMap = schedule[result.raceIndex];
-                      const raceT1 = result.placements
-                        .filter((p) => p.team === "team1")
-                        .reduce(
-                          (sum, p) => sum + (POINT_VALUES[p.position] || 0),
-                          0,
-                        );
-                      const raceT2 = result.placements
-                        .filter((p) => p.team === "team2")
-                        .reduce(
-                          (sum, p) => sum + (POINT_VALUES[p.position] || 0),
-                          0,
-                        );
-                      return (
-                        <div
-                          key={result.raceIndex}
-                          className="flex items-center gap-2 px-3 py-1 bg-gray-900/30 rounded text-xs"
-                        >
-                          <span className="text-gray-500 font-mono w-5">
-                            {result.raceIndex + 1}.
-                          </span>
-                          <span className="text-gray-300 flex-1">
-                            {raceMap?.map.track} {raceMap?.map.distance}m
-                          </span>
-                          <span className="text-gray-400">
-                            {result.placements.map((p) => (
-                              <span
-                                key={p.position}
-                                className={`mx-0.5 ${p.team === "team1" ? "text-blue-400" : "text-red-400"}`}
-                              >
-                                {p.position === 1
-                                  ? "1st "
-                                  : p.position === 2
-                                    ? "2nd "
-                                    : "3rd "}
-                                {formatUmaNameFromParts(p.umaName, p.umaTitle)}
-                              </span>
-                            ))}
-                          </span>
-                          {SCORING_MODE === "points" && (
-                            <span className="text-gray-500 ml-2">
-                              <span className="text-blue-400">{raceT1}</span>-
-                              <span className="text-red-400">{raceT2}</span>
-                            </span>
-                          )}
-                        </div>
-                      );
-                    })}
+                  <div className="mt-3 flex justify-center">
+                    <button
+                      type="button"
+                      onClick={() => setShowMatchStatistics(true)}
+                      className="rounded-lg border border-gray-600/60 bg-gray-800/80 px-5 py-2 text-sm font-semibold text-gray-100 transition-colors hover:bg-gray-700"
+                    >
+                      Match Statistics
+                    </button>
                   </div>
                 )}
               </div>
@@ -3281,109 +3254,25 @@ export default function Draft5v5({
 
               {/* Team Rosters Side by Side */}
               <div className="grid grid-cols-2 gap-4 lg:gap-6 mb-6">
-                {/* Team 1 Roster */}
-                <div className="bg-gray-900/60 rounded-lg p-3 lg:p-4 border border-blue-500/20">
-                  <h3 className="text-blue-400 font-bold text-sm lg:text-base mb-2 text-center uppercase tracking-wider">
-                    {team1Name}
-                  </h3>
-                  <div className="grid grid-cols-3 gap-1.5 lg:gap-2 mb-2">
-                    {draftState.team1.pickedUmas.map((uma, i) => (
-                      <div
-                        key={i}
-                        className="flex flex-col items-center gap-0.5"
-                      >
-                        <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-lg overflow-hidden border border-blue-500/30 bg-gray-700">
-                          {uma.imageUrl && (
-                            <img
-                              src={uma.imageUrl}
-                              alt={uma.name}
-                              className="w-full h-full object-cover"
-                            />
-                          )}
-                        </div>
-                        <span className="text-[9px] lg:text-[10px] text-gray-300 text-center leading-tight">
-                          {uma.name}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                  {draftState.team1.preBannedUmas?.length > 0 && (
-                    <div className="mt-1 pt-1 border-t border-gray-700/50">
-                      <span className="text-[10px] lg:text-xs text-orange-300 uppercase font-semibold">
-                        Pre-Banned:{" "}
-                      </span>
-                      <span className="text-[10px] lg:text-xs text-gray-300">
-                        {draftState.team1.preBannedUmas
-                          .map((u) => formatUmaName(u))
-                          .join(", ")}
-                      </span>
-                    </div>
-                  )}
-                  {draftState.team1.bannedUmas.length > 0 && (
-                    <div className="mt-1 pt-1 border-t border-gray-700/50">
-                      <span className="text-[10px] lg:text-xs text-red-300 uppercase font-semibold">
-                        Veoted By Enemy Team:{" "}
-                      </span>
-                      <span className="text-[10px] lg:text-xs text-gray-300">
-                        {draftState.team1.bannedUmas
-                          .map((u) => formatUmaName(u))
-                          .join(", ")}
-                      </span>
-                    </div>
-                  )}
-                </div>
+                <MatchSummaryTeamRoster
+                  teamName={team1Name}
+                  accent="blue"
+                  pickedUmas={draftState.team1.pickedUmas}
+                  preBannedUmas={draftState.team1.preBannedUmas}
+                  bannedUmas={draftState.team1.bannedUmas}
+                  statsByUmaId={statsByUmaId}
+                  mvpUmaIds={mvpUmaIds}
+                />
 
-                {/* Team 2 Roster */}
-                <div className="bg-gray-900/60 rounded-lg p-3 lg:p-4 border border-red-500/20">
-                  <h3 className="text-red-400 font-bold text-sm lg:text-base mb-2 text-center uppercase tracking-wider">
-                    {team2Name}
-                  </h3>
-                  <div className="grid grid-cols-3 gap-1.5 lg:gap-2 mb-2">
-                    {draftState.team2.pickedUmas.map((uma, i) => (
-                      <div
-                        key={i}
-                        className="flex flex-col items-center gap-0.5"
-                      >
-                        <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-lg overflow-hidden border border-red-500/30 bg-gray-700">
-                          {uma.imageUrl && (
-                            <img
-                              src={uma.imageUrl}
-                              alt={uma.name}
-                              className="w-full h-full object-cover"
-                            />
-                          )}
-                        </div>
-                        <span className="text-[9px] lg:text-[10px] text-gray-300 text-center leading-tight">
-                          {uma.name}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                  {draftState.team2.preBannedUmas?.length > 0 && (
-                    <div className="mt-1 pt-1 border-t border-gray-700/50">
-                      <span className="text-[10px] lg:text-xs text-orange-300 uppercase font-semibold">
-                        Pre-Banned:{" "}
-                      </span>
-                      <span className="text-[10px] lg:text-xs text-gray-300">
-                        {draftState.team2.preBannedUmas
-                          .map((u) => formatUmaName(u))
-                          .join(", ")}
-                      </span>
-                    </div>
-                  )}
-                  {draftState.team2.bannedUmas.length > 0 && (
-                    <div className="mt-1 pt-1 border-t border-gray-700/50">
-                      <span className="text-[10px] lg:text-xs text-red-300 uppercase font-semibold">
-                        Veoted By Enemy Team:{" "}
-                      </span>
-                      <span className="text-[10px] lg:text-xs text-gray-300">
-                        {draftState.team2.bannedUmas
-                          .map((u) => formatUmaName(u))
-                          .join(", ")}
-                      </span>
-                    </div>
-                  )}
-                </div>
+                <MatchSummaryTeamRoster
+                  teamName={team2Name}
+                  accent="red"
+                  pickedUmas={draftState.team2.pickedUmas}
+                  preBannedUmas={draftState.team2.preBannedUmas}
+                  bannedUmas={draftState.team2.bannedUmas}
+                  statsByUmaId={statsByUmaId}
+                  mvpUmaIds={mvpUmaIds}
+                />
               </div>
 
               {/* Map Schedule */}
@@ -4340,6 +4229,20 @@ export default function Draft5v5({
             </div>
           );
         })()}
+
+      <MatchStatisticsModal
+        isOpen={showMatchStatistics}
+        onClose={() => setShowMatchStatistics(false)}
+        team1Name={team1Name}
+        team2Name={team2Name}
+        team1Roster={team1DraftedUmas}
+        team2Roster={team2DraftedUmas}
+        statsByUmaId={statsByUmaId}
+        mvpUmaIds={mvpUmaIds}
+        topPoints={topPoints}
+        raceResults={matchResults}
+        mapSchedule={getMapSchedule()}
+      />
     </div>
   );
 }

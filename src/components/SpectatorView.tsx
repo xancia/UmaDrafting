@@ -5,9 +5,12 @@ import type { PendingSelections } from "../types/firebase";
 import DraftHeader from "./DraftHeader";
 import TeamPanel from "./TeamPanel";
 import PhaseAnnouncement from "./PhaseAnnouncement";
+import MatchStatisticsModal from "./MatchStatisticsModal";
+import MatchSummaryTeamRoster from "./MatchSummaryTeamRoster";
 import { countDistances, countDirtTracks } from "../draftLogic";
 import { getTimelineForPhase } from "./DraftTimeline";
-import { formatUmaName, formatUmaNameFromParts } from "../utils/umaDisplay";
+import { formatUmaName } from "../utils/umaDisplay";
+import { buildUmaMatchStats } from "../utils/matchStats";
 
 interface SpectatorViewProps {
   /** Current draft state to display */
@@ -34,7 +37,13 @@ interface SpectatorViewProps {
   /** Per-race results for breakdown display */
   raceResults?: {
     raceIndex: number;
-    placements: { position: number; umaName: string; umaTitle?: string; team: "team1" | "team2" }[];
+    placements: {
+      position: number;
+      umaId: string;
+      umaName: string;
+      umaTitle?: string;
+      team: "team1" | "team2";
+    }[];
   }[];
 }
 
@@ -70,6 +79,7 @@ export default function SpectatorView({
   const [umaSearch, setUmaSearch] = useState("");
   const [copiedRoomCodeKey, setCopiedRoomCodeKey] = useState<string | null>(null);
   const [copiedExportKey, setCopiedExportKey] = useState<string | null>(null);
+  const [showMatchStatistics, setShowMatchStatistics] = useState(false);
   const [sfxVolume, setSfxVolume] = useState<number>(() => {
     const saved = localStorage.getItem("draft5v5SfxVolume");
     if (!saved) return 70;
@@ -216,6 +226,51 @@ export default function SpectatorView({
     }
     return Array.from(groups.entries());
   }, [availableMaps]);
+  const allDraftedUmas = useMemo(
+    () => [
+      ...team1.pickedUmas.map((uma) => ({ ...uma, team: "team1" as const })),
+      ...team2.pickedUmas.map((uma) => ({ ...uma, team: "team2" as const })),
+    ],
+    [team1.pickedUmas, team2.pickedUmas],
+  );
+  const team1DraftedUmas = useMemo(
+    () => allDraftedUmas.filter((uma) => uma.team === "team1"),
+    [allDraftedUmas],
+  );
+  const team2DraftedUmas = useMemo(
+    () => allDraftedUmas.filter((uma) => uma.team === "team2"),
+    [allDraftedUmas],
+  );
+  const { statsByUmaId, mvpUmaIds, topPoints } = useMemo(
+    () => buildUmaMatchStats(allDraftedUmas, raceResults),
+    [allDraftedUmas, raceResults],
+  );
+  const mapSchedule = useMemo(() => {
+    const schedule: { map: Map; team: string; index: number }[] = [];
+    const maxLen = Math.max(team1.pickedMaps.length, team2.pickedMaps.length);
+    for (let i = 0; i < maxLen; i++) {
+      if (i < team1.pickedMaps.length) {
+        schedule.push({
+          map: team1.pickedMaps[i],
+          team: team1Name,
+          index: schedule.length + 1,
+        });
+      }
+      if (i < team2.pickedMaps.length) {
+        schedule.push({
+          map: team2.pickedMaps[i],
+          team: team2Name,
+          index: schedule.length + 1,
+        });
+      }
+    }
+    schedule.push({
+      map: wildcardMap,
+      team: "Tiebreaker",
+      index: schedule.length + 1,
+    });
+    return schedule;
+  }, [team1.pickedMaps, team2.pickedMaps, team1Name, team2Name, wildcardMap]);
 
   // Distance/dirt constraint indicators
   const team1DistanceCounts = countDistances(team1.pickedMaps);
@@ -589,143 +644,39 @@ export default function SpectatorView({
                     </p>
                   </div>
                 )}
-                {/* Race-by-race breakdown */}
                 {raceResults.length > 0 && (
-                  <div className="mb-4 lg:mb-6 space-y-1">
-                    {raceResults.map((result) => {
-                      const POINT_VALUES: Record<number, number> = { 1: 4, 2: 2, 3: 1 };
-                      const raceT1 = result.placements
-                        .filter((p) => p.team === "team1")
-                        .reduce((sum, p) => sum + (POINT_VALUES[p.position] || 0), 0);
-                      const raceT2 = result.placements
-                        .filter((p) => p.team === "team2")
-                        .reduce((sum, p) => sum + (POINT_VALUES[p.position] || 0), 0);
-                      return (
-                        <div
-                          key={result.raceIndex}
-                          className="flex items-center gap-2 px-3 py-1 bg-gray-900/30 rounded text-xs"
-                        >
-                          <span className="text-gray-500 font-mono w-5">
-                            {result.raceIndex + 1}.
-                          </span>
-                          <span className="text-gray-400 flex-1">
-                            {result.placements.map((p) => (
-                              <span
-                                key={p.position}
-                                className={`mx-0.5 ${p.team === "team1" ? "text-blue-400" : "text-red-400"}`}
-                              >
-                                {p.position === 1 ? "1st " : p.position === 2 ? "2nd " : "3rd "}
-                                {formatUmaNameFromParts(p.umaName, p.umaTitle)}
-                              </span>
-                            ))}
-                          </span>
-                          <span className="text-gray-500 ml-2">
-                            <span className="text-blue-400">{raceT1}</span>-
-                            <span className="text-red-400">{raceT2}</span>
-                          </span>
-                        </div>
-                      );
-                    })}
+                  <div className="mb-4 lg:mb-6 flex justify-center">
+                    <button
+                      type="button"
+                      onClick={() => setShowMatchStatistics(true)}
+                      className="rounded-lg border border-gray-600/60 bg-gray-800/80 px-5 py-2 text-sm font-semibold text-gray-100 transition-colors hover:bg-gray-700"
+                    >
+                      Match Statistics
+                    </button>
                   </div>
                 )}
 
                 {/* Team Rosters Side by Side */}
                 <div className="grid grid-cols-2 gap-4 lg:gap-6 mb-6">
-                  {/* Team 1 Roster */}
-                  <div className="bg-gray-900/60 rounded-lg p-3 lg:p-4 border border-blue-500/20">
-                    <h3 className="text-blue-400 font-bold text-sm lg:text-base mb-2 text-center uppercase tracking-wider">
-                      {team1Name}
-                    </h3>
-                    <div className="grid grid-cols-3 gap-1.5 lg:gap-2 mb-2">
-                      {team1.pickedUmas.map((uma, i) => (
-                        <div
-                          key={i}
-                          className="flex flex-col items-center gap-0.5"
-                        >
-                          <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-lg overflow-hidden border border-blue-500/30 bg-gray-700">
-                            {uma.imageUrl && (
-                              <img
-                                src={uma.imageUrl}
-                                alt={uma.name}
-                                className="w-full h-full object-cover"
-                              />
-                            )}
-                          </div>
-                          <span className="text-[9px] lg:text-[10px] text-gray-300 text-center leading-tight">
-                            {uma.name}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                    {(team1.preBannedUmas?.length ?? 0) > 0 && (
-                      <div className="mt-1 pt-1 border-t border-gray-700/50">
-                        <span className="text-[10px] lg:text-xs text-orange-300 uppercase font-semibold">
-                          Pre-Banned:{" "}
-                        </span>
-                        <span className="text-[10px] lg:text-xs text-gray-300">
-                          {team1.preBannedUmas!.map((u) => formatUmaName(u)).join(", ")}
-                        </span>
-                      </div>
-                    )}
-                    {team1.bannedUmas.length > 0 && (
-                      <div className="mt-1 pt-1 border-t border-gray-700/50">
-                        <span className="text-[10px] lg:text-xs text-red-300 uppercase font-semibold">
-                          Veoted By Enemy Team:{" "}
-                        </span>
-                        <span className="text-[10px] lg:text-xs text-gray-300">
-                          {team1.bannedUmas.map((u) => formatUmaName(u)).join(", ")}
-                        </span>
-                      </div>
-                    )}
-                  </div>
+                  <MatchSummaryTeamRoster
+                    teamName={team1Name}
+                    accent="blue"
+                    pickedUmas={team1.pickedUmas}
+                    preBannedUmas={team1.preBannedUmas}
+                    bannedUmas={team1.bannedUmas}
+                    statsByUmaId={statsByUmaId}
+                    mvpUmaIds={mvpUmaIds}
+                  />
 
-                  {/* Team 2 Roster */}
-                  <div className="bg-gray-900/60 rounded-lg p-3 lg:p-4 border border-red-500/20">
-                    <h3 className="text-red-400 font-bold text-sm lg:text-base mb-2 text-center uppercase tracking-wider">
-                      {team2Name}
-                    </h3>
-                    <div className="grid grid-cols-3 gap-1.5 lg:gap-2 mb-2">
-                      {team2.pickedUmas.map((uma, i) => (
-                        <div
-                          key={i}
-                          className="flex flex-col items-center gap-0.5"
-                        >
-                          <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-lg overflow-hidden border border-red-500/30 bg-gray-700">
-                            {uma.imageUrl && (
-                              <img
-                                src={uma.imageUrl}
-                                alt={uma.name}
-                                className="w-full h-full object-cover"
-                              />
-                            )}
-                          </div>
-                          <span className="text-[9px] lg:text-[10px] text-gray-300 text-center leading-tight">
-                            {uma.name}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                    {(team2.preBannedUmas?.length ?? 0) > 0 && (
-                      <div className="mt-1 pt-1 border-t border-gray-700/50">
-                        <span className="text-[10px] lg:text-xs text-orange-300 uppercase font-semibold">
-                          Pre-Banned:{" "}
-                        </span>
-                        <span className="text-[10px] lg:text-xs text-gray-300">
-                          {team2.preBannedUmas!.map((u) => formatUmaName(u)).join(", ")}
-                        </span>
-                      </div>
-                    )}
-                    {team2.bannedUmas.length > 0 && (
-                      <div className="mt-1 pt-1 border-t border-gray-700/50">
-                        <span className="text-[10px] lg:text-xs text-red-300 uppercase font-semibold">
-                          Veoted By Enemy Team:{" "}
-                        </span>
-                        <span className="text-[10px] lg:text-xs text-gray-300">
-                          {team2.bannedUmas.map((u) => formatUmaName(u)).join(", ")}
-                        </span>
-                      </div>
-                    )}
-                  </div>
+                  <MatchSummaryTeamRoster
+                    teamName={team2Name}
+                    accent="red"
+                    pickedUmas={team2.pickedUmas}
+                    preBannedUmas={team2.preBannedUmas}
+                    bannedUmas={team2.bannedUmas}
+                    statsByUmaId={statsByUmaId}
+                    mvpUmaIds={mvpUmaIds}
+                  />
                 </div>
 
                 {/* Map Schedule */}
@@ -734,25 +685,7 @@ export default function SpectatorView({
                     Map Schedule
                   </h3>
                   <div className="space-y-1">
-                    {(() => {
-                      const t1Maps = team1.pickedMaps;
-                      const t2Maps = team2.pickedMaps;
-                      const schedule: { map: Map; team: string; index: number }[] = [];
-                      const maxLen = Math.max(t1Maps.length, t2Maps.length);
-                      for (let i = 0; i < maxLen; i++) {
-                        if (i < t1Maps.length) {
-                          schedule.push({ map: t1Maps[i], team: team1Name, index: schedule.length + 1 });
-                        }
-                        if (i < t2Maps.length) {
-                          schedule.push({ map: t2Maps[i], team: team2Name, index: schedule.length + 1 });
-                        }
-                      }
-                      schedule.push({
-                        map: wildcardMap,
-                        team: "Tiebreaker",
-                        index: schedule.length + 1,
-                      });
-                      return schedule.map((s) => {
+                    {mapSchedule.map((s) => {
                         const roomCodeKey =
                           s.team === "Tiebreaker" ? "tiebreaker" : `map-${s.index}`;
                         const dotClass =
@@ -813,8 +746,7 @@ export default function SpectatorView({
                           )}
                         </div>
                         );
-                      });
-                    })()}
+                      })}
                   </div>
                 </div>
 
@@ -851,18 +783,7 @@ export default function SpectatorView({
                           : "";
                       const formatVariant = (m: Map) =>
                         m.variant ? ` (${m.variant})` : "";
-                      const schedule: { map: Map; index: number }[] = [];
-                      const maxLen = Math.max(team1.pickedMaps.length, team2.pickedMaps.length);
-                      for (let i = 0; i < maxLen; i++) {
-                        if (i < team1.pickedMaps.length) {
-                          schedule.push({ map: team1.pickedMaps[i], index: schedule.length + 1 });
-                        }
-                        if (i < team2.pickedMaps.length) {
-                          schedule.push({ map: team2.pickedMaps[i], index: schedule.length + 1 });
-                        }
-                      }
-                      schedule.push({ map: wildcardMap, index: schedule.length + 1 });
-                      const maps = schedule
+                      const maps = mapSchedule
                         .map(
                           (entry) =>
                             `${entry.index}. ${entry.map.track}${formatVariant(entry.map)} ${entry.map.distance}m (${entry.map.surface})${formatConditions(entry.map)}`,
@@ -918,6 +839,20 @@ export default function SpectatorView({
           )}
         </div>
       </div>
+
+      <MatchStatisticsModal
+        isOpen={showMatchStatistics}
+        onClose={() => setShowMatchStatistics(false)}
+        team1Name={team1Name}
+        team2Name={team2Name}
+        team1Roster={team1DraftedUmas}
+        team2Roster={team2DraftedUmas}
+        statsByUmaId={statsByUmaId}
+        mvpUmaIds={mvpUmaIds}
+        topPoints={topPoints}
+        raceResults={raceResults}
+        mapSchedule={mapSchedule}
+      />
 
       {/* Team 2 Panel */}
       <div className="w-56 lg:w-72 xl:w-96 shrink-0 flex flex-col px-1 lg:px-2 min-h-0">
